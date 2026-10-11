@@ -16,6 +16,19 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
   await settled(page);
 });
+test.afterEach(async ({}, result) => {
+  if (process.env["CI"] && result.status !== result.expectedStatus) {
+    const message = result.errors
+      .map((error) => error.message ?? "Browser test failed")
+      .join("\n")
+      .replaceAll("%", "%25")
+      .replaceAll("\r", "%0D")
+      .replaceAll("\n", "%0A");
+    console.log(
+      `::error title=Browser test failed::${result.title}: ${message}`,
+    );
+  }
+});
 
 test("desktop linked views, exact artifact selection and visible provenance", async ({
   page,
@@ -101,7 +114,24 @@ test("compact workspace preserves context range, unclipped labels and visible co
   await page.locator("tbody .model-select").click();
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    await expect.poll(async () => (await chartState()).labels.length).toBe(1);
+    // Canvas resize and label layout settle on a later animation frame.
+    await expect
+      .poll(async () => {
+        const state = await chartState();
+        const label = state.labels[0];
+        const surfaceWidth = await page
+          .locator(".scatter-surface")
+          .evaluate((element) => element.clientWidth);
+        return (
+          state.width === surfaceWidth &&
+          state.labels.length === 1 &&
+          label.x >= 0 &&
+          label.y >= 0 &&
+          label.x + label.width <= state.width &&
+          label.y + label.height <= state.height
+        );
+      })
+      .toBe(true);
     const state = await chartState();
     expect(state.min).toBe(initial.min);
     expect(state.max).toBe(initial.max);
