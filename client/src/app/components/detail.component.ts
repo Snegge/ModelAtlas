@@ -1,4 +1,4 @@
-import { Component, inject, output } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { DatePipe } from "@angular/common";
 import { AtlasStore } from "../core/atlas.store";
@@ -39,6 +39,18 @@ import { MemoryComponent } from "./memory.component";
           This selection is exact. Hardware quantization preferences change the
           overview representative only.
         </p>
+        <button
+          class="button primary full"
+          (click)="s.toggleCompare(a.id)"
+          [attr.aria-pressed]="s.comparisons().includes(a.id)"
+        >
+          {{
+            s.comparisons().includes(a.id)
+              ? "Remove from comparison"
+              : "Compare this exact artifact"
+          }}
+          <span>{{ s.comparisons().includes(a.id) ? "−" : "+" }}</span>
+        </button>
         @if (e) {
           <div [class]="'detail-status ' + e.scenario.status">
             <span>{{ symbols[e.scenario.status] }}</span>
@@ -57,25 +69,13 @@ import { MemoryComponent } from "./memory.component";
               including host reserve.
             </p>
           }
-          @for (reason of e.scenario.reasons; track reason) {
+          @for (reason of e.scenario.reasons; track $index) {
             <p class="estimate-reason">{{ reason }}</p>
           }
-          @for (line of s.explanation(a.id); track line) {
+          @for (line of s.explanation(a.id); track $index) {
             <p class="insight">↳ {{ line }}</p>
           }
         }
-        <button
-          class="button primary full"
-          (click)="compare(a.id)"
-          [attr.aria-pressed]="s.comparisons().includes(a.id)"
-        >
-          {{
-            s.comparisons().includes(a.id)
-              ? "Remove from comparison"
-              : "Compare this exact artifact"
-          }}
-          <span>{{ s.comparisons().includes(a.id) ? "−" : "+" }}</span>
-        </button>
         <dl class="facts">
           <div>
             <dt>Total stored parameters</dt>
@@ -210,10 +210,4 @@ import { MemoryComponent } from "./memory.component";
 export class DetailComponent {
   readonly s = inject(AtlasStore);
   readonly symbols = STATUS_SYMBOL;
-  readonly comparisonRequested = output<void>();
-  compare(id: string) {
-    const wasCompared = this.s.comparisons().includes(id);
-    this.s.toggleCompare(id);
-    if (!wasCompared) this.comparisonRequested.emit();
-  }
 }

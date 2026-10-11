@@ -6,7 +6,7 @@ Bundled coverage: **38 distinct releases, 114 artifacts, six families**, includi
 
 The workspace starts with hardware controls and a linked constraint plot, searchable catalog and exact-artifact details. Pin a baseline, adjust hardware/context/quantization, inspect changes, keep up to three exact artifacts and export the current visible representatives as CSV.
 
-Hardware budgets are fully editable. Comparison sits directly below the plot; adding an artifact from details brings it into view with keyboard focus. A pinned baseline stays fixed while the graph responds to live settings; clear it and pin again to choose a new reference.
+Hardware budgets are fully editable. Comparison sits directly below the plot and fits the initial desktop screen with up to three artifacts, including paired baseline/live bars. Adding from details updates it inline without scrolling or moving keyboard focus. Chart explanations and coverage are available through **Chart info**; comparison breakdowns and sources expand on demand. A pinned baseline stays fixed while the graph responds to live settings; clear it and pin again to choose a new reference.
 
 ## Prerequisites
 

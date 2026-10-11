@@ -46,13 +46,52 @@ echarts.use([
           <div class="section-kicker">02 / EXPLORE THE CONSTRAINTS</div>
           <h2 id="chart-title">A map of possibilities</h2>
         </div>
-        <button
-          class="button small-button"
-          (click)="toggleZoom()"
-          [attr.aria-pressed]="zoom()"
-        >
-          {{ zoom() ? "Reset & exit zoom" : "Enable chart zoom" }}
-        </button>
+        <div class="chart-actions">
+          <details class="chart-info">
+            <summary>Chart info</summary>
+            <div class="chart-info-content">
+              <p>
+                <b>{{ plotted() }}</b> of {{ s.visible().length }} matching
+                releases plotted · one artifact per release.
+              </p>
+              @if (s.visible().length - plotted() > 0) {
+                <p>
+                  {{ s.visible().length - plotted() }} releases have no usable
+                  estimate or context coordinate. They remain accessible in the
+                  catalog.
+                </p>
+              }
+              <p>
+                Context uses a base-2 logarithmic scale. A request below the
+                plotted range meets every documented limit; a request above all
+                model limits meets none.
+              </p>
+              <p>
+                Shaded region meets GPU-memory and documented-context
+                constraints. Offloading may make points beyond the GPU boundary
+                possible.
+              </p>
+              <p>
+                Documented context is a model limit, not a guarantee of
+                effective runtime support or quality. Ordinary filters preserve
+                the axes.
+              </p>
+              @if (s.baseline()) {
+                <p>
+                  Blue diamond and circle outlines evaluate the focused exact
+                  artifact under baseline and live settings.
+                </p>
+              }
+            </div>
+          </details>
+          <button
+            class="button small-button"
+            (click)="toggleZoom()"
+            [attr.aria-pressed]="zoom()"
+          >
+            {{ zoom() ? "Reset & exit zoom" : "Enable chart zoom" }}
+          </button>
+        </div>
       </div>
       <div class="chart-legend">
         @for (status of statuses; track status) {
@@ -60,6 +99,12 @@ echarts.use([
             ><b>{{ symbols[status] }}</b
             >{{ labels[status] }}</span
           >
+        }
+        @if (
+          s.focusedEstimate()?.baseline?.totalGiB != null &&
+          s.focusedEstimate()?.scenario?.totalGiB != null
+        ) {
+          <span class="pair-legend"><b>◇</b> Baseline <b>○</b> Live</span>
         }
       </div>
       <div class="chart-boundaries" aria-label="Current chart boundaries">
@@ -73,20 +118,15 @@ echarts.use([
             >{{ chartSettings().contextTokens.toLocaleString() }} tokens</b
           ></span
         >
+        @if (chartSettings().contextTokens < contextExtent().min) {
+          <span class="chart-threshold-note">Below plotted range</span>
+        } @else if (chartSettings().contextTokens > contextExtent().limitMax) {
+          <span class="chart-threshold-note">Above all model limits</span>
+        }
       </div>
-      @if (chartSettings().contextTokens < contextExtent().min) {
-        <p class="chart-threshold-note">
-          Requested context is below the plotted range. Every documented limit
-          meets this request.
-        </p>
-      } @else if (chartSettings().contextTokens > contextExtent().limitMax) {
-        <p class="chart-threshold-note">
-          Requested context exceeds every documented model limit. No release
-          meets this context constraint.
-        </p>
-      }
       <div class="chart-axis-label">
-        Documented context limit · tokens · logarithmic scale (base 2)
+        <span>Context · tokens · log₂</span
+        ><span>Full GPU residency · GiB →</span>
       </div>
       <p id="chart-keyboard-help" class="sr-only">
         Use arrow keys to inspect points, Enter to select, and Escape to close
@@ -106,35 +146,6 @@ echarts.use([
       @if (s.evaluating() || !s.current()) {
         <div class="chart-updating" role="status">Updating estimates…</div>
       }
-      <div class="chart-caption">
-        <span
-          ><b>{{ plotted() }}</b> of {{ s.visible().length }} matching releases
-          plotted · one artifact per release</span
-        ><span>Full GPU residency estimate → GiB</span>
-      </div>
-      @if (s.baseline() && s.focusedEstimate()?.baseline) {
-        <p class="small focused-pair-note">
-          Blue <span aria-hidden="true">◇</span> diamond (baseline) and
-          <span aria-hidden="true">○</span> circle (live settings) outlines pair
-          the focused <b>{{ s.focusedArtifact()?.quantization }}</b> artifact
-          under baseline and scenario settings.
-        </p>
-      }
-      <p class="chart-reading">
-        <span class="region-swatch"></span> Shaded region meets GPU-memory and
-        documented-context constraints. Offloading may make points beyond the
-        GPU boundary possible.
-      </p>
-      @if (s.visible().length - plotted() > 0) {
-        <p class="small warning">
-          {{ s.visible().length - plotted() }} releases have no usable estimate
-          or context coordinate. They remain accessible in the catalog.
-        </p>
-      }
-      <p class="small muted chart-limit">
-        Documented context is a model limit, not a guarantee of effective
-        runtime support or quality. Ordinary filters preserve the axes.
-      </p>
     </section>
   `,
 })

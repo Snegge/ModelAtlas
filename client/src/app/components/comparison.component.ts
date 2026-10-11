@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  computed,
-  inject,
-  viewChild,
-} from "@angular/core";
+import { Component, computed, inject } from "@angular/core";
 import { AtlasStore } from "../core/atlas.store";
 import { MemoryComponent } from "./memory.component";
 @Component({
@@ -19,8 +13,7 @@ import { MemoryComponent } from "./memory.component";
     >
       <div class="panel-heading">
         <div>
-          <div class="section-kicker">KEPT IN VIEW / EXACT SELECTIONS</div>
-          <h2 #heading id="comparison-heading" tabindex="-1">
+          <h2 id="comparison-heading">
             Compare artifacts
             <span class="count-pill">{{ s.comparisons().length }} / 3</span>
           </h2>
@@ -31,13 +24,22 @@ import { MemoryComponent } from "./memory.component";
           </button>
         }
       </div>
-      @if (s.comparisons().length) {
-        <p class="small muted">
-          Each column uses one exact file set. Baseline and scenario bars
-          evaluate that same artifact, independent of overview quantization
-          changes. Bars share a {{ scale().toFixed(1) }} GiB scale across
-          compared artifacts.
+      @if (!s.catalog()) {
+        <p class="comparison-empty" role="status">
+          {{
+            s.loading()
+              ? "Loading saved artifacts…"
+              : "Load the catalog to compare saved artifacts."
+          }}
         </p>
+      } @else if (s.comparisons().length) {
+        <div class="comparison-key">
+          <span>Shared scale {{ scale().toFixed(1) }} GiB</span>
+          <span><i class="weights"></i>Weights</span
+          ><span><i class="cache"></i>KV cache</span>
+          <span><i class="runtime"></i>Runtime</span
+          ><span><i class="safety"></i>Safety</span>
+        </div>
         <div class="comparison-grid">
           @for (id of s.comparisons(); track id) {
             @let a = s.artifact(id)!;@let r = s.release(a.releaseId)!;
@@ -74,6 +76,7 @@ import { MemoryComponent } from "./memory.component";
                   [estimate]="e.scenario"
                   [baseline]="e.baseline"
                   [scaleGiB]="scale()"
+                  [compact]="true"
                 />
                 @if (
                   e.baseline &&
@@ -88,18 +91,56 @@ import { MemoryComponent } from "./memory.component";
                     GiB from baseline
                   </p>
                 }
-                <p class="small muted">{{ e.scenario.reasons[0] }}</p>
               }
-              <a [href]="a.sourceUrl" target="_blank" rel="noopener noreferrer"
-                >Artifact source ↗</a
-              >
+              <details class="comparison-more">
+                <summary>
+                  {{
+                    e?.scenario?.totalGiB === null
+                      ? "Why unknown & source"
+                      : "Breakdown & source"
+                  }}
+                </summary>
+                @if (e && e.scenario.totalGiB !== null) {
+                  <dl class="memory-legend">
+                    <div>
+                      <dt>Weights</dt>
+                      <dd>{{ e.scenario.weightsGiB!.toFixed(2) }} GiB</dd>
+                    </div>
+                    <div>
+                      <dt>KV cache</dt>
+                      <dd>{{ e.scenario.cacheGiB!.toFixed(2) }} GiB</dd>
+                    </div>
+                    <div>
+                      <dt>Runtime</dt>
+                      <dd>{{ e.scenario.runtimeGiB!.toFixed(2) }} GiB</dd>
+                    </div>
+                    <div>
+                      <dt>Safety</dt>
+                      <dd>{{ e.scenario.safetyGiB!.toFixed(2) }} GiB</dd>
+                    </div>
+                  </dl>
+                }
+                @if (e) {
+                  <p class="small muted">{{ e.scenario.reasons[0] }}</p>
+                }
+                <p class="small muted">
+                  One exact file set, evaluated under the live settings and
+                  optional baseline. Overview quantization changes preserve this
+                  selection.
+                </p>
+                <a
+                  [href]="a.sourceUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Artifact source ↗</a
+                >
+              </details>
             </article>
           }
         </div>
       } @else {
         <p class="comparison-empty">
-          Keep up to three exact artifacts here using <b>+</b> in the catalog or
-          the detail panel. Your choices remain visible when filters change.
+          Add up to three artifacts from details or the catalog.
         </p>
       }
     </section>
@@ -107,13 +148,6 @@ import { MemoryComponent } from "./memory.component";
 })
 export class ComparisonComponent {
   readonly s = inject(AtlasStore);
-  private readonly heading =
-    viewChild.required<ElementRef<HTMLHeadingElement>>("heading");
-  reveal() {
-    const heading = this.heading().nativeElement;
-    heading.focus({ preventScroll: true });
-    heading.scrollIntoView({ block: "start", behavior: "auto" });
-  }
   readonly scale = computed(() =>
     Math.max(
       1,

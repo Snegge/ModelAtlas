@@ -1,6 +1,8 @@
 import { test, expect, Page } from "@playwright/test";
 import fs from "node:fs";
 
+const browserErrors = new WeakMap<Page, string[]>();
+
 async function open(page: Page) {
   await page.goto("/");
   await expect(page.locator(".loading-state")).toHaveCount(0);
@@ -11,15 +13,27 @@ async function settled(page: Page) {
   await expect(page.getByRole("button", { name: "Export CSV" })).toBeEnabled();
 }
 test.beforeEach(async ({ page }) => {
+  const errors: string[] = [];
+  browserErrors.set(page, errors);
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await settled(page);
 });
-test.afterEach(async ({}, result) => {
-  if (process.env["CI"] && result.status !== result.expectedStatus) {
-    const message = result.errors
-      .map((error) => error.message ?? "Browser test failed")
+test.afterEach(async ({ page }, result) => {
+  const errors = browserErrors.get(page) ?? [];
+  if (
+    process.env["CI"] &&
+    (result.status !== result.expectedStatus || errors.length)
+  ) {
+    const message = [
+      ...result.errors.map((error) => error.message ?? "Browser test failed"),
+      ...errors,
+    ]
       .join("\n")
       .replaceAll("%", "%25")
       .replaceAll("\r", "%0D")
@@ -28,6 +42,7 @@ test.afterEach(async ({}, result) => {
       `::error title=Browser test failed::${result.title}: ${message}`,
     );
   }
+  expect(errors, "Browser console and runtime errors").toEqual([]);
 });
 
 test("desktop linked views, exact artifact selection and visible provenance", async ({
@@ -52,8 +67,7 @@ test("desktop linked views, exact artifact selection and visible provenance", as
     .getByRole("button", { name: "Compare this exact artifact" })
     .click();
   await expect(page.locator(".comparison-item")).toHaveCount(1);
-  await expect(page.locator("#comparison-heading")).toBeFocused();
-  await expect(page.locator("#comparison-heading")).toBeInViewport();
+  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
   await page
     .getByText("Provenance & complete file set", { exact: true })
     .click();
@@ -144,12 +158,12 @@ test("compact workspace preserves context range, unclipped labels and visible co
   await page.locator("#context-exact").fill("4096");
   await settled(page);
   await expect(page.locator(".chart-threshold-note")).toContainText(
-    "below the plotted range",
+    "Below plotted range",
   );
   await page.locator("#context-exact").fill("1048576");
   await settled(page);
   await expect(page.locator(".chart-threshold-note")).toContainText(
-    "exceeds every documented model limit",
+    "Above all model limits",
   );
   const final = await chartState();
   expect(final.min).toBe(initial.min);
@@ -157,8 +171,98 @@ test("compact workspace preserves context range, unclipped labels and visible co
   await page
     .getByRole("button", { name: "Compare this exact artifact" })
     .click();
-  await expect(page.locator("#comparison-heading")).toBeFocused();
-  await expect(page.locator("#comparison-heading")).toBeInViewport();
+  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
+});
+
+test("desktop comparison stays fully visible with three artifacts and a baseline without moving the page", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await expect(page.locator(".comparison-panel")).toBeInViewport({ ratio: 1 });
+  await expect(page.locator(".chart-info-content")).toBeHidden();
+  await expect(
+    page.locator(".chart-caption, .chart-reading, .chart-limit"),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Pin as baseline" }).click();
+  await settled(page);
+  await expect(page.locator("atlas-hardware .baseline-strip")).toHaveCount(1);
+  const artifacts = await page
+    .locator("#detail-artifact option")
+    .evaluateAll((options) =>
+      options.slice(0, 3).map((option) => (option as HTMLOptionElement).value),
+    );
+  expect(artifacts).toHaveLength(3);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  for (let index = 0; index < artifacts.length; index++) {
+    await page.locator("#detail-artifact").selectOption(artifacts[index]);
+    const button = page.getByRole("button", {
+      name: "Compare this exact artifact",
+    });
+    await button.focus();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    if (index === 0) await button.click();
+    else await button.press("Enter");
+    await expect(page.locator(".comparison-item")).toHaveCount(index + 1);
+    await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  }
+  let releaseCatalog!: () => void;
+  const catalogReady = new Promise<void>((resolve) => {
+    releaseCatalog = resolve;
+  });
+  await page.route("**/api/catalog", async (route) => {
+    await catalogReady;
+    await route.continue();
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  try {
+    await expect(page.locator(".comparison-empty")).toHaveText(
+      "Loading saved artifacts…",
+    );
+  } finally {
+    releaseCatalog();
+  }
+  await settled(page);
+  await page.unroute("**/api/catalog");
+  await expect(page.locator(".comparison-item")).toHaveCount(3);
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(page.locator(".comparison-panel")).toBeInViewport({
+      ratio: 1,
+    });
+    const panel = (await page.locator(".comparison-panel").boundingBox())!;
+    expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
+    for (const bar of await page
+      .locator(".comparison-item .memory-track")
+      .all()) {
+      await expect(bar).toBeInViewport({ ratio: 1 });
+    }
+  }
+  await page.locator(".chart-info summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".chart-info-content")).toContainText(
+    "37 of 38 matching releases plotted",
+  );
+  await expect(page.locator(".chart-info-content")).toContainText(
+    "no usable estimate",
+  );
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".chart-info-content")).toBeHidden();
+  await page.locator(".comparison-more summary").first().click();
+  await expect(
+    page.locator(".comparison-more[open] .memory-legend"),
+  ).toContainText("KV cache");
+  await expect(page.locator(".comparison-more[open] a")).toHaveAttribute(
+    "href",
+    /^https:\/\/huggingface\.co\//,
+  );
 });
 
 test("baseline remains pinned, restoration and reset work and persist", async ({
@@ -368,8 +472,7 @@ test("narrow viewport stays within the screen and supports the complete flow", a
     .getByRole("button", { name: "Compare this exact artifact" })
     .click();
   await expect(page.locator(".comparison-item")).toHaveCount(1);
-  await expect(page.locator("#comparison-heading")).toBeFocused();
-  await expect(page.locator("#comparison-heading")).toBeInViewport();
+  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
   const width = await page.evaluate(() => ({
     body: document.documentElement.scrollWidth,
     viewport: window.innerWidth,

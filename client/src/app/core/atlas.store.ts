@@ -283,18 +283,20 @@ export class AtlasStore {
   }
   explanation(id: string): string[] {
     const e = this.estimate(id),
-      a = this.artifact(id);
-    if (!e || !a) return [];
+      a = this.artifact(id),
+      evaluation = this.evaluation();
+    if (!e || !a || !evaluation) return [];
+    const before = evaluation.baseline,
+      now = evaluation.settings;
     const lines: string[] = [];
     if (
       e.baseline &&
+      before &&
       e.scenario.cacheGiB !== null &&
       e.baseline.cacheGiB !== null
     ) {
       const diff = e.scenario.cacheGiB - e.baseline.cacheGiB;
       if (Math.abs(diff) > 0.0001) {
-        const before = this.baseline()!,
-          now = this.hardware();
         const changed = [
           before.contextTokens !== now.contextTokens
             ? `context ${before.contextTokens.toLocaleString()} → ${now.contextTokens.toLocaleString()} tokens`
@@ -313,7 +315,7 @@ export class AtlasStore {
       if (
         Math.abs((e.scenario.totalGiB ?? 0) - (e.baseline.totalGiB ?? 0)) <
           0.0001 &&
-        this.hardware().gpuGiB !== this.baseline()?.gpuGiB
+        now.gpuGiB !== before.gpuGiB
       )
         lines.push(
           "Changing the GPU budget changes fit, not the artifact’s memory requirement.",

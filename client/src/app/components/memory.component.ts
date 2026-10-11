@@ -4,11 +4,17 @@ import { Estimate, STATUS_LABEL } from "../core/models";
   selector: "atlas-memory",
   standalone: true,
   template: `
-    <div class="memory-viz" aria-label="Estimated memory breakdown">
+    <div
+      class="memory-viz"
+      [class.compact-memory]="compact()"
+      aria-label="Estimated memory breakdown"
+    >
       @for (row of rows(); track row.name) {
         <div class="memory-row">
           <div class="memory-row-title">
-            <span>{{ row.name }} · same artifact</span
+            <span
+              >{{ compact() && row.name === "Scenario" ? "Live" : row.name
+              }}{{ compact() ? "" : " · same artifact" }}</span
             ><strong>{{
               row.e.totalGiB === null
                 ? "Unknown"
@@ -47,7 +53,7 @@ import { Estimate, STATUS_LABEL } from "../core/models";
           <span class="small muted">{{ label[row.e.status] }}</span>
         </div>
       }
-      @if (estimate().totalGiB !== null) {
+      @if (!compact() && estimate().totalGiB !== null) {
         <dl class="memory-legend">
           <div>
             <dt><i class="weights"></i>Weights</dt>
@@ -74,6 +80,7 @@ export class MemoryComponent {
   readonly estimate = input.required<Estimate>();
   readonly baseline = input<Estimate | null>(null);
   readonly scaleGiB = input<number | null>(null);
+  readonly compact = input(false);
   readonly label = STATUS_LABEL;
   readonly rows = computed(() => [
     ...(this.baseline() ? [{ name: "Baseline", e: this.baseline()! }] : []),
