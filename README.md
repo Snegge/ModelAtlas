@@ -8,6 +8,12 @@ The workspace starts with hardware controls and a linked constraint plot, search
 
 Hardware budgets are fully editable. Comparison sits directly below the plot and fits the initial desktop screen with up to three artifacts, including paired baseline/live bars. Adding from details updates it inline without scrolling or moving keyboard focus. Chart explanations and coverage are available through **Chart info**; comparison breakdowns and sources expand on demand. A pinned baseline stays fixed while the graph responds to live settings; clear it and pin again to choose a new reference.
 
+## Project pitch
+
+Choose **Project pitch** in the header, or open **http://127.0.0.1:4200/pitch** after starting the app. The five-slide, three-minute pitch has German slide content and speaker notes with English controls. Use Previous/Next, or focus the slide for Left/Right and Home/End. Fullscreen stays active when the final **Open live demo** action opens the Explorer; an Exit fullscreen control remains available. Explorer settings, focus, comparison and baseline are retained.
+
+**Speaker notes** are collapsed by default and visible to the audience when opened on a mirrored projector. Read the complete German script and timings in [project-pitch.md](docs/project-pitch.md) on another device.
+
 ## Prerequisites
 
 - **Node.js 24 LTS** (tested: 24.19.0) and npm (tested: 11.9.0 and 12.2.0).

@@ -9,11 +9,11 @@ Validated in the implementation cloud machine on 11 October 2026 using Node 24.1
 | `npm audit --prefix client` | **Zero vulnerabilities** after updating ECharts to 6.1.0 and Vitest to 4.1.11; audit also runs in CI |
 | Reusable `scripts/setup-cloud.sh` | Executed successfully: restore, install, .NET Release build, Angular production build |
 | ASP.NET Core Release build | Passed; zero warnings and errors |
-| Angular production build | Passed; approximately 967 kB initial uncompressed JS/CSS, 265 kB estimated transfer |
+| Angular production build | Passed; approximately 991 kB initial uncompressed JS/CSS, 271 kB estimated transfer |
 | C# estimator / real-catalog tests | **12 passed**, none skipped |
 | Frontend state / CSV utility tests | **6 passed**, none skipped |
 | Importer / real-snapshot tests | **5 passed**, none skipped |
-| Playwright browser/API flows | **13 passed**, none skipped |
+| Playwright browser/API flows | **19 passed**, none skipped, including six project-pitch flows |
 | axe WCAG-tagged checks | Passed for desktop, 390 px viewport and an unknown-model/baseline/comparison state; not an accessibility certification |
 | Backend and development proxy health/coverage requests | Passed: 38 releases / 114 artifacts |
 | Desktop and narrow-screen screenshots | Inspected; narrow-screen flow has no document-level horizontal overflow |
@@ -39,6 +39,16 @@ The populated importer was run against public Hugging Face sources during implem
 - Cancelled/slower obsolete evaluations cannot replace the newer configuration.
 - Custom hardware controls, filters, sort, fit-only mode, cache settings, offloading, routing, disclosures, zoom enable/reset and source links are functional.
 - Failed refresh tests preserve the last valid snapshot; bounded parsing can read quantization after tokenizer arrays.
+
+## Project pitch validation
+
+The `/pitch` route was loaded directly and refreshed in Chromium. Tests verify all five slides in order, German slide content and diagram descriptions, English navigation and controls, matching German speaker notes in `docs/project-pitch.md`, and a total scripted duration of 180 seconds. Only the active slide is mounted. Notes start collapsed and warn that a mirrored projector exposes them to the audience.
+
+Previous/Next, Left/Right, Home/End, end boundaries and visible keyboard focus were exercised. Shortcuts leave buttons, links, disclosure controls, inputs and editable elements alone. Reduced-motion checks disable illustration fades and progress transitions. WCAG-tagged axe checks pass for every slide at 1024×768, 1280×720, 1366×768, 1920×1080 and 390×844, plus expanded notes. Desktop slides, controls and the collapsed notes disclosure fit within those desktop viewports. Screenshots were inspected; additional checks found no document overflow at 320, 600 and 768 px widths.
+
+Real Fullscreen API entry and exit were tested. Fullscreen survives the final navigation to Explorer because its target is the persistent shell. Hardware, context, quantization, focused exact artifact, comparison, filters and baseline remain unchanged; the demo's fixed Exit fullscreen button stays available while scrolling. Unsupported and rejected fullscreen requests were tested with browser API overrides and provide feedback without claiming an active fullscreen state.
+
+Headless Chromium does not perform the native browser Escape exit. The real `document.exitFullscreen()` API was used to verify the same `fullscreenchange` synchronization path, including corrected controls after an external exit. Native Escape in a normal browser, other browser engines, actual classroom projection and screen-reader speech remain manual checks; no private presenter display is claimed.
 
 ## What this evidence does not establish
 
