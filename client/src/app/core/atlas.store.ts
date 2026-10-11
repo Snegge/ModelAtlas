@@ -102,16 +102,6 @@ export class AtlasStore {
   readonly focusedVisible = computed(() =>
     this.visible().some((p) => p.releaseId === this.focusedRelease()?.id),
   );
-  readonly counts = computed(() => ({
-    fit: this.visible().filter((p) => p.scenario.status === "gpu-fit").length,
-    offload: this.visible().filter((p) => p.scenario.status === "offload")
-      .length,
-    outside: this.visible().filter(
-      (p) => p.scenario.status === "outside-budget",
-    ).length,
-    unknown: this.visible().filter((p) => p.scenario.status === "unknown")
-      .length,
-  }));
   readonly changes = computed(() => ({
     gained: this.points().filter((p) => p.change === "gained").length,
     lost: this.points().filter((p) => p.change === "lost").length,

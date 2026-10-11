@@ -1,8 +1,7 @@
-import { Component, inject, signal } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { CdkAccordionModule } from "@angular/cdk/accordion";
 import { AtlasStore } from "../core/atlas.store";
-import { DEFAULTS } from "../core/models";
 @Component({
   selector: "atlas-hardware",
   standalone: true,
@@ -12,19 +11,6 @@ import { DEFAULTS } from "../core/models";
       <div class="section-kicker">01 / CONFIGURE</div>
       <h2 id="hardware-heading">Your hardware</h2>
       <p class="muted small">Adjust a budget. Watch the boundary move.</p>
-      <label for="preset">Hardware preset</label
-      ><select
-        id="preset"
-        [ngModel]="preset()"
-        (ngModelChange)="setPreset($event)"
-      >
-        <option value="custom">Custom configuration</option>
-        <option value="compact">Compact · 6 GiB GPU / 16 GiB RAM</option>
-        <option value="studio">Studio · 12 GiB GPU / 32 GiB RAM</option>
-        <option value="workstation">
-          Workstation · 24 GiB GPU / 64 GiB RAM
-        </option>
-      </select>
       <div class="control-block">
         <div class="control-title">
           <label for="gpu">GPU memory budget</label
@@ -189,14 +175,23 @@ import { DEFAULTS } from "../core/models";
           }
         </cdk-accordion-item></cdk-accordion
       >
-      <button
-        class="button primary full"
-        (click)="s.pin()"
-        [disabled]="!s.current()"
-      >
-        {{ s.baseline() ? "Replace pinned baseline" : "Pin as baseline" }}
-        <span>⌖</span>
-      </button>
+      @if (!s.baseline()) {
+        <button
+          class="button primary full"
+          (click)="s.pin()"
+          [disabled]="!s.current()"
+          aria-describedby="baseline-help"
+        >
+          Pin as baseline <span>⌖</span>
+        </button>
+        <p id="baseline-help" class="control-help baseline-help">
+          Save these settings as a fixed reference for your next changes.
+        </p>
+      } @else {
+        <p class="control-help baseline-help">
+          Baseline pinned. Clear it to choose a new reference.
+        </p>
+      }
       <button class="button subtle full" (click)="s.reset()">
         Reset exploration to defaults
       </button>
@@ -222,23 +217,5 @@ export class HardwareComponent {
   }
   context(v: number) {
     this.s.setHardware({ contextTokens: 2 ** v });
-  }
-  preset() {
-    const h = this.s.hardware();
-    return h.gpuGiB === 6 && h.ramGiB === 16
-      ? "compact"
-      : h.gpuGiB === 12 && h.ramGiB === 32
-        ? "studio"
-        : h.gpuGiB === 24 && h.ramGiB === 64
-          ? "workstation"
-          : "custom";
-  }
-  setPreset(p: string) {
-    const v: Record<string, number[]> = {
-      compact: [6, 16],
-      studio: [12, 32],
-      workstation: [24, 64],
-    };
-    if (v[p]) this.s.setHardware({ gpuGiB: v[p][0], ramGiB: v[p][1] });
   }
 }

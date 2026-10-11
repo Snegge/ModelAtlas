@@ -21,7 +21,7 @@ import {
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import { AtlasStore } from "../core/atlas.store";
-import { Point, STATUS_LABEL, STATUS_SYMBOL, Status } from "../core/models";
+import { STATUS_LABEL, STATUS_SYMBOL, Status } from "../core/models";
 echarts.use([
   ScatterChart,
   GridComponent,
@@ -62,6 +62,29 @@ echarts.use([
           >
         }
       </div>
+      <div class="chart-boundaries" aria-label="Current chart boundaries">
+        <span
+          ><i class="boundary-swatch gpu-boundary"></i>GPU budget
+          <b>{{ chartSettings().gpuGiB }} GiB</b></span
+        >
+        <span
+          ><i class="boundary-swatch context-boundary"></i>Requested context
+          <b
+            >{{ chartSettings().contextTokens.toLocaleString() }} tokens</b
+          ></span
+        >
+      </div>
+      @if (chartSettings().contextTokens < contextExtent().min) {
+        <p class="chart-threshold-note">
+          Requested context is below the plotted range. Every documented limit
+          meets this request.
+        </p>
+      } @else if (chartSettings().contextTokens > contextExtent().limitMax) {
+        <p class="chart-threshold-note">
+          Requested context exceeds every documented model limit. No release
+          meets this context constraint.
+        </p>
+      }
       <div class="chart-axis-label">
         Documented context limit · tokens · logarithmic scale (base 2)
       </div>
@@ -91,9 +114,10 @@ echarts.use([
       </div>
       @if (s.baseline() && s.focusedEstimate()?.baseline) {
         <p class="small focused-pair-note">
-          Blue B/S outlines pair the focused
-          <b>{{ s.focusedArtifact()?.quantization }}</b> artifact under baseline
-          and scenario settings.
+          Blue <span aria-hidden="true">◇</span> diamond (baseline) and
+          <span aria-hidden="true">○</span> circle (live settings) outlines pair
+          the focused <b>{{ s.focusedArtifact()?.quantization }}</b> artifact
+          under baseline and scenario settings.
         </p>
       }
       <p class="chart-reading">
@@ -126,6 +150,21 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   ];
   readonly labels = STATUS_LABEL;
   readonly symbols = STATUS_SYMBOL;
+  readonly chartSettings = computed(
+    () => this.s.evaluation()?.settings ?? this.s.hardware(),
+  );
+  readonly contextExtent = computed(() => {
+    const contexts =
+      this.s
+        .catalog()
+        ?.releases.map((r) => r.contextLimit ?? 0)
+        .filter((c) => c > 0) ?? [];
+    const min =
+      2 **
+      Math.floor(Math.log2(contexts.length ? Math.min(...contexts) : 8192));
+    const limitMax = contexts.length ? Math.max(...contexts) : 131072;
+    return { min, limitMax, max: limitMax };
+  });
   readonly plotted = computed(
     () =>
       this.s
@@ -186,20 +225,18 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     const allTotals = all.map((p) => p.scenario.totalGiB ?? 0);
     const exact = this.s.focusedEstimate();
     const maxX =
-      Math.max(
-        24,
-        h.gpuGiB * 1.15,
-        ...allTotals,
-        exact?.baseline?.totalGiB ?? 0,
-      ) * 1.08;
-    const contexts =
-      this.s
-        .catalog()
-        ?.releases.map((r) => r.contextLimit ?? 0)
-        .filter((c) => c > 0) ?? [];
-    const maxY =
-      2 ** Math.ceil(Math.log2(Math.max(32768, ...contexts, h.contextTokens)));
-    const minY = 2 ** Math.floor(Math.log2(Math.min(1024, ...contexts)));
+      Math.ceil(
+        (Math.max(
+          24,
+          h.gpuGiB * 1.15,
+          ...allTotals,
+          exact?.baseline?.totalGiB ?? 0,
+          exact?.scenario.totalGiB ?? 0,
+        ) *
+          1.08) /
+          10,
+      ) * 10;
+    const { min: minY, max: maxY } = this.contextExtent();
     const colors: Record<Status, string> = {
       "gpu-fit": "#26745a",
       offload: "#b47b18",
@@ -217,6 +254,24 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
       type: "scatter",
       symbol: symbols[status],
       symbolSize: 12,
+      clip: false,
+      labelLayout: ({
+        labelRect,
+      }: {
+        labelRect: { x: number; y: number; width: number };
+      }) => ({
+        x: Math.max(
+          8,
+          Math.min(
+            labelRect.x,
+            this.surface().nativeElement.clientWidth - labelRect.width - 8,
+          ),
+        ),
+        y: Math.max(8, labelRect.y),
+        align: "left",
+        verticalAlign: "top",
+        hideOverlap: true,
+      }),
       data: visible
         .filter(
           (p) =>
@@ -263,38 +318,33 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
               silent: true,
               symbol: "none",
               lineStyle: { color: "#294e42", type: "dashed", width: 1.5 },
-              label: {
-                fontSize: 11,
-                color: "#294e42",
-                backgroundColor: "#f5f7f1",
-                padding: 4,
-              },
+              label: { show: false },
               data: [
                 {
                   xAxis: h.gpuGiB,
-                  label: {
-                    formatter: `GPU budget · ${h.gpuGiB} GiB`,
-                    position: "insideEndTop",
-                  },
                 },
-                {
-                  yAxis: h.contextTokens,
-                  label: {
-                    formatter: `Requested · ${h.contextTokens.toLocaleString()} tokens`,
-                    position: "insideStartTop",
-                  },
-                },
+                ...(h.contextTokens >= minY && h.contextTokens <= maxY
+                  ? [
+                      {
+                        yAxis: h.contextTokens,
+                        lineStyle: { color: "#7a6a47", type: "dotted" },
+                      },
+                    ]
+                  : []),
               ],
             },
             markArea: {
               silent: true,
               itemStyle: { color: "rgba(99,156,101,.09)" },
-              data: [
-                [
-                  { xAxis: 0, yAxis: h.contextTokens },
-                  { xAxis: h.gpuGiB, yAxis: maxY },
-                ],
-              ],
+              data:
+                h.contextTokens <= maxY
+                  ? [
+                      [
+                        { xAxis: 0, yAxis: Math.max(minY, h.contextTokens) },
+                        { xAxis: h.gpuGiB, yAxis: maxY },
+                      ],
+                    ]
+                  : [],
             },
           }
         : {}),
@@ -313,6 +363,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
         type: "scatter",
         symbol: "circle",
         symbolSize: 16,
+        clip: false,
         itemStyle: {
           color: "transparent",
           borderColor: "#294c85",
@@ -324,24 +375,13 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
             releaseId: release.id,
             artifactId: focusedArtifact.id,
             configuration: "Baseline",
-            label: {
-              show: true,
-              formatter: "B",
-              position: "bottom",
-              color: "#294c85",
-            },
+            symbol: "diamond",
           },
           {
             value: [exact.scenario.totalGiB, release.contextLimit],
             releaseId: release.id,
             artifactId: focusedArtifact.id,
             configuration: "Scenario",
-            label: {
-              show: true,
-              formatter: "S",
-              position: "bottom",
-              color: "#294c85",
-            },
           },
         ],
         markLine: {
@@ -362,14 +402,19 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
       {
         animation: !matchMedia("(prefers-reduced-motion: reduce)").matches,
         animationDurationUpdate: 180,
-        grid: { left: 64, right: 36, top: 25, bottom: this.zoom() ? 65 : 34 },
+        grid: { left: 58, right: 48, top: 56, bottom: this.zoom() ? 72 : 44 },
         aria: { enabled: true },
         xAxis: {
           type: "value",
           min: 0,
           max: maxX,
           name: "",
-          axisLabel: { color: "#61726b", fontSize: 11 },
+          axisLabel: {
+            color: "#61726b",
+            fontSize: 11,
+            formatter: (v: number) =>
+              v.toLocaleString("en-US", { maximumFractionDigits: 1 }),
+          },
           splitLine: { lineStyle: { color: "#e3e8df" } },
         },
         yAxis: {

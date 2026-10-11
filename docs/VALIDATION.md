@@ -13,7 +13,7 @@ Validated in the implementation cloud machine on 11 October 2026 using Node 24.1
 | C# estimator / real-catalog tests | **12 passed**, none skipped |
 | Frontend state / CSV utility tests | **6 passed**, none skipped |
 | Importer / real-snapshot tests | **5 passed**, none skipped |
-| Playwright browser/API flows | **11 passed**, none skipped |
+| Playwright browser/API flows | **12 passed**, none skipped |
 | axe WCAG-tagged checks | Passed for desktop, 390 px viewport and an unknown-model/baseline/comparison state; not an accessibility certification |
 | Backend and development proxy health/coverage requests | Passed: 38 releases / 114 artifacts |
 | Desktop and narrow-screen screenshots | Inspected; narrow-screen flow has no document-level horizontal overflow |
@@ -28,13 +28,15 @@ The populated importer was run against public Hugging Face sources during implem
 - Missing KV metadata, unsupported architectures and MoE produce explicit Unknown results.
 - VRAM and RAM remain separate; partial weight placement conserves stored weights; a 2 GiB host reserve is required; zero VRAM does not masquerade as CPU-only support.
 - Baseline snapshots do not mutate during scenario changes; restoration, clearing, reset and persistence work.
+- The workspace omits presets, the introductory banner and redundant overview counts. Comparison follows the plot and receives keyboard focus and scroll visibility when an artifact is added from details.
+- The full-catalog context axis stays at 8k–128k during filters and out-of-range requests. Boundary values are outside the canvas; the complete selected 128k model label fits inside the rendered canvas on desktop and a 390 px viewport.
 - Quantization preference can change overview representatives while the inspected exact artifact stays unchanged.
 - Catalog focus, pointer selection and arrow-key plot navigation synchronize with details; exact variant selection retains the release highlight.
 - A fourth comparison is rejected with an explanation; the first three remain intact. Explicit removal permits a new addition.
 - Empty searches recover; comparison/detail selections persist outside filters.
 - Exported settings, units, source identities and artifact estimates agree with the canonical backend evaluation.
 - Cancelled/slower obsolete evaluations cannot replace the newer configuration.
-- Presets, filters, sort, fit-only mode, cache settings, offloading, routing, disclosures, zoom enable/reset and source links are functional.
+- Custom hardware controls, filters, sort, fit-only mode, cache settings, offloading, routing, disclosures, zoom enable/reset and source links are functional.
 - Failed refresh tests preserve the last valid snapshot; bounded parsing can read quantization after tokenizer arrays.
 
 ## What this evidence does not establish

@@ -39,6 +39,8 @@ test("desktop linked views, exact artifact selection and visible provenance", as
     .getByRole("button", { name: "Compare this exact artifact" })
     .click();
   await expect(page.locator(".comparison-item")).toHaveCount(1);
+  await expect(page.locator("#comparison-heading")).toBeFocused();
+  await expect(page.locator("#comparison-heading")).toBeInViewport();
   await page
     .getByText("Provenance & complete file set", { exact: true })
     .click();
@@ -47,6 +49,86 @@ test("desktop linked views, exact artifact selection and visible provenance", as
   );
   await page.screenshot({ path: "test-results/desktop.png", fullPage: true });
   expect(errors).toEqual([]);
+});
+
+test("compact workspace preserves context range, unclipped labels and visible comparison", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(
+    page.locator(".workspace-intro, .overview-counts, #preset"),
+  ).toHaveCount(0);
+  await expect(
+    page.locator("atlas-chart + atlas-comparison + atlas-catalog"),
+  ).toHaveCount(1);
+  const chartState = () =>
+    page.evaluate(() => {
+      // Inspect the rendered canvas chart in the development build, rather than
+      // duplicating its scale calculations in the test.
+      const component = (window as any).ng.getComponent(
+        document.querySelector("atlas-chart"),
+      );
+      const chart = component.chart;
+      const options = chart.getOption();
+      const labels = chart
+        .getZr()
+        .storage.getDisplayList()
+        .filter(
+          (element: any) =>
+            element.style?.text === "DeepSeek-R1-Distill-Llama-8B",
+        )
+        .map((element: any) => {
+          const box = element.getBoundingRect().clone();
+          if (element.transform) box.applyTransform(element.transform);
+          return { x: box.x, y: box.y, width: box.width, height: box.height };
+        });
+      return {
+        min: options.yAxis[0].min,
+        max: options.yAxis[0].max,
+        boundaryLabels: options.series
+          .filter((series: any) => series.markLine)
+          .map((series: any) => series.markLine.label.show),
+        labels,
+        width: chart.getWidth(),
+        height: chart.getHeight(),
+      };
+    });
+  const initial = await chartState();
+  expect(initial.min).toBe(8192);
+  expect(initial.max).toBe(131072);
+  expect(initial.boundaryLabels.every((shown: boolean) => !shown)).toBe(true);
+  await page.locator("#search").fill("DeepSeek-R1-Distill-Llama-8B");
+  await page.locator("tbody .model-select").click();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect.poll(async () => (await chartState()).labels.length).toBe(1);
+    const state = await chartState();
+    expect(state.min).toBe(initial.min);
+    expect(state.max).toBe(initial.max);
+    const label = state.labels[0];
+    expect(label.x).toBeGreaterThanOrEqual(0);
+    expect(label.y).toBeGreaterThanOrEqual(0);
+    expect(label.x + label.width).toBeLessThanOrEqual(state.width);
+    expect(label.y + label.height).toBeLessThanOrEqual(state.height);
+  }
+  await page.locator("#context-exact").fill("4096");
+  await settled(page);
+  await expect(page.locator(".chart-threshold-note")).toContainText(
+    "below the plotted range",
+  );
+  await page.locator("#context-exact").fill("1048576");
+  await settled(page);
+  await expect(page.locator(".chart-threshold-note")).toContainText(
+    "exceeds every documented model limit",
+  );
+  const final = await chartState();
+  expect(final.min).toBe(initial.min);
+  expect(final.max).toBe(initial.max);
+  await page
+    .getByRole("button", { name: "Compare this exact artifact" })
+    .click();
+  await expect(page.locator("#comparison-heading")).toBeFocused();
+  await expect(page.locator("#comparison-heading")).toBeInViewport();
 });
 
 test("baseline remains pinned, restoration and reset work and persist", async ({
@@ -58,6 +140,12 @@ test("baseline remains pinned, restoration and reset work and persist", async ({
   await page.locator("#gpu-exact").fill("24");
   await settled(page);
   await expect(page.locator(".baseline-values")).toContainText("12 GiB GPU");
+  await expect(
+    page.getByRole("button", { name: "Pin as baseline" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Replace pinned baseline" }),
+  ).toHaveCount(0);
   await expect(page.locator(".baseline-values")).toContainText("8,192 tokens");
   await expect(page.locator("atlas-detail .memory-row")).toHaveCount(2);
   const exactArtifact = await page.locator("#detail-artifact").inputValue();
@@ -189,10 +277,11 @@ test("obsolete responses do not overwrite newer hardware", async ({ page }) => {
   await expect(page.locator(".chart-updating")).toHaveCount(0);
 });
 
-test("search, family, artifact availability, fits, sorting, presets and advanced settings work", async ({
+test("search, family, artifact availability, fits, sorting, custom hardware and advanced settings work", async ({
   page,
 }) => {
-  await page.locator("#preset").selectOption("workstation");
+  await page.locator("#gpu-exact").fill("24");
+  await page.locator("#ram-exact").fill("64");
   await settled(page);
   await expect(page.locator("#gpu-exact")).toHaveValue("24");
   await page.locator("#family-filter").selectOption("Qwen");
@@ -237,7 +326,8 @@ test("narrow viewport stays within the screen and supports the complete flow", a
   await page.setViewportSize({ width: 390, height: 844 });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.locator("#preset").selectOption("compact");
+  await page.locator("#gpu-exact").fill("6");
+  await page.locator("#ram-exact").fill("16");
   await settled(page);
   await page.getByRole("button", { name: "Pin as baseline" }).click();
   await settled(page);
@@ -248,6 +338,8 @@ test("narrow viewport stays within the screen and supports the complete flow", a
     .getByRole("button", { name: "Compare this exact artifact" })
     .click();
   await expect(page.locator(".comparison-item")).toHaveCount(1);
+  await expect(page.locator("#comparison-heading")).toBeFocused();
+  await expect(page.locator("#comparison-heading")).toBeInViewport();
   const width = await page.evaluate(() => ({
     body: document.documentElement.scrollWidth,
     viewport: window.innerWidth,

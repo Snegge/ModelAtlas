@@ -1,4 +1,10 @@
-import { Component, computed, inject } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  viewChild,
+} from "@angular/core";
 import { AtlasStore } from "../core/atlas.store";
 import { MemoryComponent } from "./memory.component";
 @Component({
@@ -6,11 +12,15 @@ import { MemoryComponent } from "./memory.component";
   standalone: true,
   imports: [MemoryComponent],
   template: `
-    <section class="comparison-panel" aria-labelledby="comparison-heading">
+    <section
+      id="artifact-comparison"
+      class="comparison-panel"
+      aria-labelledby="comparison-heading"
+    >
       <div class="panel-heading">
         <div>
           <div class="section-kicker">KEPT IN VIEW / EXACT SELECTIONS</div>
-          <h2 id="comparison-heading">
+          <h2 #heading id="comparison-heading" tabindex="-1">
             Compare artifacts
             <span class="count-pill">{{ s.comparisons().length }} / 3</span>
           </h2>
@@ -97,6 +107,13 @@ import { MemoryComponent } from "./memory.component";
 })
 export class ComparisonComponent {
   readonly s = inject(AtlasStore);
+  private readonly heading =
+    viewChild.required<ElementRef<HTMLHeadingElement>>("heading");
+  reveal() {
+    const heading = this.heading().nativeElement;
+    heading.focus({ preventScroll: true });
+    heading.scrollIntoView({ block: "start", behavior: "auto" });
+  }
   readonly scale = computed(() =>
     Math.max(
       1,

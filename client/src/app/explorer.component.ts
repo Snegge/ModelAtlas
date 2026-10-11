@@ -1,5 +1,4 @@
 import { Component, inject } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import { AtlasStore } from "./core/atlas.store";
 import { HardwareComponent } from "./components/hardware.component";
 import { ChartComponent } from "./components/chart.component";
@@ -10,7 +9,6 @@ import { ComparisonComponent } from "./components/comparison.component";
   selector: "atlas-explorer",
   standalone: true,
   imports: [
-    DatePipe,
     HardwareComponent,
     ChartComponent,
     CatalogComponent,
@@ -18,29 +16,7 @@ import { ComparisonComponent } from "./components/comparison.component";
     ComparisonComponent,
   ],
   template: `
-    <div class="workspace-intro">
-      <div>
-        <div class="section-kicker">
-          LOCAL LANGUAGE MODELS / CONSTRAINT EXPLORER
-        </div>
-        <h1>What changes when your hardware does?</h1>
-        <p>
-          Explore memory, context and quantization. Pin a baseline to see the
-          difference.
-        </p>
-      </div>
-      <div class="catalog-stamp">
-        @if (s.coverage(); as c) {
-          <strong
-            >{{ c.releaseCount }} releases <span>/</span>
-            {{ c.artifactCount }} artifacts</strong
-          ><span
-            >Verified public metadata ·
-            {{ c.retrievedAt | date: "dd MMM yyyy" : "UTC" }}</span
-          >
-        }
-      </div>
-    </div>
+    <h1 class="sr-only">Model Atlas workspace</h1>
     @if (s.error()) {
       <div class="error-banner" role="alert">
         <div>
@@ -66,7 +42,7 @@ import { ComparisonComponent } from "./components/comparison.component";
             <div class="baseline-top">
               <div>
                 <div class="section-kicker" id="baseline-heading">
-                  PINNED BASELINE → CURRENT SCENARIO
+                  FIXED REFERENCE → LIVE SETTINGS
                 </div>
                 <div class="baseline-values">
                   <b>{{ b.gpuGiB }} GiB GPU</b
@@ -101,33 +77,16 @@ import { ComparisonComponent } from "./components/comparison.component";
               >
             </div>
             <p class="tiny muted">
-              Across the full catalog; feasible means estimated GPU fit or
-              possible weight offloading within the documented context. Exact
-              artifacts are paired in details and comparison.
+              The baseline stays fixed as you adjust the live settings. Across
+              the full catalog, feasible means estimated GPU fit or possible
+              weight offloading within the documented context. Exact artifacts
+              are paired in details and comparison.
             </p>
           </section>
         }
-        <div class="overview-counts" aria-live="polite">
-          <span
-            ><b class="gpu-fit">{{ s.counts().fit }}</b> Estimated GPU
-            fits</span
-          ><span
-            ><b class="offload">{{ s.counts().offload }}</b> Possible
-            offloads</span
-          ><span
-            ><b class="outside-budget">{{ s.counts().outside }}</b> Outside
-            constraints</span
-          ><span
-            ><b class="unknown">{{ s.counts().unknown }}</b> Insufficient
-            data</span
-          >
-          @if (!s.current()) {
-            <span class="updating-label">Updating…</span>
-          }
-        </div>
-        <atlas-chart /><atlas-catalog /><atlas-comparison />
+        <atlas-chart /><atlas-comparison #comparison /><atlas-catalog />
       </div>
-      <atlas-detail />
+      <atlas-detail (comparisonRequested)="comparison.reveal()" />
     </div>
     @if (s.notice()) {
       <div class="notice-banner" role="status">

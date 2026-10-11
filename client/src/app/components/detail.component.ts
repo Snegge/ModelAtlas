@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { DatePipe } from "@angular/common";
 import { AtlasStore } from "../core/atlas.store";
@@ -66,7 +66,7 @@ import { MemoryComponent } from "./memory.component";
         }
         <button
           class="button primary full"
-          (click)="s.toggleCompare(a.id)"
+          (click)="compare(a.id)"
           [attr.aria-pressed]="s.comparisons().includes(a.id)"
         >
           {{
@@ -210,4 +210,10 @@ import { MemoryComponent } from "./memory.component";
 export class DetailComponent {
   readonly s = inject(AtlasStore);
   readonly symbols = STATUS_SYMBOL;
+  readonly comparisonRequested = output<void>();
+  compare(id: string) {
+    const wasCompared = this.s.comparisons().includes(id);
+    this.s.toggleCompare(id);
+    if (!wasCompared) this.comparisonRequested.emit();
+  }
 }

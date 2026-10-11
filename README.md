@@ -6,6 +6,8 @@ Bundled coverage: **38 distinct releases, 114 artifacts, six families**, includi
 
 The workspace starts with hardware controls and a linked constraint plot, searchable catalog and exact-artifact details. Pin a baseline, adjust hardware/context/quantization, inspect changes, keep up to three exact artifacts and export the current visible representatives as CSV.
 
+Hardware budgets are fully editable. Comparison sits directly below the plot; adding an artifact from details brings it into view with keyboard focus. A pinned baseline stays fixed while the graph responds to live settings; clear it and pin again to choose a new reference.
+
 ## Prerequisites
 
 - **Node.js 24 LTS** (tested: 24.19.0) and npm (tested: 11.9.0 and 12.2.0).
