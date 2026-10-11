@@ -8,7 +8,7 @@ The workspace starts with hardware controls and a linked constraint plot, search
 
 ## Prerequisites
 
-- **Node.js 24 LTS** (tested: 24.19.0) and npm (tested: 11.9.0).
+- **Node.js 24 LTS** (tested: 24.19.0) and npm (tested: 11.9.0 and 12.2.0).
 - **.NET SDK 10.0.401** (or a later patch in the 10.0.4xx feature band), pinned in `global.json`. .NET 10 is an LTS release.
 - **Python 3.10+** only for catalog refresh and importer tests; the application itself needs no Python.
 - Git. Installation needs npm/NuGet network access. Normal use needs **no external API credentials and no external API access**.
@@ -77,6 +77,8 @@ Invoke-RestMethod http://127.0.0.1:5050/api/health
 ```
 
 The Angular development proxy forwards `/api/**` to port 5050; no manual CORS configuration is required. Stop each process with Ctrl+C. Servers bind to loopback for local development. Processes must be started again after restoring a cloud environment snapshot.
+
+The npm funding notice is informational. npm 12 requires approval for dependency install scripts: `client/package.json` includes exact-version approvals for the four reviewed native build helpers (`@parcel/watcher`, `esbuild`, `lmdb`, `msgpackr-extract`). A clean `npm ci --prefix client` uses these approvals automatically. If dependency updates introduce a new script or version, review it with `npm install-scripts ls --prefix client` before approving that specific package. Avoid blanket approvals or `npm audit fix --force`; use `npm audit --prefix client` to inspect advisories and test targeted dependency updates.
 
 ## VS Code
 

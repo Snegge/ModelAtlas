@@ -15,6 +15,7 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: dotnet restore server/ModelAtlas.Tests --locked-mode
       - run: npm ci --prefix client
+      - run: npm audit --prefix client
       - run: python3 -m unittest discover -s scripts -p 'test_*.py'
       - run: dotnet test server/ModelAtlas.Tests --no-restore
       - run: npm test --prefix client

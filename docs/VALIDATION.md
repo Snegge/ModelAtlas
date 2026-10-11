@@ -1,13 +1,15 @@
 # Validation evidence
 
-Validated in the implementation cloud machine on 11 October 2026 using Node 24.19.0, npm 11.9.0, .NET SDK 10.0.401 / runtime 10.0.12, Python 3.12.14 and installed Chromium through Playwright.
+Validated in the implementation cloud machine on 11 October 2026 using Node 24.19.0, npm 11.9.0 and 12.2.0, .NET SDK 10.0.401 / runtime 10.0.12, Python 3.12.14 and installed Chromium through Playwright.
 
 | Check | Result |
 |---|---|
 | Locked NuGet restore and `npm ci` | Passed; dependency lockfiles included |
+| npm 12.2.0 clean install and script policy | Passed; no pending install-script approvals; four reviewed helpers approved by exact version |
+| `npm audit --prefix client` | **Zero vulnerabilities** after updating ECharts to 6.1.0 and Vitest to 4.1.11; audit also runs in CI |
 | Reusable `scripts/setup-cloud.sh` | Executed successfully: restore, install, .NET Release build, Angular production build |
 | ASP.NET Core Release build | Passed; zero warnings and errors |
-| Angular production build | Passed; approximately 959 kB initial uncompressed JS/CSS, 261 kB estimated transfer |
+| Angular production build | Passed; approximately 966 kB initial uncompressed JS/CSS, 265 kB estimated transfer |
 | C# estimator / real-catalog tests | **12 passed**, none skipped |
 | Frontend state / CSV utility tests | **6 passed**, none skipped |
 | Importer / real-snapshot tests | **5 passed**, none skipped |
