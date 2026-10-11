@@ -316,6 +316,7 @@ test("comparison limit never replaces a selection, filters retain exact choices,
 }) => {
   const buttons = page.locator("tbody .compare-toggle");
   for (let i = 0; i < 3; i++) await buttons.nth(i).click();
+  await expect(page.locator(".comparison-item")).toHaveCount(3);
   const before = await page
     .locator(".comparison-title .model-select")
     .allTextContents();
