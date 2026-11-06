@@ -1,11 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-async function boot(page: any) {
+async function boot(page: Page) {
   await page.goto("/");
   await expect(page.locator(".recommendation")).toHaveCount(5);
 }
 async function hardware(
-  page: any,
+  page: Page,
   gpu = "NVIDIA GeForce RTX 3060 · 12 GB",
   ram = "48",
 ) {
@@ -14,36 +14,61 @@ async function hardware(
   await page.getByLabel("System RAM · GiB (0–1024)").fill(ram);
   await expect(page.locator(".recommendation").first()).toContainText("/ 100");
 }
-test("empty hardware and demo popular models, search and all four views", async ({
+async function view(page: Page, name: string) {
+  await page.getByRole("button", { name, exact: true }).click();
+}
+async function addFromBars(page: Page, index: number) {
+  await view(page, "Bars");
+  await page.locator(".score-row").nth(index).click();
+  await page
+    .locator(".preview")
+    .getByRole("button", { name: "Compare +", exact: true })
+    .click();
+}
+
+test("clean catalog views preserve search and chart comparisons", async ({
   page,
 }) => {
   await boot(page);
   await expect(
-    page.getByRole("heading", { name: "Popular models", exact: true }),
+    page.getByRole("region", { name: "Popular models · demo popularity" }),
   ).toBeVisible();
   await expect(
     page.getByLabel("VRAM · GiB (0–192)", { exact: true }),
   ).toHaveValue("");
-  await page
-    .getByRole("button", { name: "Compare +", exact: true })
-    .last()
-    .click();
+  await expect(
+    page.locator(".workspace-toolbar,.recommendation-topline,.carousel-footer"),
+  ).toHaveCount(0);
+  await expect(page.locator(".new-catalog th")).toHaveCount(6);
+  await expect(page.locator(".new-catalog tbody button")).toHaveCount(0);
+  await addFromBars(page, 0);
+  await expect(page.locator(".comparison-panel article")).toHaveCount(1);
   await page.getByLabel("Search model or provider").fill("Qwen");
-  for (const view of ["Tiles", "Bars", "Plot", "Table"]) {
-    await page.getByRole("button", { name: view, exact: true }).click();
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
     await expect(page.getByLabel("Search model or provider")).toHaveValue(
       "Qwen",
     );
-    if (view === "Bars" || view === "Plot") {
+    if (name === "Bars" || name === "Plot")
       await expect(
         page.getByRole("heading", { name: "Compare 1/3" }),
       ).toBeVisible();
-    } else await expect(page.locator(".comparison-panel")).toHaveCount(0);
+    else
+      await expect(page.locator(".comparison-panel,.preview")).toHaveCount(0);
+    if (name === "Tiles") {
+      await expect(page.locator(".model-tile details")).toHaveCount(0);
+      await expect(
+        page
+          .locator(".model-tile")
+          .getByRole("button", { name: /Compare|Remove from comparison/ }),
+      ).toHaveCount(0);
+    }
   }
   await page.getByLabel("Search model or provider").fill("no-such-model");
   await expect(page.getByText("No models match your search.")).toBeVisible();
 });
-test("profiles, manual overrides, ranking invariance and direct detail simulation", async ({
+
+test("profiles, overrides and All tasks recommendations stay independent of catalog filters", async ({
   page,
 }) => {
   await boot(page);
@@ -62,22 +87,33 @@ test("profiles, manual overrides, ranking invariance and direct detail simulatio
   await expect(
     page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
   ).toHaveValue("936");
-  const names = await page
+  const recommendations = await page
     .locator(".recommendation .summary-heading")
     .allTextContents();
+  const oldScores = await page
+    .locator(".new-catalog tbody tr td:nth-child(6)")
+    .allTextContents();
+  await page.getByRole("button", { name: "Coding", exact: true }).click();
+  expect(
+    await page.locator(".recommendation .summary-heading").allTextContents(),
+  ).toEqual(recommendations);
+  expect(
+    await page
+      .locator(".new-catalog tbody tr td:nth-child(6)")
+      .allTextContents(),
+  ).not.toEqual(oldScores);
   await page.getByLabel("Search model or provider").fill("Qwen");
   await page.getByRole("button", { name: "Parameters", exact: true }).click();
   expect(
     await page.locator(".recommendation .summary-heading").allTextContents(),
-  ).toEqual(names);
+  ).toEqual(recommendations);
   await page
-    .locator(".recommendation")
-    .first()
+    .locator(".recommendation:visible")
     .getByRole("link", { name: "Details →" })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Why this model is recommended" }),
-  ).toBeVisible();
+  await expect(page.locator(".recommendation-reason")).toContainText(
+    "All tasks",
+  );
   await page.getByRole("button", { name: "Start simulation" }).click();
   await expect(page.locator(".chat-output")).not.toBeEmpty();
   await page.getByRole("button", { name: "Stop", exact: true }).click();
@@ -89,32 +125,27 @@ test("profiles, manual overrides, ranking invariance and direct detail simulatio
   await page.getByRole("link", { name: "← Explorer", exact: true }).click();
   await expect(page.getByLabel("Search model or provider")).toHaveValue("Qwen");
 });
-test("comparison limit, exact variants and persistence", async ({ page }) => {
+
+test("comparison limit, exact variants and persistence through the chart preview", async ({
+  page,
+}) => {
   await boot(page);
-  const buttons = page
-    .locator(".new-catalog")
-    .getByRole("button", { name: "Compare +", exact: true });
-  for (let i = 1; i <= 3; i++) {
-    await buttons.nth(0).click();
-    await expect(
-      page
-        .locator(".new-catalog")
-        .getByRole("button", { name: "Remove", exact: true }),
-    ).toHaveCount(i);
+  for (let i = 0; i < 3; i++) {
+    await addFromBars(page, i);
+    await expect(page.locator(".comparison-panel article")).toHaveCount(i + 1);
   }
-  await buttons.nth(0).click();
+  await addFromBars(page, 3);
   await expect(
     page.getByText("Comparison is full (3/3). Remove a variant first."),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
   const first = await page
     .locator(".comparison-panel article h3")
     .first()
     .textContent();
-  await page.getByRole("button", { name: "Table", exact: true }).click();
+  await view(page, "Table");
   await expect(page.locator(".comparison-panel")).toHaveCount(0);
   await page.locator(".new-catalog select").first().selectOption({ index: 2 });
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await view(page, "Bars");
   expect(
     await page.locator(".comparison-panel article h3").first().textContent(),
   ).toEqual(first);
@@ -122,7 +153,7 @@ test("comparison limit, exact variants and persistence", async ({ page }) => {
     page.locator(".comparison-panel article .comparison-quant").first(),
   ).toHaveText("Q4_K_M");
   await page.reload();
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await view(page, "Bars");
   await expect(page.locator(".comparison-panel article")).toHaveCount(3);
   await page
     .locator(".comparison-panel article")
@@ -131,7 +162,8 @@ test("comparison limit, exact variants and persistence", async ({ page }) => {
     .click();
   await expect(page.locator(".comparison-panel article")).toHaveCount(2);
 });
-test("CPU-only and unknown route are explicit", async ({ page }) => {
+
+test("CPU-only and unknown model routes are explicit", async ({ page }) => {
   await boot(page);
   await page.getByLabel("GPU profile (searchable)").fill("CPU-only");
   await page.getByLabel("GPU profile (searchable)").press("Tab");
@@ -142,13 +174,15 @@ test("CPU-only and unknown route are explicit", async ({ page }) => {
     page.getByRole("heading", { name: "Model not found" }),
   ).toBeVisible();
 });
-test("desktop and mobile accessibility and screenshots", async ({ page }) => {
+
+test("desktop and mobile accessibility, drawer and screenshots", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await boot(page);
   await hardware(page);
   await page.screenshot({ path: "test-results/desktop.png", fullPage: true });
-  let scan = await new AxeBuilder({ page }).analyze();
-  expect(scan.violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: "test-results/mobile.png", fullPage: true });
   expect(
@@ -156,7 +190,7 @@ test("desktop and mobile accessibility and screenshots", async ({ page }) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("button", { name: "Plot", exact: true }).click();
+  await view(page, "Plot");
   await page.getByRole("button", { name: "Compare 0/3", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Close comparison" }),
@@ -166,11 +200,10 @@ test("desktop and mobile accessibility and screenshots", async ({ page }) => {
   expect(
     await page.evaluate(() => document.activeElement !== document.body),
   ).toBe(true);
-  scan = await new AxeBuilder({ page }).analyze();
-  expect(scan.violations).toEqual([]);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
-test("offloading, context and variant changes share the same estimates", async ({
+test("offloading, context and variant changes use shared estimates", async ({
   page,
 }) => {
   await boot(page);
@@ -184,14 +217,15 @@ test("offloading, context and variant changes share the same estimates", async (
   await page.getByLabel("Consider CPU offloading").check();
   await expect(row).toContainText("offload");
   await expect(row.locator("td").nth(4)).toContainText("Unknown");
-  await row.getByRole("button", { name: "Compare +", exact: true }).click();
-  await expect(
-    row.getByRole("button", { name: "Remove", exact: true }),
-  ).toBeVisible();
+  await addFromBars(page, 0);
+  await expect(page.locator(".comparison-panel article")).toHaveCount(1);
+  await view(page, "Table");
   await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
-
-  await row.getByRole("button", { name: "Preview", exact: true }).click();
-  await expect(page.locator(".preview")).toContainText("Q8_0");
+  await view(page, "Bars");
+  await page.locator(".score-row").first().click();
+  await expect(
+    page.locator(".preview .quantization-chips button[aria-pressed=true]"),
+  ).toHaveText("Q8_0");
   await page.getByText("Advanced: context & memory", { exact: true }).click();
   await page
     .getByLabel("Requested context · tokens (256–1048576)")
@@ -199,20 +233,15 @@ test("offloading, context and variant changes share the same estimates", async (
   await expect(page.locator(".preview")).toContainText(
     "4,096 tokens requested",
   );
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
   await expect(
     page.locator(".comparison-panel article .comparison-quant"),
   ).toHaveText("Q4_K_M");
   await expect(page.locator(".comparison-panel")).toContainText(
     "4096-token context",
   );
-  await page.getByRole("button", { name: "Coding", exact: true }).click();
-  await expect(
-    page.getByRole("combobox", { name: "Task", exact: true }),
-  ).toHaveValue("Coding");
 });
 
-test("recommendation score agrees with table and detail; plot keyboard preview", async ({
+test("same-task scores agree across recommendation, table and detail; plot keyboard preview", async ({
   page,
 }) => {
   await boot(page);
@@ -226,9 +255,8 @@ test("recommendation score agrees with table and detail; plot keyboard preview",
   await expect(row.locator("td").nth(5)).toContainText(
     score!.split("/")[0].replace("Score", "").trim(),
   );
-  await page.getByRole("button", { name: "Plot", exact: true }).click();
-  const dot = page.locator(".plot-dot").first();
-  await dot.focus();
+  await view(page, "Plot");
+  await page.locator(".plot-dot").first().focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".preview")).toBeVisible();
   await first.getByRole("link", { name: "Details →" }).click();
@@ -240,8 +268,8 @@ test("recommendation score agrees with table and detail; plot keyboard preview",
     page.getByRole("button", { name: "Plot", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const view of ["Tiles", "Bars", "Plot", "Table"]) {
-    await page.getByRole("button", { name: view, exact: true }).click();
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -250,7 +278,7 @@ test("recommendation score agrees with table and detail; plot keyboard preview",
   }
 });
 
-test("wireframe hierarchy and all five recommendation positions", async ({
+test("intro hierarchy, detached carousel arrows and flush comparison panel", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -262,57 +290,62 @@ test("wireframe hierarchy and all five recommendation positions", async ({
   expect(form!.x + form!.width).toBeLessThan(card!.x);
   expect(title!.y + title!.height).toBeLessThan(Math.min(form!.y, card!.y));
   expect(Math.abs(form!.y - card!.y)).toBeLessThan(2);
-  await expect(
-    page.getByRole("heading", { name: "Which model fits best?", exact: true }),
-  ).toBeVisible();
-  const surface = await page
-    .locator(".intro-grid")
-    .evaluate((el) => ({
-      background: getComputedStyle(el).backgroundColor,
-      border: getComputedStyle(el).borderTopWidth,
-    }));
-  expect(surface).toEqual({ background: "rgba(0, 0, 0, 0)", border: "0px" });
-  await expect(page.locator(".comparison-panel")).toHaveCount(0);
-  const fullWidth = (await page.locator(".catalog-workspace").boundingBox())!
-    .width;
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
-  const catalog = await page.locator(".catalog-workspace").boundingBox(),
-    compare = await page.locator(".comparison-panel").boundingBox();
-  expect(compare!.x).toBeGreaterThan(catalog!.x + catalog!.width);
-  expect(catalog!.width).toBeLessThan(fullWidth);
-  for (let i = 1; i <= 5; i++) {
-    await expect(page.locator(".recommendation:visible")).toHaveCount(1);
-    await expect(page.locator(".carousel-controls")).toContainText(i + " / 5");
+  expect(
     await page
-      .locator(".carousel-controls")
-      .getByRole("button", { name: "Next recommendation" })
-      .click();
+      .locator(".intro-grid")
+      .evaluate((el) => ({
+        background: getComputedStyle(el).backgroundColor,
+        border: getComputedStyle(el).borderTopWidth,
+      })),
+  ).toEqual({ background: "rgba(0, 0, 0, 0)", border: "0px" });
+  await expect(
+    page.getByRole("button", { name: "Previous recommendation" }),
+  ).not.toBeVisible();
+  for (let i = 1; i <= 5; i++) {
+    await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+      "aria-label",
+      `Recommendation ${i} of 5`,
+    );
+    const box = await page.locator(".recommendation:visible").boundingBox(),
+      next = await page.locator(".carousel-next").boundingBox();
+    expect(next!.x - box!.x - box!.width).toBeGreaterThanOrEqual(8);
+    if (i > 1) {
+      await expect(
+        page.getByRole("button", { name: "Previous recommendation" }),
+      ).toBeVisible();
+      const prev = await page.locator(".carousel-previous").boundingBox();
+      expect(box!.x - prev!.x - prev!.width).toBeGreaterThanOrEqual(8);
+    }
+    await page.getByRole("button", { name: "Next recommendation" }).click();
   }
-  await expect(page.locator(".carousel-controls")).toContainText("1 / 5");
   await page.locator(".carousel-next").focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".carousel-controls")).toContainText("2 / 5");
+  await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+    "aria-label",
+    "Recommendation 2 of 5",
+  );
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+    "aria-label",
+    "Recommendation 1 of 5",
+  );
+  await view(page, "Bars");
+  expect(
+    await page
+      .locator(".comparison-panel")
+      .evaluate((el) => getComputedStyle(el).marginTop),
+  ).toBe("0px");
+  const catalog = await page.locator(".catalog-workspace").boundingBox(),
+    panel = await page.locator(".comparison-panel").boundingBox();
+  expect(Math.abs(catalog!.y - panel!.y)).toBeLessThan(2);
 });
 
-test("bar detail rail, plot preview and compact tiles follow wireframes", async ({
-  page,
-}) => {
+test("bar detail rail, plot preview and compact tiles", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await boot(page);
   await hardware(page);
-  for (let i = 1; i <= 2; i++) {
-    await page
-      .locator(".new-catalog")
-      .getByRole("button", { name: "Compare +", exact: true })
-      .first()
-      .click();
-    await expect(
-      page
-        .locator(".new-catalog")
-        .getByRole("button", { name: "Remove", exact: true }),
-    ).toHaveCount(i);
-  }
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await addFromBars(page, 0);
+  await addFromBars(page, 1);
   await page.locator(".score-row").first().click();
   await expect(page.locator(".mini-benchmarks")).toBeVisible();
   const bars = await page.locator(".score-bars").boundingBox(),
@@ -322,7 +355,7 @@ test("bar detail rail, plot preview and compact tiles follow wireframes", async 
     path: "test-results/wireframe-bars.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Plot", exact: true }).click();
+  await view(page, "Plot");
   await page.locator(".plot-dot").first().click();
   await expect
     .poll(() =>
@@ -337,7 +370,7 @@ test("bar detail rail, plot preview and compact tiles follow wireframes", async 
     path: "test-results/wireframe-plot.png",
     fullPage: true,
   });
-  await page.getByRole("button", { name: "Tiles", exact: true }).click();
+  await view(page, "Tiles");
   await expect(
     page.locator(".model-tile").first().locator(".quantization-chips"),
   ).toBeVisible();

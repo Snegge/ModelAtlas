@@ -69,7 +69,8 @@ export class WorkspaceStore {
     ),
   );
   readonly top = computed(() =>
-    [...this.rows()]
+    this.rows()
+      .map((x) => evaluate(x.r, x.a, x.e, this.profile(), "All tasks"))
       .filter((x) => !this.entered() || x.eligible)
       .sort((a, b) =>
         this.entered()

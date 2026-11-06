@@ -73,50 +73,56 @@ import { Row } from "./ranking";
           : "Demo popularity"
       }}</span>
       <div class="actions">
-        <button (click)="s.toggle(x.a.id)">
-          {{
-            s.comparisons().includes(x.a.id)
-              ? "Remove from comparison"
-              : "Compare +"
-          }}</button
-        ><a class="details-link" [routerLink]="['/models', x.r.id]"
-          >Details →</a
-        >
+        @if (showCompare()) {
+          <button (click)="s.toggle(x.a.id)">
+            {{
+              s.comparisons().includes(x.a.id)
+                ? "Remove from comparison"
+                : "Compare +"
+            }}
+          </button>
+        }
+        <a class="details-link" [routerLink]="['/models', x.r.id]">Details →</a>
       </div>
     </div>
-    <details class="card-evidence">
-      <summary>Assumptions, breakdown & sources</summary>
-      <p>
-        {{ x.e?.reasons?.join(" ") }} Runtime compatibility unverified. Everyday
-        usability: {{ x.speed ? "estimated only; test your task" : "unknown" }}.
-      </p>
-      <p>
-        Weights {{ fmt(x.e?.weightsGiB ?? null) }} · KV cache
-        {{ fmt(x.e?.cacheGiB ?? null) }} · runtime
-        {{ fmt(x.e?.runtimeGiB ?? null) }} · reserve
-        {{ fmt(x.e?.safetyGiB ?? null) }}. GPU
-        {{ fmt(x.e?.gpuRequiredGiB ?? null) }} · separate RAM
-        {{ fmt(x.e?.systemRequiredGiB ?? null) }}.
-      </p>
-      <p>
-        Maximum context
-        {{ x.r.contextLimit?.toLocaleString() ?? "unknown" }} tokens. Hardware
-        fit component {{ x.fit ?? "unknown" }} / 100. Quality is synthetic demo
-        data; no measured variant benchmarks.
-      </p>
-      <p>
-        License: {{ x.r.license ?? "unknown" }} ·
-        <a [href]="x.a.sourceUrl" target="_blank" rel="noreferrer"
-          >Artifact source</a
-        >
-        · <a routerLink="/methodology" fragment="score">Score method</a> ·
-        <a routerLink="/methodology" fragment="speed">Speed assumptions</a>
-      </p>
-    </details>
+    @if (showEvidence()) {
+      <details class="card-evidence">
+        <summary>Assumptions, breakdown & sources</summary>
+        <p>
+          {{ x.e?.reasons?.join(" ") }} Runtime compatibility unverified.
+          Everyday usability:
+          {{ x.speed ? "estimated only; test your task" : "unknown" }}.
+        </p>
+        <p>
+          Weights {{ fmt(x.e?.weightsGiB ?? null) }} · KV cache
+          {{ fmt(x.e?.cacheGiB ?? null) }} · runtime
+          {{ fmt(x.e?.runtimeGiB ?? null) }} · reserve
+          {{ fmt(x.e?.safetyGiB ?? null) }}. GPU
+          {{ fmt(x.e?.gpuRequiredGiB ?? null) }} · separate RAM
+          {{ fmt(x.e?.systemRequiredGiB ?? null) }}.
+        </p>
+        <p>
+          Maximum context
+          {{ x.r.contextLimit?.toLocaleString() ?? "unknown" }} tokens. Hardware
+          fit component {{ x.fit ?? "unknown" }} / 100. Quality is synthetic
+          demo data; no measured variant benchmarks.
+        </p>
+        <p>
+          License: {{ x.r.license ?? "unknown" }} ·
+          <a [href]="x.a.sourceUrl" target="_blank" rel="noreferrer"
+            >Artifact source</a
+          >
+          · <a routerLink="/methodology" fragment="score">Score method</a> ·
+          <a routerLink="/methodology" fragment="speed">Speed assumptions</a>
+        </p>
+      </details>
+    }
   `,
 })
 export class SummaryComponent {
   readonly row = input.required<Row>();
+  readonly showCompare = input(true);
+  readonly showEvidence = input(true);
   readonly s = inject(WorkspaceStore);
   label(v: string) {
     return (

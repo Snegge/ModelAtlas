@@ -899,7 +899,7 @@ summary {
 .comparison-panel {
   border: 1px solid var(--line);
   background: var(--paper);
-  margin-top: 12px;
+  margin-top: 0;
   padding: 14px 16px;
 }
 
@@ -1719,18 +1719,6 @@ body {
   border-radius: 10px;
   padding: 22px;
 }
-.workspace-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-.workspace-caption {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 .atlas-workspace button {
   border: 1px solid #bccce2;
   color: var(--ink);
@@ -1833,29 +1821,6 @@ body {
   min-width: 0;
   padding-top: 0;
 }
-.recommendation-topline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-.recommendation-topline h2 {
-  font-size: 14px;
-  margin: 0;
-  color: var(--muted);
-  font-weight: 500;
-}
-.task-select {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-}
-.atlas-workspace .task-select select {
-  padding: 5px 8px;
-  font-size: 12px;
-}
 .carousel {
   position: relative;
 }
@@ -1876,38 +1841,6 @@ body {
   font-size: 23px;
   line-height: 1;
   font-weight: 500;
-}
-.atlas-workspace .carousel-next {
-  position: absolute;
-  top: 42%;
-  right: -21px;
-  font-size: 34px;
-  padding: 0 8px;
-  border: 0;
-  background: white;
-}
-.carousel-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 10px;
-}
-.carousel-footer .small {
-  font-size: 10px;
-  color: var(--muted);
-}
-.carousel-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  white-space: nowrap;
-}
-.atlas-workspace .carousel-controls button {
-  padding: 0 7px;
-  font-size: 19px;
-  border: 0;
 }
 atlas-summary {
   display: block;
@@ -2539,18 +2472,6 @@ atlas-compare {
   .card-metrics {
     gap: 8px;
   }
-  .recommendation-topline {
-    gap: 8px;
-  }
-  .task-select {
-    font-size: 10px;
-  }
-  .task-select select {
-    max-width: 115px;
-  }
-  .carousel-footer {
-    gap: 5px;
-  }
   .tile-grid {
     grid-template-columns: 1fr;
   }
@@ -2678,10 +2599,7 @@ a:hover {
 .atlas-workspace .details-link:hover {
   background: #1d4ed8;
 }
-.atlas-workspace .carousel-next {
-  background: var(--paper);
-  color: #3568bc;
-}
+
 .atlas-workspace .quantization-chips button[aria-pressed="true"] {
   background: #dfeaff;
   color: #204e9a;
@@ -2711,5 +2629,71 @@ a:hover {
   }
   .recommendations {
     min-width: 0;
+  }
+}
+
+/* Carousel controls occupy separate columns; they never overlap the card. */
+.carousel {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  gap: 12px;
+  align-items: center;
+}
+.carousel-cards {
+  min-width: 0;
+}
+.atlas-workspace .carousel-arrow {
+  position: static;
+  width: 36px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #b9cbea;
+  border-radius: 10px;
+  background: #fff;
+  color: #2458bb;
+  font-size: 30px;
+  line-height: 1;
+  box-shadow: 0 3px 9px #2458bb0a;
+}
+.atlas-workspace .carousel-arrow:hover {
+  background: #e7efff;
+}
+.carousel-arrow.unavailable {
+  visibility: hidden;
+}
+.rank-badge small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.comparison-panel {
+  margin: 0;
+}
+.comparison-toggle {
+  margin-left: auto;
+}
+@media (max-width: 700px) {
+  .carousel {
+    grid-template-columns: 26px minmax(0, 1fr) 26px;
+    gap: 8px;
+  }
+  .atlas-workspace .carousel-arrow {
+    width: 26px;
+    height: 38px;
+    font-size: 25px;
+  }
+  .recommendation {
+    padding-left: 32px;
+    padding-right: 12px;
+  }
+  .recommendation .summary-heading {
+    flex-wrap: wrap;
+  }
+  .recommendation .summary-heading strong {
+    font-size: 13px;
+  }
+  .recommendation .card-metrics {
+    flex-wrap: wrap;
   }
 }

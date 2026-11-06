@@ -7,22 +7,11 @@
       {{ s.api.error() }} <button (click)="s.api.retry()">Retry</button>
     </p>
   }
-  <div class="workspace-toolbar">
-    @if (id()) {
-      <a routerLink="/">← Explorer</a>
-    } @else {
-      <span class="workspace-caption">Find your local model</span>
-    }
-    @if (s.chartView() && !id()) {
-      <button (click)="s.drawer.set(!s.drawer())">
-        Compare {{ s.comparisons().length }}/3
-      </button>
-    }
-  </div>
   <p role="status">{{ s.message() }}</p>
   @if (id()) {
     @if (detail(); as x) {
       <section class="surface detail-page">
+        <a routerLink="/">← Explorer</a>
         <p class="eyebrow">MODEL / {{ x.r.publisher }}</p>
         <h1>{{ x.r.name }}</h1>
         <p>
@@ -75,17 +64,21 @@
           release-level fixture is shared across variants for interaction
           testing, not evidence of equal quantized quality.
         </p>
-        @if (rank()) {
+        @if (rank() && recommendedDetail()) {
+          @let rec = recommendedDetail()!;
           <section class="recommendation-reason">
             <h2>Why this model is recommended</h2>
             <p>
-              Rank {{ rank() }} for {{ s.task() }} with
-              {{ s.profile().vram }} GiB VRAM, {{ s.profile().ram }} GiB RAM and
+              Rank {{ rank() }} for All tasks with {{ s.profile().vram }} GiB
+              VRAM, {{ s.profile().ram }} GiB RAM and
               {{ s.profile().context }} tokens. Demo quality
-              {{ x.q.toFixed(0) }}, hardware fit {{ x.fit }}, speed component
-              {{ x.speedScore === null ? "unknown" : x.speedScore.toFixed(0) }}.
-              Score {{ x.score }}; weighted evidence coverage {{ x.coverage }}%.
-              Only estimated compatible candidates enter this ranking.
+              {{ rec.q.toFixed(0) }}, hardware fit {{ rec.fit }}, speed
+              component
+              {{
+                rec.speedScore === null ? "unknown" : rec.speedScore.toFixed(0)
+              }}. Score {{ rec.score }}; weighted evidence coverage
+              {{ rec.coverage }}%. Only estimated compatible candidates enter
+              this ranking.
             </p>
           </section>
         }
@@ -236,73 +229,50 @@
         <button type="button" (click)="s.reset()">Reset exploration</button>
       </form>
       <section class="recommendations" aria-label="Model recommendations">
-        <div class="recommendation-topline">
-          <h2>
-            {{ s.entered() ? "Best fits for your profile" : "Popular models" }}
-          </h2>
-          <label class="task-select"
-            >Task<select
-              aria-label="Task"
-              [value]="s.task()"
-              (change)="task($any($event.target).value)"
-            >
-              @for (t of tasks; track t) {
-                <option>{{ t }}</option>
-              }
-            </select></label
-          >
-        </div>
         <div
           class="carousel"
+          role="region"
+          [attr.aria-label]="
+            s.entered()
+              ? 'All tasks recommendations'
+              : 'Popular models · demo popularity'
+          "
           (keydown.arrowright)="nextRecommendation(1)"
           (keydown.arrowleft)="nextRecommendation(-1)"
         >
-          @for (x of s.top(); track x.r.id; let i = $index) {
-            <article
-              class="recommendation"
-              [hidden]="i !== activeRecommendation()"
-              [attr.aria-label]="
-                'Recommendation ' + (i + 1) + ' of ' + s.top().length
-              "
-            >
-              <span class="rank-badge">{{ i + 1 }}</span
-              ><atlas-summary [row]="x" />
-            </article>
-          }
-          @if (s.top().length) {
-            <button
-              class="carousel-next"
-              (click)="nextRecommendation(1)"
-              aria-label="Next recommendation"
-            >
-              ›
-            </button>
-          }
-        </div>
-        <div class="carousel-footer">
-          <span class="small">{{
-            s.entered()
-              ? "Estimated fit · demo quality"
-              : "Demo popularity · not a live ranking"
-          }}</span>
-          <div class="carousel-controls">
-            <button
-              aria-label="Previous recommendation"
-              (click)="nextRecommendation(-1)"
-              [disabled]="!s.top().length"
-            >
-              ‹</button
-            ><span aria-live="polite"
-              >{{ s.top().length ? activeRecommendation() + 1 : 0 }} /
-              {{ s.top().length }}</span
-            ><button
-              aria-label="Next recommendation"
-              (click)="nextRecommendation(1)"
-              [disabled]="!s.top().length"
-            >
-              ›
-            </button>
+          <button
+            class="carousel-arrow carousel-previous"
+            [class.unavailable]="activeRecommendation() === 0"
+            [disabled]="activeRecommendation() === 0"
+            (click)="nextRecommendation(-1)"
+            aria-label="Previous recommendation"
+          >
+            ‹
+          </button>
+          <div class="carousel-cards" aria-live="polite">
+            @for (x of s.top(); track x.r.id; let i = $index) {
+              <article
+                class="recommendation"
+                [hidden]="i !== activeRecommendation()"
+                [attr.aria-label]="
+                  'Recommendation ' + (i + 1) + ' of ' + s.top().length
+                "
+              >
+                <span class="rank-badge"
+                  >{{ i + 1 }}<small>/ {{ s.top().length }}</small></span
+                ><atlas-summary [row]="x" />
+              </article>
+            }
           </div>
+          <button
+            class="carousel-arrow carousel-next"
+            [class.unavailable]="s.top().length < 2"
+            [disabled]="s.top().length < 2"
+            (click)="nextRecommendation(1)"
+            aria-label="Next recommendation"
+          >
+            ›
+          </button>
         </div>
         @if (s.api.evaluating()) {
           <p class="small" role="status">Updating memory estimates…</p>
@@ -338,6 +308,14 @@
               </button>
             }
           </div>
+          @if (s.chartView()) {
+            <button
+              class="comparison-toggle"
+              (click)="s.drawer.set(!s.drawer())"
+            >
+              Compare {{ s.comparisons().length }}/3
+            </button>
+          }
           <div class="actions" aria-label="Catalog views">
             @for (v of views; track v) {
               <button
@@ -400,7 +378,6 @@
                             </button>
                           </th>
                         }
-                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -459,17 +436,6 @@
                               >Demo quality · {{ x.coverage }}% coverage</small
                             >
                           </td>
-                          <td>
-                            <button (click)="openPreview(x.a.id)">
-                              Preview</button
-                            ><button (click)="s.toggle(x.a.id)">
-                              {{
-                                s.comparisons().includes(x.a.id)
-                                  ? "Remove"
-                                  : "Compare +"
-                              }}
-                            </button>
-                          </td>
                         </tr>
                       }
                     </tbody>
@@ -480,7 +446,11 @@
                 <div class="tile-grid">
                   @for (x of s.visible(); track x.r.id) {
                     <article class="model-tile">
-                      <atlas-summary [row]="x" />
+                      <atlas-summary
+                        [row]="x"
+                        [showCompare]="false"
+                        [showEvidence]="false"
+                      />
                     </article>
                   }
                 </div>
@@ -564,7 +534,7 @@
               }
             }
           </div>
-          @if (s.preview(); as id) {
+          @if (s.chartView() ? s.preview() : null; as id) {
             @if (s.row(id); as x) {
               <section
                 class="preview surface"

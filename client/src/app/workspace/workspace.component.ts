@@ -26,6 +26,9 @@ export class WorkspaceComponent implements OnDestroy {
   readonly detail = computed(() =>
     this.s.rows().find((x) => x.r.id === this.id()),
   );
+  readonly recommendedDetail = computed(() =>
+    this.s.top().find((x) => x.r.id === this.id()),
+  );
   readonly rank = computed(() =>
     this.s.entered()
       ? this.s.top().findIndex((x) => x.r.id === this.id()) + 1
@@ -48,7 +51,9 @@ export class WorkspaceComponent implements OnDestroy {
     const count = this.s.top().length;
     if (count)
       this.recommendationIndex.set(
-        (this.activeRecommendation() + direction + count) % count,
+        direction < 0
+          ? Math.max(0, this.activeRecommendation() - 1)
+          : (this.activeRecommendation() + 1) % count,
       );
   }
   readonly views = ["Table", "Plot", "Bars", "Tiles"];

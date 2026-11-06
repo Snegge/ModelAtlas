@@ -49,7 +49,8 @@ import { RouterLink } from "@angular/router";
       Only full GPU fits and possible offloading candidates can enter the Top 5.
       Unassessable and incompatible variants remain in the catalog. Ties use
       stable release IDs. Normalization uses fixed scales, independent of
-      search. Search and table sorting never change recommendations. The
+      search. Recommendations always use All tasks, independent of the catalog
+      task filter. Search and table sorting never change recommendations. The
       selected variant per release participates in ranking. The score is an
       unvalidated prototype heuristic; demo quality is not evidence of
       superiority.
