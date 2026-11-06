@@ -13,9 +13,11 @@
     } @else {
       <span class="workspace-caption">Find your local model</span>
     }
-    <button (click)="s.drawer.set(!s.drawer())">
-      Compare {{ s.comparisons().length }}/3
-    </button>
+    @if (s.chartView() && !id()) {
+      <button (click)="s.drawer.set(!s.drawer())">
+        Compare {{ s.comparisons().length }}/3
+      </button>
+    }
   </div>
   <p role="status">{{ s.message() }}</p>
   @if (id()) {
@@ -140,9 +142,9 @@
       <a routerLink="/">Return to catalog</a>
     }
   } @else {
-    <section class="intro-grid">
-      <form class="surface hardware-form" (submit)="$event.preventDefault()">
-        <h1>Which model<br />fits the best?</h1>
+    <section class="intro-grid" aria-labelledby="intro-title">
+      <h1 id="intro-title">Which model fits best?</h1>
+      <form class="hardware-form" (submit)="$event.preventDefault()">
         <label class="gpu-field"
           >GPU<input
             aria-label="GPU profile (searchable)"
@@ -313,7 +315,7 @@
         }
       </section>
     </section>
-    <div class="catalog-layout">
+    <div class="catalog-layout" [class.has-comparison]="s.chartView()">
       <section class="surface catalog-workspace">
         <div class="section-heading">
           <div>
@@ -340,7 +342,7 @@
             @for (v of views; track v) {
               <button
                 [attr.aria-pressed]="s.view() === v"
-                (click)="s.view.set(v)"
+                (click)="s.view.set(v); s.drawer.set(false)"
                 [attr.aria-label]="v"
                 [attr.title]="v"
               >
@@ -599,10 +601,9 @@
           }
         </div>
       </section>
-      <atlas-compare />
+      @if (s.chartView()) {
+        <atlas-compare />
+      }
     </div>
-  }
-  @if (id()) {
-    <atlas-compare />
   }
 </div>

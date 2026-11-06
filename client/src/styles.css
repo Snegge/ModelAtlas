@@ -1,18 +1,18 @@
 @import "@angular/cdk/a11y-prebuilt.css";
 :root {
   color-scheme: light;
-  --ink: #203c34;
-  --muted: #56665d;
-  --paper: #fbfcf8;
-  --line: #dce3d7;
-  --green: #25674f;
-  --accent: #d5eca0;
+  --ink: #1e293b;
+  --muted: #52627a;
+  --paper: #ffffff;
+  --line: #dae3f0;
+  --green: #2563eb;
+  --accent: #dbeafe;
   --gold: #936210;
   --blue: #365c88;
   --danger: #9b514a;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   font-size: 14px;
-  background: #f1f4ed;
+  background: #f5f8ff;
   color: var(--ink);
 }
 * {
@@ -41,11 +41,11 @@ button:disabled {
   opacity: 0.48;
 }
 a {
-  color: #235b4c;
+  color: #2458bb;
   text-underline-offset: 3px;
 }
 a:hover {
-  color: #0a3729;
+  color: #173e8c;
 }
 button:focus-visible,
 a:focus-visible,
@@ -137,7 +137,7 @@ code {
   align-items: center;
   gap: 38px;
   padding: 0 32px;
-  border-bottom: 1px solid #d3dccb;
+  border-bottom: 1px solid #dae3f0;
   background: var(--paper);
 }
 .brand {
@@ -156,10 +156,10 @@ code {
 .prototype-tag {
   font-size: 8px;
   letter-spacing: 1.4px;
-  border: 1px solid #cbd7c0;
+  border: 1px solid #d7e3f7;
   padding: 5px 6px;
   margin-left: 6px;
-  color: #597145;
+  color: #4e6590;
 }
 .app-header nav {
   align-self: stretch;
@@ -192,7 +192,7 @@ code {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #7d9a4c;
+  background: #5485ee;
 }
 main {
   max-width: 1920px;
@@ -598,24 +598,24 @@ table {
 th {
   font-size: 9px;
   letter-spacing: 0.2px;
-  color: #53634f;
+  color: #51627d;
   font-weight: 550;
-  background: #eaf0e2;
+  background: #edf3ff;
   padding: 11px 9px;
-  border-bottom: 1px solid #ccd8bf;
+  border-bottom: 1px solid #d4e0f3;
   white-space: nowrap;
 }
 td {
   padding: 11px 9px;
-  border-bottom: 1px solid #e4e9df;
+  border-bottom: 1px solid #e1e8f4;
   vertical-align: middle;
 }
 tr:last-child td {
   border-bottom: 0;
 }
 tr.selected-row {
-  background: #e6eedb;
-  box-shadow: inset 3px 0 #4d7846;
+  background: #e3edff;
+  box-shadow: inset 3px 0 #4677d7;
 }
 .model-select {
   border: 0;
@@ -1084,7 +1084,7 @@ summary {
   justify-content: space-between;
   padding: 18px 30px;
   font-size: 9px;
-  color: #56674c;
+  color: #566780;
   border-top: 1px solid var(--line);
   gap: 12px;
 }
@@ -1697,13 +1697,13 @@ summary {
 /* Wireframe-aligned exploration workspace */
 :root {
   --paper: #fff;
-  --line: #dce3e1;
-  --ink: #263d39;
-  --muted: #65736e;
-  --green: #246655;
+  --line: #dce5f2;
+  --ink: #1d2e4b;
+  --muted: #566780;
+  --green: #2563eb;
 }
 body {
-  background: #f8faf8;
+  background: #f5f8ff;
 }
 .atlas-workspace {
   max-width: 1440px;
@@ -1732,7 +1732,7 @@ body {
   text-transform: uppercase;
 }
 .atlas-workspace button {
-  border: 1px solid #acbbb5;
+  border: 1px solid #bccce2;
   color: var(--ink);
   border-radius: 6px;
   background: white;
@@ -1741,14 +1741,14 @@ body {
 }
 .atlas-workspace button:hover,
 .atlas-workspace button[aria-pressed="true"] {
-  background: #dbefe4;
-  border-color: #39826a;
+  background: #e7efff;
+  border-color: #5380df;
 }
 .atlas-workspace input:not([type="checkbox"]),
 .atlas-workspace select,
 .atlas-workspace textarea {
   color: var(--ink);
-  border: 1px solid #b3bfb9;
+  border: 1px solid #b9c9e0;
   border-radius: 6px;
   background: white;
   padding: 8px 10px;
@@ -1758,25 +1758,24 @@ body {
 .intro-grid {
   display: grid;
   grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.15fr);
-  gap: 72px;
+  gap: 28px 72px;
   align-items: start;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 30px 38px;
-  background: white;
+  padding: 8px 0 24px;
+  background: transparent;
   margin-bottom: 28px;
 }
-.hardware-form.surface {
+.hardware-form {
   padding: 0;
   border: 0;
   border-radius: 0;
 }
-.hardware-form h1 {
+.intro-grid > h1 {
   font-size: 36px;
   font-weight: 550;
   line-height: 1.13;
   letter-spacing: -1.2px;
-  margin: 0 0 20px;
+  margin: 0;
+  grid-column: 1 / -1;
 }
 .hardware-form label {
   display: block;
@@ -1862,7 +1861,7 @@ body {
 }
 .recommendation {
   position: relative;
-  border: 1px solid #aebdb4;
+  border: 1px solid #b6c9e8;
   border-radius: 10px;
   padding: 20px 22px 12px 48px;
   background: #fff;
@@ -1928,7 +1927,7 @@ atlas-summary {
   overflow-wrap: anywhere;
 }
 .summary-heading strong {
-  border: 1px solid #bcc8c0;
+  border: 1px solid #bfd0ee;
   border-radius: 5px;
   padding: 3px 7px;
   white-space: nowrap;
@@ -1952,7 +1951,7 @@ atlas-summary {
   margin-bottom: 12px;
 }
 .card-memory {
-  border: 1px solid #d6ded8;
+  border: 1px solid #d9e3f3;
   padding: 8px 10px;
   border-radius: 8px;
   margin: 10px 0;
@@ -1978,7 +1977,7 @@ atlas-summary {
   height: 14px;
   border: 0;
   border-radius: 3px;
-  background: #edf0ee;
+  background: #eef2f8;
 }
 .weights {
   background: #8ba7ee !important;
@@ -1987,20 +1986,20 @@ atlas-summary {
   background: #8edbd9 !important;
 }
 .runtime {
-  background: #c0e3d0 !important;
+  background: #bcc9f4 !important;
 }
 .safety {
-  background: #d7ddda !important;
+  background: #d5dce9 !important;
 }
 .free {
-  background: #edf0ee;
+  background: #eef2f8;
 }
 .compact-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 9px;
   font-size: 9px;
-  color: #52635b;
+  color: #52647f;
   margin-top: 6px;
 }
 .compact-legend i {
@@ -2055,7 +2054,7 @@ atlas-summary {
   white-space: nowrap;
 }
 .details-link {
-  border: 1px solid #6f8f7f;
+  border: 1px solid #7192ca;
   border-radius: 6px;
   padding: 7px 10px;
   text-decoration: none;
@@ -2063,7 +2062,7 @@ atlas-summary {
 .card-evidence {
   font-size: 10px;
   color: var(--muted);
-  border-top: 1px solid #edf0ec;
+  border-top: 1px solid #eaf0fa;
   padding-top: 7px;
 }
 .card-evidence summary {
@@ -2074,7 +2073,7 @@ atlas-summary {
 }
 .catalog-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 265px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -2126,7 +2125,7 @@ atlas-summary {
   background: transparent;
 }
 .view-toolbar [aria-label="Catalog views"] button {
-  border: 1px solid #b8c4bf;
+  border: 1px solid #c0cfe5;
   padding: 3px 8px;
   font-size: 20px;
   line-height: 1.2;
@@ -2168,14 +2167,14 @@ atlas-summary {
 .new-catalog th,
 .new-catalog td {
   padding: 10px 8px;
-  border-bottom: 1px solid #e0e6df;
+  border-bottom: 1px solid #e1e8f4;
   text-align: left;
   vertical-align: middle;
 }
 .new-catalog thead {
   position: sticky;
   top: 0;
-  background: #edf3ed;
+  background: #edf3ff;
   z-index: 2;
 }
 .new-catalog th button {
@@ -2229,7 +2228,7 @@ atlas-summary {
 }
 .model-tile {
   padding: 16px;
-  border: 1px solid #bac7bf;
+  border: 1px solid #c5d3e9;
   border-radius: 9px;
 }
 .model-tile .summary-heading a {
@@ -2247,7 +2246,7 @@ atlas-summary {
   text-align: left;
   background: transparent !important;
   border: 0 !important;
-  border-bottom: 1px solid #e9edeb !important;
+  border-bottom: 1px solid #e9eef7 !important;
   border-radius: 0 !important;
   padding: 15px 0 !important;
   font-size: 11px !important;
@@ -2264,7 +2263,7 @@ atlas-summary {
   border-radius: 3px;
 }
 .score-row:hover > span:first-child {
-  background: #cef0df;
+  background: #e0ebff;
 }
 .plot-scroll {
   overflow: auto;
@@ -2273,9 +2272,9 @@ atlas-summary {
   position: relative;
   min-width: 570px;
   height: 380px;
-  border-left: 1px solid #8c9c94;
-  border-bottom: 1px solid #8c9c94;
-  background-image: radial-gradient(#d8ded9 1px, transparent 1px);
+  border-left: 1px solid #8d9eba;
+  border-bottom: 1px solid #8d9eba;
+  background-image: radial-gradient(#d7e0f1 1px, transparent 1px);
   background-size: 36px 36px;
 }
 .atlas-workspace .plot-dot {
@@ -2283,7 +2282,7 @@ atlas-summary {
   padding: 2px;
   border: 0;
   background: transparent;
-  color: #2e7a65;
+  color: #3971d2;
   font-size: 19px;
 }
 .point-label {
@@ -2293,7 +2292,7 @@ atlas-summary {
   z-index: 3;
   padding: 7px;
   background: white;
-  border: 1px solid #9bb8a9;
+  border: 1px solid #97b3e2;
   font-size: 12px;
 }
 .plot-dot:hover .point-label,
@@ -2329,8 +2328,8 @@ atlas-summary {
 }
 .preview.surface {
   padding: 15px;
-  background: #fcfdfb;
-  border-color: #b6c7bb;
+  background: #fafdff;
+  border-color: #b8cce9;
 }
 .preview > button {
   float: right;
@@ -2364,7 +2363,7 @@ atlas-summary {
   justify-content: space-around;
   align-items: end;
   height: 120px;
-  border-bottom: 1px solid #b6c7bb;
+  border-bottom: 1px solid #b8cce9;
 }
 .mini-benchmark-bars > div {
   display: flex;
@@ -2391,7 +2390,7 @@ atlas-compare {
   width: auto;
   max-height: calc(100vh - 40px);
   overflow: auto;
-  border: 1px solid #b7c6bd;
+  border: 1px solid #b8cce9;
   border-radius: 10px;
   padding: 16px;
   background: white;
@@ -2406,7 +2405,7 @@ atlas-compare {
   color: var(--muted);
 }
 .comparison-panel article {
-  border-top: 1px solid #dfe5df;
+  border-top: 1px solid #dfe7f4;
   padding: 14px 0;
 }
 .comparison-panel h3 {
@@ -2415,7 +2414,7 @@ atlas-compare {
   margin-bottom: 5px;
 }
 .comparison-panel mark {
-  background: linear-gradient(transparent 40%, #cfefdc 40%);
+  background: linear-gradient(transparent 40%, #dbe8ff 40%);
   color: var(--ink);
 }
 .comparison-panel p {
@@ -2475,7 +2474,7 @@ atlas-compare {
   text-align: left;
 }
 .recommendation-reason {
-  background: #f1f6ed;
+  background: #edf3ff;
   padding: 16px;
   border-radius: 8px;
 }
@@ -2493,15 +2492,15 @@ atlas-compare {
   }
   .intro-grid {
     gap: 30px;
-    padding: 26px;
+    padding: 8px 0 24px;
   }
-  .catalog-layout {
+  .catalog-layout.has-comparison {
     grid-template-columns: minmax(0, 1fr) 230px;
   }
   .catalog-body.with-side-preview {
     grid-template-columns: 1fr;
   }
-  .hardware-form h1 {
+  .intro-grid > h1 {
     font-size: 30px;
   }
 }
@@ -2512,9 +2511,9 @@ atlas-compare {
   .intro-grid {
     grid-template-columns: 1fr;
     gap: 26px;
-    padding: 20px;
+    padding: 8px 0 20px;
   }
-  .hardware-form h1 {
+  .intro-grid > h1 {
     font-size: 30px;
   }
   .catalog-layout {
@@ -2568,7 +2567,7 @@ atlas-compare {
     inset: 60px 10px 10px;
     max-height: none;
     z-index: 60;
-    box-shadow: 0 0 0 100vmax #263d3960;
+    box-shadow: 0 0 0 100vmax #1d2e4b60;
   }
   .mobile-close {
     display: block;
@@ -2612,7 +2611,7 @@ atlas-compare {
   margin: 8px 0;
 }
 .preview-heading mark {
-  background: linear-gradient(transparent 45%, #d3efdd 45%);
+  background: linear-gradient(transparent 45%, #deebff 45%);
   color: var(--ink);
 }
 .preview-heading strong {
@@ -2621,4 +2620,96 @@ atlas-compare {
 }
 .with-side-preview .preview .summary-heading {
   display: none;
+}
+
+/* Blue application theme and view-dependent comparison layout. */
+.catalog-layout.has-comparison {
+  grid-template-columns: minmax(0, 1fr) 265px;
+}
+.intro-grid > h1 {
+  font-size: 40px;
+  font-weight: 650;
+  letter-spacing: -1.3px;
+  line-height: 1.18;
+}
+.hardware-form {
+  background: transparent;
+}
+.app-header {
+  background: #fff;
+  border-bottom-color: var(--line);
+}
+.prototype-tag {
+  background: #f2f6ff;
+  border-color: #d7e3f7;
+  color: #4e6590;
+  border-radius: 4px;
+}
+.app-footer {
+  border-top-color: var(--line);
+  color: var(--muted);
+}
+a {
+  color: #2458bb;
+}
+a:hover {
+  color: #173e8c;
+}
+.atlas-workspace button:focus-visible,
+.atlas-workspace input:focus-visible,
+.atlas-workspace select:focus-visible {
+  outline: 3px solid #7ca4fa;
+  outline-offset: 3px;
+}
+.recommendation {
+  box-shadow: 0 5px 20px #325caa08;
+  border-color: #c9d8ef;
+}
+.recommendation .summary-heading strong {
+  background: #edf3ff;
+  color: #244f9c;
+  border-color: #d4e2fa;
+}
+.atlas-workspace .details-link {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+.atlas-workspace .details-link:hover {
+  background: #1d4ed8;
+}
+.atlas-workspace .carousel-next {
+  background: var(--paper);
+  color: #3568bc;
+}
+.atlas-workspace .quantization-chips button[aria-pressed="true"] {
+  background: #dfeaff;
+  color: #204e9a;
+  border-color: #82a5e4;
+}
+.view-toolbar button[aria-pressed="true"] {
+  background: #e1ebff;
+  color: #214fa0;
+}
+@media (max-width: 1100px) {
+  .catalog-layout.has-comparison {
+    grid-template-columns: minmax(0, 1fr) 230px;
+  }
+}
+@media (max-width: 700px) {
+  .catalog-layout.has-comparison {
+    display: block;
+  }
+  .intro-grid > h1 {
+    font-size: 30px;
+  }
+  .intro-grid {
+    padding: 8px 0 20px;
+  }
+  .hardware-form {
+    padding: 0;
+  }
+  .recommendations {
+    min-width: 0;
+  }
 }

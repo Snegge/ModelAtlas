@@ -34,9 +34,11 @@ test("empty hardware and demo popular models, search and all four views", async 
     await expect(page.getByLabel("Search model or provider")).toHaveValue(
       "Qwen",
     );
-    await expect(
-      page.getByRole("heading", { name: "Compare 1/3" }),
-    ).toBeVisible();
+    if (view === "Bars" || view === "Plot") {
+      await expect(
+        page.getByRole("heading", { name: "Compare 1/3" }),
+      ).toBeVisible();
+    } else await expect(page.locator(".comparison-panel")).toHaveCount(0);
   }
   await page.getByLabel("Search model or provider").fill("no-such-model");
   await expect(page.getByText("No models match your search.")).toBeVisible();
@@ -94,21 +96,33 @@ test("comparison limit, exact variants and persistence", async ({ page }) => {
     .getByRole("button", { name: "Compare +", exact: true });
   for (let i = 1; i <= 3; i++) {
     await buttons.nth(0).click();
-    await expect(page.locator(".comparison-panel article")).toHaveCount(i);
+    await expect(
+      page
+        .locator(".new-catalog")
+        .getByRole("button", { name: "Remove", exact: true }),
+    ).toHaveCount(i);
   }
   await buttons.nth(0).click();
   await expect(
     page.getByText("Comparison is full (3/3). Remove a variant first."),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
   const first = await page
     .locator(".comparison-panel article h3")
     .first()
     .textContent();
+  await page.getByRole("button", { name: "Table", exact: true }).click();
+  await expect(page.locator(".comparison-panel")).toHaveCount(0);
   await page.locator(".new-catalog select").first().selectOption({ index: 2 });
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
   expect(
     await page.locator(".comparison-panel article h3").first().textContent(),
   ).toEqual(first);
+  await expect(
+    page.locator(".comparison-panel article .comparison-quant").first(),
+  ).toHaveText("Q4_K_M");
   await page.reload();
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
   await expect(page.locator(".comparison-panel article")).toHaveCount(3);
   await page
     .locator(".comparison-panel article")
@@ -142,6 +156,7 @@ test("desktop and mobile accessibility and screenshots", async ({ page }) => {
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.getByRole("button", { name: "Plot", exact: true }).click();
   await page.getByRole("button", { name: "Compare 0/3", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Close comparison" }),
@@ -170,11 +185,11 @@ test("offloading, context and variant changes share the same estimates", async (
   await expect(row).toContainText("offload");
   await expect(row.locator("td").nth(4)).toContainText("Unknown");
   await row.getByRole("button", { name: "Compare +", exact: true }).click();
-  await expect(page.locator(".comparison-panel article")).toHaveCount(1);
-  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
   await expect(
-    page.locator(".comparison-panel article .comparison-quant"),
-  ).toContainText("Q4_K_M");
+    row.getByRole("button", { name: "Remove", exact: true }),
+  ).toBeVisible();
+  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
+
   await row.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.locator(".preview")).toContainText("Q8_0");
   await page.getByText("Advanced: context & memory", { exact: true }).click();
@@ -184,6 +199,10 @@ test("offloading, context and variant changes share the same estimates", async (
   await expect(page.locator(".preview")).toContainText(
     "4,096 tokens requested",
   );
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await expect(
+    page.locator(".comparison-panel article .comparison-quant"),
+  ).toHaveText("Q4_K_M");
   await expect(page.locator(".comparison-panel")).toContainText(
     "4096-token context",
   );
@@ -239,12 +258,28 @@ test("wireframe hierarchy and all five recommendation positions", async ({
   await hardware(page);
   const form = await page.locator(".hardware-form").boundingBox(),
     card = await page.locator(".recommendations").boundingBox(),
-    catalog = await page.locator(".catalog-workspace").boundingBox(),
-    compare = await page.locator(".comparison-panel").boundingBox();
+    title = await page.locator("#intro-title").boundingBox();
   expect(form!.x + form!.width).toBeLessThan(card!.x);
-  expect(catalog!.y).toBeGreaterThan(form!.y + form!.height);
+  expect(title!.y + title!.height).toBeLessThan(Math.min(form!.y, card!.y));
+  expect(Math.abs(form!.y - card!.y)).toBeLessThan(2);
+  await expect(
+    page.getByRole("heading", { name: "Which model fits best?", exact: true }),
+  ).toBeVisible();
+  const surface = await page
+    .locator(".intro-grid")
+    .evaluate((el) => ({
+      background: getComputedStyle(el).backgroundColor,
+      border: getComputedStyle(el).borderTopWidth,
+    }));
+  expect(surface).toEqual({ background: "rgba(0, 0, 0, 0)", border: "0px" });
+  await expect(page.locator(".comparison-panel")).toHaveCount(0);
+  const fullWidth = (await page.locator(".catalog-workspace").boundingBox())!
+    .width;
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  const catalog = await page.locator(".catalog-workspace").boundingBox(),
+    compare = await page.locator(".comparison-panel").boundingBox();
   expect(compare!.x).toBeGreaterThan(catalog!.x + catalog!.width);
-  expect(Math.abs(catalog!.y - compare!.y)).toBeLessThan(30);
+  expect(catalog!.width).toBeLessThan(fullWidth);
   for (let i = 1; i <= 5; i++) {
     await expect(page.locator(".recommendation:visible")).toHaveCount(1);
     await expect(page.locator(".carousel-controls")).toContainText(i + " / 5");
@@ -271,7 +306,11 @@ test("bar detail rail, plot preview and compact tiles follow wireframes", async 
       .getByRole("button", { name: "Compare +", exact: true })
       .first()
       .click();
-    await expect(page.locator(".comparison-panel article")).toHaveCount(i);
+    await expect(
+      page
+        .locator(".new-catalog")
+        .getByRole("button", { name: "Remove", exact: true }),
+    ).toHaveCount(i);
   }
   await page.getByRole("button", { name: "Bars", exact: true }).click();
   await page.locator(".score-row").first().click();

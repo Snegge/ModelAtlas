@@ -31,6 +31,9 @@ export class WorkspaceStore {
   readonly task = signal<Task>("All tasks");
   readonly search = signal("");
   readonly view = signal("Table");
+  readonly chartView = computed(
+    () => this.view() === "Bars" || this.view() === "Plot",
+  );
   readonly sort = signal("score");
   readonly descending = signal(true);
   readonly selected = signal<Record<string, string>>({});
@@ -192,11 +195,16 @@ export class WorkspaceStore {
     return this.all().find((x) => x.a.id === id);
   }
   toggle(id: string) {
-    if (this.comparisons().includes(id))
+    if (this.comparisons().includes(id)) {
       this.comparisons.update((v) => v.filter((x) => x !== id));
-    else if (this.comparisons().length < 3)
+      this.message.set("Variant removed from comparison.");
+    } else if (this.comparisons().length < 3) {
       this.comparisons.update((v) => [...v, id]);
-    else this.message.set("Comparison is full (3/3). Remove a variant first.");
+      this.message.set(
+        `Variant saved (${this.comparisons().length}/3). View the comparison in Bars or Plot.`,
+      );
+    } else
+      this.message.set("Comparison is full (3/3). Remove a variant first.");
   }
   order(key: string) {
     if (this.sort() === key) this.descending.update((x) => !x);
