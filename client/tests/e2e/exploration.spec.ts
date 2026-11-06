@@ -12,7 +12,7 @@ async function hardware(
   await page.getByLabel("GPU profile (searchable)").fill(gpu);
   await page.getByLabel("GPU profile (searchable)").press("Tab");
   await page.getByLabel("System RAM · GiB (0–1024)").fill(ram);
-  await expect(page.locator(".recommendation").first()).toContainText("/100");
+  await expect(page.locator(".recommendation").first()).toContainText("/ 100");
 }
 test("empty hardware and demo popular models, search and all four views", async ({
   page,
@@ -60,11 +60,13 @@ test("profiles, manual overrides, ranking invariance and direct detail simulatio
   await expect(
     page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
   ).toHaveValue("936");
-  const names = await page.locator(".recommendation summary").allTextContents();
+  const names = await page
+    .locator(".recommendation .summary-heading")
+    .allTextContents();
   await page.getByLabel("Search model or provider").fill("Qwen");
   await page.getByRole("button", { name: "Parameters", exact: true }).click();
   expect(
-    await page.locator(".recommendation summary").allTextContents(),
+    await page.locator(".recommendation .summary-heading").allTextContents(),
   ).toEqual(names);
   await page
     .locator(".recommendation")
@@ -170,9 +172,9 @@ test("offloading, context and variant changes share the same estimates", async (
   await row.getByRole("button", { name: "Compare +", exact: true }).click();
   await expect(page.locator(".comparison-panel article")).toHaveCount(1);
   await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
-  await expect(page.locator(".comparison-panel article h3")).toContainText(
-    "Q4_K_M",
-  );
+  await expect(
+    page.locator(".comparison-panel article .comparison-quant"),
+  ).toContainText("Q4_K_M");
   await row.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.locator(".preview")).toContainText("Q8_0");
   await page.getByText("Advanced: context & memory", { exact: true }).click();
@@ -186,7 +188,9 @@ test("offloading, context and variant changes share the same estimates", async (
     "4096-token context",
   );
   await page.getByRole("button", { name: "Coding", exact: true }).click();
-  await expect(page.getByRole("combobox", { name: "Task", exact: true })).toHaveValue("Coding");
+  await expect(
+    page.getByRole("combobox", { name: "Task", exact: true }),
+  ).toHaveValue("Coding");
 });
 
 test("recommendation score agrees with table and detail; plot keyboard preview", async ({
@@ -201,7 +205,7 @@ test("recommendation score agrees with table and detail; plot keyboard preview",
     .locator(".new-catalog tbody tr")
     .filter({ has: page.getByRole("link", { name: name!, exact: true }) });
   await expect(row.locator("td").nth(5)).toContainText(
-    score!.split("/")[0].trim(),
+    score!.split("/")[0].replace("Score", "").trim(),
   );
   await page.getByRole("button", { name: "Plot", exact: true }).click();
   const dot = page.locator(".plot-dot").first();
@@ -225,4 +229,81 @@ test("recommendation score agrees with table and detail; plot keyboard preview",
       ),
     ).toBe(true);
   }
+});
+
+test("wireframe hierarchy and all five recommendation positions", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await boot(page);
+  await hardware(page);
+  const form = await page.locator(".hardware-form").boundingBox(),
+    card = await page.locator(".recommendations").boundingBox(),
+    catalog = await page.locator(".catalog-workspace").boundingBox(),
+    compare = await page.locator(".comparison-panel").boundingBox();
+  expect(form!.x + form!.width).toBeLessThan(card!.x);
+  expect(catalog!.y).toBeGreaterThan(form!.y + form!.height);
+  expect(compare!.x).toBeGreaterThan(catalog!.x + catalog!.width);
+  expect(Math.abs(catalog!.y - compare!.y)).toBeLessThan(30);
+  for (let i = 1; i <= 5; i++) {
+    await expect(page.locator(".recommendation:visible")).toHaveCount(1);
+    await expect(page.locator(".carousel-controls")).toContainText(i + " / 5");
+    await page
+      .locator(".carousel-controls")
+      .getByRole("button", { name: "Next recommendation" })
+      .click();
+  }
+  await expect(page.locator(".carousel-controls")).toContainText("1 / 5");
+  await page.locator(".carousel-next").focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator(".carousel-controls")).toContainText("2 / 5");
+});
+
+test("bar detail rail, plot preview and compact tiles follow wireframes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await boot(page);
+  await hardware(page);
+  for (let i = 1; i <= 2; i++) {
+    await page
+      .locator(".new-catalog")
+      .getByRole("button", { name: "Compare +", exact: true })
+      .first()
+      .click();
+    await expect(page.locator(".comparison-panel article")).toHaveCount(i);
+  }
+  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await page.locator(".score-row").first().click();
+  await expect(page.locator(".mini-benchmarks")).toBeVisible();
+  const bars = await page.locator(".score-bars").boundingBox(),
+    preview = await page.locator(".preview").boundingBox();
+  expect(preview!.x).toBeGreaterThan(bars!.x + bars!.width);
+  await page.screenshot({
+    path: "test-results/wireframe-bars.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Plot", exact: true }).click();
+  await page.locator(".plot-dot").first().click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.querySelector(".preview")!.getBoundingClientRect().top -
+          document.querySelector(".speed-plot")!.getBoundingClientRect().bottom,
+      ),
+    )
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: "test-results/wireframe-plot.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "Tiles", exact: true }).click();
+  await expect(
+    page.locator(".model-tile").first().locator(".quantization-chips"),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/wireframe-tiles.png",
+    fullPage: true,
+  });
 });

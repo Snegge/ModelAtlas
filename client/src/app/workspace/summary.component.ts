@@ -11,83 +11,108 @@ import { Row } from "./ranking";
     @let x = row();
     <div class="summary-heading">
       <a [routerLink]="['/models', x.r.id]">{{ x.r.name }}</a
-      ><strong>{{
-        x.score === null ? "Score unknown" : x.score + " / 100"
-      }}</strong>
+      ><strong
+        ><small>Score</small
+        >{{ x.score === null ? "Unknown" : x.score + " / 100" }}</strong
+      >
     </div>
-    <p class="muted">
-      {{ x.r.publisher }} · {{ x.r.family }} language model ·
-      {{ x.a.quantization }}
+    <p class="card-description">
+      {{ x.r.publisher }} · {{ x.r.family }} language model
     </p>
-    <p class="status-pill">{{ label(x.status) }}</p>
-    <p>
-      {{
+    <p class="fit-label">{{ label(x.status) }}</p>
+    <div class="card-memory">
+      <div class="card-memory-heading">
+        <span>{{
+          x.e?.totalGiB === null || !x.e
+            ? "Unknown memory"
+            : x.e.totalGiB!.toFixed(1) + " GiB estimated"
+        }}</span
+        ><span>{{ free(x) }} free</span>
+      </div>
+      @if (x.e) {
+        <atlas-memory
+          [estimate]="x.e"
+          [scaleGiB]="s.profile().vram"
+          [compact]="true"
+        />
+      }
+      <div class="compact-legend">
+        <span><i class="weights"></i>Weights</span
+        ><span><i class="cache"></i>KV cache</span
+        ><span><i class="runtime"></i>Runtime</span
+        ><span><i class="safety"></i>Reserve</span
+        ><span><i class="free"></i>Free</span>
+      </div>
+      @if (!x.e || x.e.totalGiB === null) {
+        <small>KV cache, runtime, reserve and free memory: unknown.</small>
+      }
+    </div>
+    <div class="quantization-chips" role="group" aria-label="Quantization">
+      @for (a of s.api.variants(x.r.id); track a.id) {
+        <button
+          [attr.aria-pressed]="a.id === x.a.id"
+          (click)="s.variant(x.r.id, a.id)"
+        >
+          {{ a.quantization }}
+        </button>
+      }
+    </div>
+    <div class="card-metrics">
+      <span
+        ><b>{{ s.profile().context.toLocaleString() }}</b> tokens
+        requested</span
+      ><span
+        ><b>{{ x.speed ? x.speed.low + "–" + x.speed.high : "Unknown" }}</b>
+        {{ x.speed ? "tokens/s · estimated" : "speed" }}</span
+      >
+    </div>
+    <div class="card-bottom">
+      <span class="card-data-status">{{
         x.entered
-          ? "Quality " +
-            x.q.toFixed(0) +
-            " (demo) · fit " +
-            (x.fit === null ? "unknown" : x.fit + "/100") +
-            " · coverage " +
-            x.coverage +
-            "%"
-          : "Demo popularity · synthetic ordering, not a live ranking"
-      }}
-    </p>
-    <label
-      >Quantization
-      <select
-        [value]="x.a.id"
-        (change)="s.variant(x.r.id, $any($event.target).value)"
-      >
-        @for (a of s.api.variants(x.r.id); track a.id) {
-          <option [value]="a.id">{{ a.quantization }}</option>
-        }
-      </select></label
-    >
-    <p>
-      {{ s.profile().context.toLocaleString() }} tokens requested · max
-      {{ x.r.contextLimit?.toLocaleString() ?? "unknown" }}
-    </p>
-    <p>
-      <a routerLink="/methodology" fragment="speed">Speed</a>:
-      {{
-        x.speed
-          ? x.speed.low + "–" + x.speed.high + " tokens/s · rough estimate"
-          : "Unknown · no reliable speed prediction"
-      }}
-    </p>
-    @if (x.e) {
-      <atlas-memory [estimate]="x.e" [scaleGiB]="s.profile().vram" />
-      <p class="small">
-        GPU requirement {{ fmt(x.e.gpuRequiredGiB) }} · separate RAM
-        {{ fmt(x.e.systemRequiredGiB) }} · free GPU {{ free(x) }}. All
-        estimates.
-      </p>
-    }
-    @if (!x.e || x.e.totalGiB === null) {
-      <p>KV cache, runtime, reserve and free memory: unknown.</p>
-    }
-    <p class="small">
-      {{ x.e?.reasons?.join(" ") }} Runtime compatibility unverified. Everyday
-      usability: {{ x.speed ? "estimated only; test your task" : "unknown" }}.
-    </p>
-    <div class="actions">
-      <a [routerLink]="['/models', x.r.id]">Details →</a
-      ><button (click)="s.toggle(x.a.id)">
-        {{
-          s.comparisons().includes(x.a.id)
-            ? "Remove from comparison"
-            : "Compare +"
-        }}
-      </button>
+          ? "Demo quality " + x.q.toFixed(0) + " · " + x.coverage + "% coverage"
+          : "Demo popularity"
+      }}</span>
+      <div class="actions">
+        <button (click)="s.toggle(x.a.id)">
+          {{
+            s.comparisons().includes(x.a.id)
+              ? "Remove from comparison"
+              : "Compare +"
+          }}</button
+        ><a class="details-link" [routerLink]="['/models', x.r.id]"
+          >Details →</a
+        >
+      </div>
     </div>
-    <p class="small">
-      License: {{ x.r.license ?? "unknown" }} ·
-      <a [href]="x.a.sourceUrl" target="_blank" rel="noreferrer"
-        >Artifact source</a
-      >
-      · <a routerLink="/methodology" fragment="score">Score method</a>
-    </p>
+    <details class="card-evidence">
+      <summary>Assumptions, breakdown & sources</summary>
+      <p>
+        {{ x.e?.reasons?.join(" ") }} Runtime compatibility unverified. Everyday
+        usability: {{ x.speed ? "estimated only; test your task" : "unknown" }}.
+      </p>
+      <p>
+        Weights {{ fmt(x.e?.weightsGiB ?? null) }} · KV cache
+        {{ fmt(x.e?.cacheGiB ?? null) }} · runtime
+        {{ fmt(x.e?.runtimeGiB ?? null) }} · reserve
+        {{ fmt(x.e?.safetyGiB ?? null) }}. GPU
+        {{ fmt(x.e?.gpuRequiredGiB ?? null) }} · separate RAM
+        {{ fmt(x.e?.systemRequiredGiB ?? null) }}.
+      </p>
+      <p>
+        Maximum context
+        {{ x.r.contextLimit?.toLocaleString() ?? "unknown" }} tokens. Hardware
+        fit component {{ x.fit ?? "unknown" }} / 100. Quality is synthetic demo
+        data; no measured variant benchmarks.
+      </p>
+      <p>
+        License: {{ x.r.license ?? "unknown" }} ·
+        <a [href]="x.a.sourceUrl" target="_blank" rel="noreferrer"
+          >Artifact source</a
+        >
+        · <a routerLink="/methodology" fragment="score">Score method</a> ·
+        <a routerLink="/methodology" fragment="speed">Speed assumptions</a>
+      </p>
+    </details>
   `,
 })
 export class SummaryComponent {

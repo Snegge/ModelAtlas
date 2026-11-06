@@ -11,10 +11,11 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { WorkspaceStore } from "./workspace.store";
 import { SummaryComponent } from "./summary.component";
+import { CompareComponent } from "./compare.component";
 import { GPUS, TASKS, Task, quality } from "./ranking";
 @Component({
   standalone: true,
-  imports: [RouterLink, SummaryComponent, A11yModule],
+  imports: [RouterLink, SummaryComponent, A11yModule, CompareComponent],
   templateUrl: "./workspace.component.html",
 })
 export class WorkspaceComponent implements OnDestroy {
@@ -33,6 +34,23 @@ export class WorkspaceComponent implements OnDestroy {
   readonly tasks = TASKS;
   readonly quality = quality;
   readonly gpus = GPUS;
+  readonly recommendationIndex = signal(0);
+  readonly activeRecommendation = computed(() =>
+    Math.min(this.recommendationIndex(), Math.max(0, this.s.top().length - 1)),
+  );
+  readonly viewIcons: Record<string, string> = {
+    Table: "☷",
+    Tiles: "▦",
+    Bars: "▤",
+    Plot: "⤢",
+  };
+  nextRecommendation(direction: number) {
+    const count = this.s.top().length;
+    if (count)
+      this.recommendationIndex.set(
+        (this.activeRecommendation() + direction + count) % count,
+      );
+  }
   readonly views = ["Table", "Plot", "Bars", "Tiles"];
   readonly columns = [
     ["name", "Model"],
@@ -56,7 +74,9 @@ export class WorkspaceComponent implements OnDestroy {
   readonly simulationRate = signal<number | null>(null);
   openPreview(id: string) {
     this.s.preview.set(id);
-    requestAnimationFrame(() => document.querySelector<HTMLElement>(".preview")?.focus());
+    requestAnimationFrame(() =>
+      document.querySelector<HTMLElement>(".preview")?.focus(),
+    );
   }
   clamp(v: number) {
     return Math.min(200, v);
