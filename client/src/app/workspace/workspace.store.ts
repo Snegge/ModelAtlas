@@ -38,7 +38,7 @@ export class WorkspaceStore {
   readonly descending = signal(true);
   readonly selected = signal<Record<string, string>>({});
   readonly preview = signal<string | null>(null);
-  readonly message = signal("");
+  readonly message = signal("", { equal: () => false });
   readonly drawer = signal(false);
   readonly entered = computed(() => {
     const p = this.profile();

@@ -7,7 +7,6 @@
       {{ s.api.error() }} <button (click)="s.api.retry()">Retry</button>
     </p>
   }
-  <p role="status">{{ s.message() }}</p>
   @if (id()) {
     @if (detail(); as x) {
       <section class="surface detail-page">
@@ -26,7 +25,7 @@
           }}
           · maximum supported context {{ x.r.contextLimit ?? "unknown" }} tokens
         </p>
-        <atlas-summary [row]="x" />
+        <atlas-summary [row]="x" [showCompare]="false" [showDetails]="false" />
         <p>
           <a [href]="x.r.modelCardUrl">Original model card</a> ·
           <a [href]="x.r.licenseUrl">License source</a> · Retrieved

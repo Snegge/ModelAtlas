@@ -40,3 +40,9 @@ With both servers running: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e --p
 ## Limits and roadmap
 
 CPU-only, unified memory, multi-GPU and unsupported architectures have no placement estimate. Quality and popularity are demos, not recommendations backed by measurements. Runtime support is unverified. All candidates require tests on the user's own workload. Learning, models of the week, forums, ratings and reviews remain roadmap items without navigation targets or backend scaffolding.
+
+## Notifications and detail actions
+
+Workspace feedback uses a global fixed snackbar with polite live announcement, a dismiss button and a six-second automatic timeout. New messages restart the timeout; route changes do not shift page layout. Detail summaries keep quantization and evidence controls but omit their own Details and Compare actions.
+
+Catalog expansion research is recorded in [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md). The expansion is pending Hub network access and is not included in the current 38-release snapshot.

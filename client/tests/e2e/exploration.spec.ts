@@ -291,12 +291,10 @@ test("intro hierarchy, detached carousel arrows and flush comparison panel", asy
   expect(title!.y + title!.height).toBeLessThan(Math.min(form!.y, card!.y));
   expect(Math.abs(form!.y - card!.y)).toBeLessThan(2);
   expect(
-    await page
-      .locator(".intro-grid")
-      .evaluate((el) => ({
-        background: getComputedStyle(el).backgroundColor,
-        border: getComputedStyle(el).borderTopWidth,
-      })),
+    await page.locator(".intro-grid").evaluate((el) => ({
+      background: getComputedStyle(el).backgroundColor,
+      border: getComputedStyle(el).borderTopWidth,
+    })),
   ).toEqual({ background: "rgba(0, 0, 0, 0)", border: "0px" });
   await expect(
     page.getByRole("button", { name: "Previous recommendation" }),
@@ -378,4 +376,67 @@ test("bar detail rail, plot preview and compact tiles", async ({ page }) => {
     path: "test-results/wireframe-tiles.png",
     fullPage: true,
   });
+});
+
+test("feedback uses a transient dismissible snackbar without moving page content", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await boot(page);
+  await view(page, "Bars");
+  await page.locator(".score-row").first().click();
+  const before = await page
+    .locator("#intro-title")
+    .evaluate((el) => (el as HTMLElement).offsetTop);
+  await page
+    .locator(".preview")
+    .getByRole("button", { name: "Compare +", exact: true })
+    .click();
+  await expect(page.locator(".snackbar")).toContainText("Variant saved (1/3)");
+  await expect(page.locator('.atlas-workspace > p[role="status"]')).toHaveCount(
+    0,
+  );
+  expect(
+    await page
+      .locator("#intro-title")
+      .evaluate((el) => (el as HTMLElement).offsetTop),
+  ).toBe(before);
+  expect(
+    await page
+      .locator(".snackbar")
+      .evaluate((el) => getComputedStyle(el).position),
+  ).toBe("fixed");
+  await page.clock.fastForward(6001);
+  await expect(page.locator(".snackbar")).toHaveCount(0);
+  await page
+    .locator(".preview")
+    .getByRole("button", { name: "Remove from comparison" })
+    .click();
+  await expect(page.locator(".snackbar")).toContainText("Variant removed");
+  await page.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(page.locator(".snackbar")).toHaveCount(0);
+});
+
+test("model detail summary has neither self-link action nor comparison action", async ({
+  page,
+}) => {
+  await boot(page);
+  await page
+    .locator(".recommendation:visible")
+    .getByRole("link", { name: "Details →" })
+    .click();
+  await expect(page.locator(".detail-page atlas-summary .actions")).toHaveCount(
+    0,
+  );
+  await expect(
+    page
+      .locator(".detail-page atlas-summary")
+      .getByRole("button", { name: /Compare|Remove from comparison/ }),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".detail-page atlas-summary .details-link"),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".detail-page atlas-summary .quantization-chips"),
+  ).toBeVisible();
 });

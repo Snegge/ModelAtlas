@@ -1,3 +1,7 @@
+# Latest UI check
+
+Snackbar/detail revision: production build, 14 frontend/unit tests and all 11 Playwright scenarios passed. New scenarios verify fixed-position feedback without layout shifts, automatic dismissal after six seconds, manual dismissal, and absence of redundant detail actions. The catalog expansion is **not completed or validated**; see [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md) for the network prerequisite and researched candidates.
+
 # Current workspace validation
 
 The interface has been revised to the hardware shortlist, four synchronized catalog views and routed detail workflow. Historical evidence below describes the previous interface. Current commands, assumptions and scenarios are documented in [PROTOTYPE.md](PROTOTYPE.md). The browser suite now targets the revised flows.

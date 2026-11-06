@@ -72,18 +72,24 @@ import { Row } from "./ranking";
           ? "Demo quality " + x.q.toFixed(0) + " · " + x.coverage + "% coverage"
           : "Demo popularity"
       }}</span>
-      <div class="actions">
-        @if (showCompare()) {
-          <button (click)="s.toggle(x.a.id)">
-            {{
-              s.comparisons().includes(x.a.id)
-                ? "Remove from comparison"
-                : "Compare +"
-            }}
-          </button>
-        }
-        <a class="details-link" [routerLink]="['/models', x.r.id]">Details →</a>
-      </div>
+      @if (showCompare() || showDetails()) {
+        <div class="actions">
+          @if (showCompare()) {
+            <button (click)="s.toggle(x.a.id)">
+              {{
+                s.comparisons().includes(x.a.id)
+                  ? "Remove from comparison"
+                  : "Compare +"
+              }}
+            </button>
+          }
+          @if (showDetails()) {
+            <a class="details-link" [routerLink]="['/models', x.r.id]"
+              >Details →</a
+            >
+          }
+        </div>
+      }
     </div>
     @if (showEvidence()) {
       <details class="card-evidence">
@@ -122,6 +128,7 @@ import { Row } from "./ranking";
 export class SummaryComponent {
   readonly row = input.required<Row>();
   readonly showCompare = input(true);
+  readonly showDetails = input(true);
   readonly showEvidence = input(true);
   readonly s = inject(WorkspaceStore);
   label(v: string) {

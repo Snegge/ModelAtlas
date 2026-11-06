@@ -2697,3 +2697,47 @@ a:hover {
     flex-wrap: wrap;
   }
 }
+.snackbar {
+  position: fixed;
+  z-index: 100;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid #38598e;
+  border-radius: 12px;
+  background: #1d355b;
+  color: #fff;
+  box-shadow: 0 8px 28px #10244326;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.snackbar button {
+  flex: none;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.snackbar button:hover {
+  background: #ffffff1a;
+}
+.snackbar button:focus-visible {
+  outline: 3px solid #aac8ff;
+  outline-offset: 2px;
+}
+@media (max-width: 700px) {
+  .snackbar {
+    bottom: 16px;
+    gap: 12px;
+  }
+}
