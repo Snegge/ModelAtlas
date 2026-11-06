@@ -2,7 +2,7 @@
 
 Model Atlas helps you explore which language-model files might fit your computer's memory. Enter a hardware budget, change settings and compare models before deciding what to download.
 
-This is a university Interaction Design prototype. It combines **memory estimates**, rough bandwidth-based speed ranges and explicitly synthetic task-quality fixtures. It does not install or run models. You do not need a powerful GPU to try the interface. The included catalog contains **38 model releases and 114 downloadable variants across six families**.
+This is a university Interaction Design prototype. It combines **memory estimates**, rough bandwidth-based speed ranges and explicitly synthetic task-quality fixtures. It does not install or run models. You do not need a powerful GPU to try the interface. The included catalog contains **84 model releases and 252 downloadable variants across 14 families**.
 
 ## Updated workspace
 

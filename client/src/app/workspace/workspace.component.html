@@ -388,10 +388,8 @@
                             }}</a
                             ><label
                               >Variant<select
-                                [value]="x.a.id"
-                                (change)="
-                                  s.variant(x.r.id, $any($event.target).value)
-                                "
+                                [ngModel]="x.a.id"
+                                (ngModelChange)="s.variant(x.r.id, $event)"
                               >
                                 @for (a of s.api.variants(x.r.id); track a.id) {
                                   <option [value]="a.id">

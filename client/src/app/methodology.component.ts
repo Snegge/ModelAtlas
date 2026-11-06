@@ -1,8 +1,10 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
+import { AtlasStore } from "./core/atlas.store";
 @Component({
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DatePipe],
   template: `<article class="method-page surface">
     <a routerLink="/">← Explorer</a>
     <h1>Method, data & limits</h1>
@@ -12,8 +14,16 @@ import { RouterLink } from "@angular/router";
     </p>
     <h2 id="data">Sources and data status</h2>
     <p>
-      The bundled revision-pinned Hugging Face catalog contains 38 releases and
-      114 GGUF variants, retrieved October 11, 2026. Model and artifact source
+      @if (store.coverage(); as coverage) {
+        The bundled revision-pinned Hugging Face catalog contains
+        {{ coverage.releaseCount }} releases and {{ coverage.artifactCount }}
+        GGUF variants. Snapshot assembled {{ coverage.retrievedAt | date: "longDate" }}.
+        Existing pinned records retain their original retrieval dates.
+      } @else {
+        The bundled catalog uses revision-pinned Hugging Face metadata.
+        Catalog counts and snapshot date are currently unavailable.
+      }
+      Model and artifact source
       links, license and individual retrieval dates appear on detail pages.
       Existing catalog API and importer remain available. The app makes no live
       model-service requests.
@@ -114,4 +124,6 @@ import { RouterLink } from "@angular/router";
     </p>
   </article>`,
 })
-export class MethodologyComponent {}
+export class MethodologyComponent {
+  readonly store = inject(AtlasStore);
+}

@@ -77,7 +77,9 @@ public sealed class EstimatorTests
         var first=engine.Evaluate(r,pair[0],new());var last=engine.Evaluate(r,pair[^1],new());
         Assert.True(last.WeightsGiB>first.WeightsGiB);Assert.Equal(pair[0].SizeBytes/1073741824.0,first.WeightsGiB);
         Assert.All(c.Snapshot.Artifacts,a=>{Assert.Equal(40,a.Revision.Length);Assert.All(a.Files,f=>Assert.Equal(64,f.Sha256.Length));});
-        Assert.InRange(c.Snapshot.Releases.Count,20,60);Assert.True(c.Snapshot.Releases.Select(r=>r.Family).Distinct().Count()>=4);
+        Assert.True(c.Snapshot.Releases.Count>=76);
+        Assert.True(c.Snapshot.Releases.Select(r=>r.Family).Distinct().Count()>=12);
+        Assert.All(c.Snapshot.Releases,r=>Assert.Contains(c.Snapshot.Artifacts,a=>a.ReleaseId==r.Id));
     }
     [Fact] public void ScenarioUsesStableBaselineAndLabelsRepresentativeChanges()
     {

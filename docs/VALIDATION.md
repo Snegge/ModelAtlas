@@ -1,6 +1,29 @@
+# Catalog expansion validation — November 6, 2026
+
+The bundled catalog now contains **84 distinct releases / 252 exact GGUF artifacts / 14 families**, up from 38 / 114 / 6. Live public Hub metadata and bounded binary headers validated 46 additions out of 61 candidates. An explicit comparison against the previous committed snapshot confirmed that every existing release and artifact record remains unchanged, including comparison IDs and retrieval dates. Eight artifacts contain complete multi-file sets. No full model weights or inference were run.
+
+| Check | Result |
+|---|---|
+| Importer and snapshot tests | **8 passed**; includes preservation on failed extension, coverage target enforcement and deterministic duplicate handling |
+| Backend tests | **12 passed** against expanded snapshot; minimum 76 releases, family diversity and artifact coverage asserted |
+| Frontend unit tests | **14 passed** |
+| .NET Release build | Passed, zero warnings/errors |
+| Angular production build / TypeScript / template checks | Passed |
+| Playwright browser scenarios | **12 passed**, including new-family search, Q8 variant retention through all views, original artifact citations and live methodology counts |
+| Desktop/mobile accessibility | Existing axe checks passed at 1440 × 1000 and 390 × 844; no document overflow in checked views |
+| Visual inspection | New Granite tiles inspected at 1440 px desktop and 390 px mobile; screenshots in ignored `.cache/catalog-expansion/` |
+| Local API coverage | 84 releases / 252 artifacts / 14 families |
+| RTX 3060 scenario: 12 GiB VRAM, 48 GiB RAM, 8192 context, Q4_K_M, no offload | 33 estimated GPU fits, 17 outside budget, 34 unknown |
+| RTX 3090 scenario: 24 GiB VRAM, 128 GiB RAM, same context/quantization | 43 estimated GPU fits, 7 outside budget, 34 unknown |
+| `git diff --check` | Passed |
+
+The browser run exposed a select-rendering defect: after returning to Table, the native select could show Q4 while the shared calculation still used the chosen Q8. Angular Forms binding now keeps the control synchronized when its options are recreated; the new browser scenario covers this regression. A previous task-switch assertion now waits for the asynchronous UI update. The final full browser rerun passed all scenarios. Earlier snackbar and detail-action behavior remains covered.
+
+The 34 unassessable releases in these scenarios remain explicit Unknown; adding metadata did not expand estimator architecture support. Quality and popularity remain Demo fixtures. These scenario counts are reproducible heuristic outcomes, not measurements of local model performance. No standalone lint command is configured.
+
 # Latest UI check
 
-Snackbar/detail revision: production build, 14 frontend/unit tests and all 11 Playwright scenarios passed. New scenarios verify fixed-position feedback without layout shifts, automatic dismissal after six seconds, manual dismissal, and absence of redundant detail actions. The catalog expansion is **not completed or validated**; see [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md) for the network prerequisite and researched candidates.
+Snackbar/detail revision: production build, 14 frontend/unit tests and all 11 Playwright scenarios passed. New scenarios verify fixed-position feedback without layout shifts, automatic dismissal after six seconds, manual dismissal, and absence of redundant detail actions. The subsequent catalog expansion is documented below and in [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md).
 
 # Current workspace validation
 

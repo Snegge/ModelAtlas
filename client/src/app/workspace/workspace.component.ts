@@ -7,6 +7,7 @@ import {
   effect,
 } from "@angular/core";
 import { A11yModule } from "@angular/cdk/a11y";
+import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { WorkspaceStore } from "./workspace.store";
@@ -15,7 +16,7 @@ import { CompareComponent } from "./compare.component";
 import { GPUS, TASKS, Task, quality } from "./ranking";
 @Component({
   standalone: true,
-  imports: [RouterLink, SummaryComponent, A11yModule, CompareComponent],
+  imports: [RouterLink, SummaryComponent, A11yModule, CompareComponent, FormsModule],
   templateUrl: "./workspace.component.html",
 })
 export class WorkspaceComponent implements OnDestroy {

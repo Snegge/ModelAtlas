@@ -1,120 +1,38 @@
-# Catalog expansion research — pending metadata access
+# Catalog expansion — verified snapshot
 
-Checked 2026-11-06T19:32:02.715044+00:00. Found **49 distinct published model references** in official project READMEs. These are discovery candidates, not verified catalog entries or an exhaustive current leaderboard. Precision-only FP8/GGUF/NVFP4 references and speech/vision-only products were excluded from this list. Base and instruction-tuned releases are distinct candidates.
+Research and import completed November 6, 2026. The catalog grew from **38 to 84 distinct releases**, from **114 to 252 concrete GGUF artifacts**, and from **6 to 14 families**. This exceeds the requested doubling; quantizations are not counted as separate models. All original records, pinned revisions and comparison IDs were preserved.
 
-The live catalog still contains **38 releases / 114 artifacts**. Target: at least **76 releases**, with broader publisher/architecture and size coverage. Do not count this research list toward the target.
+## Selection and evidence
 
-## Blocking prerequisite
+Public Hugging Face Hub searches of the `bartowski` converter repositories were used to discover current sources. The importer followed each structured `base_model` mapping to the original publisher, read revision-pinned model/config metadata, verified actual quantization from bounded binary GGUF headers, and checked complete file sets, advertised byte sizes and advertised SHA256s. Original model cards and artifact sources are linked per entry in `data/catalog.json` and [DATA-SOURCES.md](DATA-SOURCES.md). Public access required no API key.
 
-The configured HTTP proxy rejected `https://huggingface.co/api/models?...` with CONNECT 403. The environment draft now requests `huggingface.co`, `us.aws.cdn.hf.co` and `cas-bridge.xethub.hf.co`, as required by the existing importer. The running policy still does not include these domains. Review/save the network settings and publish through the environment UI before retrying. No API key was requested.
+The 61 additional candidates favored different publishers, compact local models and a spread of sizes and architectures. **46 passed metadata validation; 15 were excluded.** The pre-existing five unavailable candidates remain recorded separately in the accumulated 20 import issues. No invented GPU specifications, benchmark results or popularity signals were added.
 
-Official GitHub READMEs below were accessible and read directly. Their model references do not establish accessible GGUF files, byte sizes, revision hashes, licenses or runtime support. Those must be verified through the existing importer before adding records. Large MoE/hybrid candidates may remain unassessable in the current estimator; do not fabricate dense-transformer assumptions for them.
+Examples of the expansion include SmolLM2/3, Falcon3, Granite 3.3/4.0/4.2, OLMo2/3/3.1, EXAONE Deep/4, Liquid LFM2/2.5, Apertus, Phi-4 mini/reasoning, Ministral 3, Magistral, Mistral Small 3.2, Nemotron 3/3.5 and Qwen3-Coder-Next. This is a curated snapshot, not an exhaustive latest-model list or live ranking.
 
-## Candidate sources
+## Added releases, grouped by family
 
-### OpenAI
+| Family | New releases | Original release identifiers |
+|---|---:|---|
+| Apertus | 1 | [Apertus-8B-Instruct-2509](https://huggingface.co/swiss-ai/Apertus-8B-Instruct-2509/blob/b946d40447b2b597999b9c86d44bee0b452c919f/README.md) |
+| EXAONE | 4 | [EXAONE-4.0-1.2B](https://huggingface.co/LGAI-EXAONE/EXAONE-4.0-1.2B/blob/3abf2810673c7c0778df64a73c2d52eab32d91c4/README.md); [EXAONE-4.0.1-32B](https://huggingface.co/LGAI-EXAONE/EXAONE-4.0.1-32B/blob/a6b0bd4b0fb47cd3c644d60d12dba8ecdb9dc810/README.md); [EXAONE-Deep-2.4B](https://huggingface.co/LGAI-EXAONE/EXAONE-Deep-2.4B/blob/69d80cdf4784e2c182854d83e9b2d02494626a3e/README.md); [EXAONE-Deep-7.8B](https://huggingface.co/LGAI-EXAONE/EXAONE-Deep-7.8B/blob/8a120673fc7309b55be2175a2e61f9a0839e4f61/README.md) |
+| Falcon | 4 | [Falcon3-10B-Instruct](https://huggingface.co/tiiuae/Falcon3-10B-Instruct/blob/8799bc6aec0152757221dc6b272d824642db6202/README.md); [Falcon3-1B-Instruct](https://huggingface.co/tiiuae/Falcon3-1B-Instruct/blob/28ba2251970a01dd1edc7ba7dad2eb71216ccfdf/README.md); [Falcon3-3B-Instruct](https://huggingface.co/tiiuae/Falcon3-3B-Instruct/blob/411bb94318f94f7a5735b77109f456b1e74b42a1/README.md); [Falcon3-7B-Instruct](https://huggingface.co/tiiuae/Falcon3-7B-Instruct/blob/1e57a0ecd176c7c139f289c60a74e57f887c3dfb/README.md) |
+| Gemma | 1 | [gemma-3-270m-it](https://huggingface.co/google/gemma-3-270m-it/blob/ac82b4e820549b854eebf28ce6dedaf9fdfa17b3/README.md) |
+| Granite | 6 | [granite-3.3-2b-instruct](https://huggingface.co/ibm-granite/granite-3.3-2b-instruct/blob/707f574c62054322f6b5b04b6d075f0a8f05e0f0/README.md); [granite-3.3-8b-instruct](https://huggingface.co/ibm-granite/granite-3.3-8b-instruct/blob/51dd4bc2ade4059a6bd87649d68aa11e4fb2529b/README.md); [granite-4.0-micro](https://huggingface.co/ibm-granite/granite-4.0-micro/blob/56111ae135df9c53a78c99028e7bc24035a9e979/README.md); [granite-4.2-30b](https://huggingface.co/ibm-granite/granite-4.2-30b/blob/9e668ce1c538387ef24d3644e9b0606647762636/README.md); [granite-4.2-3b](https://huggingface.co/ibm-granite/granite-4.2-3b/blob/4e9c275e232f10211ec88644d106a1f6a1b60e06/README.md); [granite-4.2-8b](https://huggingface.co/ibm-granite/granite-4.2-8b/blob/a7042144125ce5ae64f89610e8289647fc000b9a/README.md) |
+| LFM | 4 | [LFM2-1.2B-Extract](https://huggingface.co/LiquidAI/LFM2-1.2B-Extract/blob/e68bdd9af162cfca7d806b456a7a56406e6194fa/README.md); [LFM2-2.6B-Exp](https://huggingface.co/LiquidAI/LFM2-2.6B-Exp/blob/2251c865342649ffb4a9f57d07ab2428bb552cf5/README.md); [LFM2.5-1.2B-Instruct](https://huggingface.co/LiquidAI/LFM2.5-1.2B-Instruct/blob/b9d816ab510f9a28dca37cb182e9da8b0226e13c/README.md); [LFM2.5-2.6B](https://huggingface.co/LiquidAI/LFM2.5-2.6B/blob/7141b56cd4650af95c7c7b86983443aed050c96a/README.md) |
+| Mistral | 8 | [Magistral-Small-2509](https://huggingface.co/mistralai/Magistral-Small-2509/blob/a31cc96ab10cf19bc42c628fedf1e359e0853c49/README.md); [Ministral-3-14B-Instruct-2512-BF16](https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512-BF16/blob/3cea74c1ebaf5ce5f5a2553de470e2ceab825142/README.md); [Ministral-3-14B-Reasoning-2512](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512/blob/51f9210f3cd20f3452a80d5819d15dc61cc50630/README.md); [Ministral-3-3B-Instruct-2512-BF16](https://huggingface.co/mistralai/Ministral-3-3B-Instruct-2512-BF16/blob/b6d637bef2393152b3da2b2fde72eecdee30557e/README.md); [Ministral-3-3B-Reasoning-2512](https://huggingface.co/mistralai/Ministral-3-3B-Reasoning-2512/blob/4a36357c811bf511a7b625d132e12f22408aac91/README.md); [Ministral-3-8B-Instruct-2512-BF16](https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512-BF16/blob/f6fae9795746f63c9be8344932f01275f3c63734/README.md); [Ministral-3-8B-Reasoning-2512](https://huggingface.co/mistralai/Ministral-3-8B-Reasoning-2512/blob/81eaece1948f3875421d9a45bc55487d10e2d894/README.md); [Mistral-Small-3.2-24B-Instruct-2506](https://huggingface.co/mistralai/Mistral-Small-3.2-24B-Instruct-2506/blob/95a6d26c4bfb886c58daf9d3f7332c857cb27b43/README.md) |
+| Nemotron | 3 | [NVIDIA-Nemotron-3-Nano-30B-A3B-BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16/blob/bf77c3174f68ad409e1c2aa60daeb46e32d1c606/README.md); [NVIDIA-Nemotron-3-Nano-4B-BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Nano-4B-BF16/blob/dfaf35de3e30f1867dd8dbc38a7fc9fb52d3914f/README.md); [NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16/blob/a9904d24bcc1d289a1950fa9d2b978c47cf903b9/README.md) |
+| OLMo | 6 | [OLMo-2-1124-13B-Instruct](https://huggingface.co/allenai/OLMo-2-1124-13B-Instruct/blob/3a5c85baefbb1896a54d56fe2e76c0395627ddf4/README.md); [OLMo-2-1124-7B-Instruct](https://huggingface.co/allenai/OLMo-2-1124-7B-Instruct/blob/470b1fba1ae01581f270116362ee4aa1b97f4c84/README.md); [Olmo-3-7B-Instruct](https://huggingface.co/allenai/Olmo-3-7B-Instruct/blob/6e5971d9eba42665f5bd5a0fcf047f299ce1dccc/README.md); [Olmo-3-7B-Think](https://huggingface.co/allenai/Olmo-3-7B-Think/blob/d97e442d7cc678210054dbcc9b440894d62c89a4/README.md); [Olmo-3.1-32B-Instruct](https://huggingface.co/allenai/Olmo-3.1-32B-Instruct/blob/ac0587e4a7744a551c059d8cd17ba220bc940dae/README.md); [Olmo-3.1-32B-Think](https://huggingface.co/allenai/Olmo-3.1-32B-Think/blob/97ade57a9cc55ed48bcd76be4b7a3b6fee61b80d/README.md) |
+| Phi | 4 | [Phi-4-mini-instruct](https://huggingface.co/microsoft/Phi-4-mini-instruct/blob/cfbefacb99257ffa30c83adab238a50856ac3083/README.md); [Phi-4-mini-reasoning](https://huggingface.co/microsoft/Phi-4-mini-reasoning/blob/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a/README.md); [Phi-4-reasoning](https://huggingface.co/microsoft/Phi-4-reasoning/blob/1de18ec97600877ce63dbf60c73b998da99f0195/README.md); [Phi-4-reasoning-plus](https://huggingface.co/microsoft/Phi-4-reasoning-plus/blob/69baf8528e1bcf05f475034d9e5dd32875ed125f/README.md) |
+| Qwen | 1 | [Qwen3-Coder-Next](https://huggingface.co/Qwen/Qwen3-Coder-Next/blob/a7fbcb5c0e12d62a448eaa0e260346bf5dcc0feb/README.md) |
+| SmolLM | 4 | [SmolLM2-1.7B-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct/blob/31b70e2e869a7173562077fd711b654946d38674/README.md); [SmolLM2-135M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct/blob/12fd25f77366fa6b3b4b768ec3050bf629380bac/README.md); [SmolLM2-360M-Instruct](https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/blob/a10cc1512eabd3dde888204e902eca88bddb4951/README.md); [SmolLM3-3B](https://huggingface.co/HuggingFaceTB/SmolLM3-3B/blob/a07cc9a04f16550a088caea529712d1d335b0ac1/README.md) |
 
-Source: [OpenAI official README](https://raw.githubusercontent.com/openai/gpt-oss/main/README.md)
+## Exclusions and limits
 
-- `openai/gpt-oss-120b`
-- `openai/gpt-oss-20b`
+The Nemotron 3.5 Bolt source lacked an unambiguous structured base-model mapping. Selected Gemma 4, Qwen3.5/3.8, Devstral Small 2, GPT-OSS and GLM 4.7 Flash conversions did not expose a verifiable quantization in the bounded header probe. Their names were not used to infer quantization. Exact repositories and reasons are retained under `importIssues` and in [DATA-SOURCES.md](DATA-SOURCES.md).
 
-### SmolLM
+The existing estimator was deliberately not generalized to unfamiliar architectures. Unsupported dense, hybrid and MoE models remain searchable and inspectable with real file sizes, licenses, contexts and sources, while cache, fit and speed can be unknown. Metadata validation does not establish runtime compatibility. Synthetic task quality and popularity fixtures remain labelled Demo; no new measured performance claims were introduced.
 
-Source: [SmolLM official README](https://raw.githubusercontent.com/huggingface/smollm/main/README.md)
+## Reproduce an extension
 
-- `HuggingFaceTB/SmolLM3-3B`
-- `HuggingFaceTB/SmolLM3-3B-Base`
-
-### OLMo
-
-Source: [OLMo official README](https://raw.githubusercontent.com/allenai/OLMo/main/README.md)
-
-- `allenai/OLMo-2-0325-32B`
-- `allenai/OLMo-2-0325-32B-Instruct`
-- `allenai/OLMo-2-0425-1B`
-- `allenai/OLMo-2-0425-1B-Instruct`
-- `allenai/OLMo-2-1124-13B`
-- `allenai/OLMo-2-1124-13B-Instruct`
-- `allenai/OLMo-2-1124-7B`
-- `allenai/OLMo-2-1124-7B-Instruct`
-
-### Granite
-
-Source: [Granite official README](https://raw.githubusercontent.com/ibm-granite/granite-4.0-language-models/main/README.md)
-
-- `ibm-granite/granite-4.0-micro`
-- `ibm-granite/granite-4.0-h-micro-base`
-- `ibm-granite/granite-4.0-h-micro`
-- `ibm-granite/granite-4.0-h-tiny-base`
-- `ibm-granite/granite-4.0-h-tiny`
-- `ibm-granite/granite-4.0-h-small-base`
-- `ibm-granite/granite-4.0-h-small`
-- `ibm-granite/granite-4.0-8b-base`
-- `ibm-granite/granite-4.0-8b`
-
-### Qwen
-
-Source: [Qwen official README](https://raw.githubusercontent.com/QwenLM/Qwen3/main/README.md)
-
-- `Qwen/Qwen3-235B-A22B-Instruct-2507`
-- `Qwen/Qwen3-235B-A22B-Thinking-2507`
-- `Qwen/Qwen3-30B-A3B-Instruct-2507`
-- `Qwen/Qwen3-30B-A3B-Thinking-2507`
-- `Qwen/Qwen3-4B-Instruct-2507`
-- `Qwen/Qwen3-4B-Thinking-2507`
-
-### Qwen Coder
-
-Source: [Qwen Coder official README](https://raw.githubusercontent.com/QwenLM/Qwen3-Coder/main/README.md)
-
-- `Qwen/Qwen3-Coder-30B-A3B-Instruct`
-- `Qwen/Qwen3-Coder-480B-A35B-Instruct`
-- `Qwen/Qwen3-Coder-Next`
-- `Qwen/Qwen3-Coder-Next-Base`
-
-### Qwen Next
-
-Source: [Qwen Next official README](https://raw.githubusercontent.com/QwenLM/Qwen3-Next/main/README.md)
-
-- `Qwen/Qwen3.8-2.4T-A95B`
-- `Qwen/Qwen3.8-27B`
-
-### GLM
-
-Source: [GLM official README](https://raw.githubusercontent.com/zai-org/GLM-4.5/main/README.md)
-
-- `zai-org/GLM-4.5`
-- `zai-org/GLM-4.5-Air`
-- `zai-org/GLM-4.5-Air-Base`
-- `zai-org/GLM-4.5-Base`
-- `zai-org/GLM-4.6`
-- `zai-org/GLM-4.7`
-- `zai-org/GLM-4.7-Flash`
-
-### Phi
-
-Source: [Phi official README](https://raw.githubusercontent.com/microsoft/PhiCookBook/main/README.md)
-
-- `microsoft/Phi-4-mini-reasoning`
-
-### Nemotron
-
-Source: [Nemotron official README](https://raw.githubusercontent.com/NVIDIA-NeMo/Nemotron/main/README.md)
-
-- `nvidia/Llama-3.1-Nemotron-Nano-8B-v1`
-- `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16`
-- `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-Base-BF16`
-- `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16`
-- `nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16`
-- `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16`
-- `nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-Base-BF16`
-- `nvidia/Nemotron-3-Super-49B-v1`
-
-## Resume the import
-
-1. Verify that the running network policy includes the required hosts and retry the public Hub API.
-2. Discover concrete GGUF repositories with a verified base-model mapping; prioritize new families and smaller practical models, not only additional Qwen sizes.
-3. Preserve all existing releases and their provenance. Verify full shard sets, byte counts, SHA256 metadata and bounded GGUF headers using `scripts/import_catalog.py`.
-4. Add only successfully verified sources; maintain explicit unknown values for unsupported architectures or missing metadata. Keep synthetic quality/popularity clearly separate.
-5. Confirm at least 76 unique release IDs, update count/date documentation and snapshot-dependent tests, rebuild/restart the API to load the expanded snapshot, and run tests and browser validation.
+`data/sources.json` includes all selected candidates. Run `python3 scripts/import_catalog.py --extend --minimum-releases 76 --workers 4` to preserve already imported sources and try remaining candidates. Run without `--extend` for a full metadata refresh. Both operations require the documented Hub/redirect hosts and preserve the previous snapshot if coverage or access checks fail. Restart/rebuild the API after a successful change. Model weights are not fully downloaded.

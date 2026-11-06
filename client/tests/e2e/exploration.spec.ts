@@ -26,6 +26,42 @@ async function addFromBars(page: Page, index: number) {
     .click();
 }
 
+test("expanded catalog exposes sourced new families and retains exact variants across views", async ({
+  page,
+  request,
+}) => {
+  const status = await (await request.get("/api/catalog/status")).json();
+  expect(status.releaseCount).toBeGreaterThanOrEqual(76);
+  expect(status.families.map((f: { name: string }) => f.name)).toEqual(
+    expect.arrayContaining(["SmolLM", "OLMo", "Falcon", "EXAONE", "LFM"]),
+  );
+  await boot(page);
+  await expect(page.locator(".new-catalog tbody tr")).toHaveCount(status.releaseCount);
+  await hardware(page);
+  await page.getByLabel("Search model or provider").fill("SmolLM2-1.7B-Instruct");
+  const row = page.locator(".new-catalog tbody tr");
+  await expect(row).toHaveCount(1);
+  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
+  await expect(row).toContainText("gpu-fit");
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
+    await expect(page.getByLabel("Search model or provider")).toHaveValue("SmolLM2-1.7B-Instruct");
+    if (name === "Tiles")
+      await expect(page.locator(".model-tile .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
+    if (name === "Plot") await expect(page.locator(".plot-dot")).toHaveCount(1);
+  }
+  await expect(row.getByLabel("Variant").locator("option:checked")).toHaveText("Q8_0");
+  await row.getByRole("link", { name: "SmolLM2-1.7B-Instruct", exact: true }).click();
+  await expect(page.locator(".detail-page .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
+  await page.locator(".card-evidence summary").click();
+  await expect(page.getByRole("link", { name: "Artifact source", exact: true })).toHaveAttribute(
+    "href", /^https:\/\/huggingface\.co\/bartowski\/SmolLM2-1.7B-Instruct-GGUF\/tree\/[a-f0-9]{40}$/,
+  );
+  await page.goto("/methodology");
+  await expect(page.locator(".method-page")).toContainText(`${status.releaseCount} releases`);
+  await expect(page.locator(".method-page")).toContainText(`${status.artifactCount} GGUF variants`);
+});
+
 test("clean catalog views preserve search and chart comparisons", async ({
   page,
 }) => {
@@ -97,10 +133,9 @@ test("profiles, overrides and All tasks recommendations stay independent of cata
   expect(
     await page.locator(".recommendation .summary-heading").allTextContents(),
   ).toEqual(recommendations);
-  expect(
-    await page
-      .locator(".new-catalog tbody tr td:nth-child(6)")
-      .allTextContents(),
+  await expect.poll(() => page
+    .locator(".new-catalog tbody tr td:nth-child(6)")
+    .allTextContents(),
   ).not.toEqual(oldScores);
   await page.getByLabel("Search model or provider").fill("Qwen");
   await page.getByRole("button", { name: "Parameters", exact: true }).click();

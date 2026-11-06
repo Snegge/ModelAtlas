@@ -45,4 +45,4 @@ CPU-only, unified memory, multi-GPU and unsupported architectures have no placem
 
 Workspace feedback uses a global fixed snackbar with polite live announcement, a dismiss button and a six-second automatic timeout. New messages restart the timeout; route changes do not shift page layout. Detail summaries keep quantization and evidence controls but omit their own Details and Compare actions.
 
-Catalog expansion research is recorded in [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md). The expansion is pending Hub network access and is not included in the current 38-release snapshot.
+The catalog now contains 84 releases / 252 GGUF artifacts across 14 families. The November 6 expansion added 46 releases while preserving all previous records and comparison identities. Research, included sources and excluded candidates are recorded in [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md) and [DATA-SOURCES.md](DATA-SOURCES.md). New architectures remain unassessable where the existing estimator has no supported formula. The information page reads counts and assembly date from the catalog-status API.
