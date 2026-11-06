@@ -1,16 +1,20 @@
 import { bootstrapApplication } from "@angular/platform-browser";
 import { provideHttpClient } from "@angular/common/http";
-import { provideRouter } from "@angular/router";
+import { provideRouter, withInMemoryScrolling } from "@angular/router";
 import { AppComponent } from "./app/app.component";
-import { ExplorerComponent } from "./app/explorer.component";
+import { WorkspaceComponent } from "./app/workspace/workspace.component";
 import { MethodologyComponent } from "./app/methodology.component";
 bootstrapApplication(AppComponent, {
   providers: [
     provideHttpClient(),
-    provideRouter([
-      { path: "", component: ExplorerComponent },
-      { path: "methodology", component: MethodologyComponent },
-      { path: "**", redirectTo: "" },
-    ]),
+    provideRouter(
+      [
+        { path: "", component: WorkspaceComponent },
+        { path: "models/:id", component: WorkspaceComponent },
+        { path: "methodology", component: MethodologyComponent },
+        { path: "**", redirectTo: "" },
+      ],
+      withInMemoryScrolling({ anchorScrolling: "enabled" }),
+    ),
   ],
 }).catch(console.error);

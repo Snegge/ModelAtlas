@@ -1694,3 +1694,381 @@ summary {
 .status-label.outside-budget {
   color: #536369;
 }
+/* Unified selection workspace */
+.atlas-workspace {
+  max-width: 1720px;
+  margin: auto;
+  padding: 28px 330px 40px 28px;
+  position: relative;
+  min-height: 85vh;
+}
+.surface {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+}
+.workspace-toolbar,
+.section-heading,
+.summary-heading,
+.view-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.workspace-toolbar {
+  margin-bottom: 18px;
+}
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--green);
+}
+.intro-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.hardware-form h1 {
+  font-size: 36px;
+  max-width: 420px;
+}
+.hardware-form label,
+.atlas-workspace label {
+  display: block;
+  font-weight: 600;
+  margin: 12px 0;
+}
+.atlas-workspace input:not([type="checkbox"]),
+.atlas-workspace select,
+.atlas-workspace textarea {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #a8b9ad;
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  margin-top: 6px;
+}
+.atlas-workspace textarea {
+  min-height: 90px;
+}
+.atlas-workspace small {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  margin-top: 5px;
+}
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.atlas-workspace button {
+  padding: 8px 12px;
+  border: 1px solid #a9bbae;
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+}
+.atlas-workspace button:hover,
+.atlas-workspace button[aria-pressed="true"] {
+  background: #e0edcc;
+  border-color: var(--green);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.recommendation {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.recommendation summary {
+  cursor: pointer;
+  line-height: 1.7;
+}
+.recommendation summary span {
+  float: right;
+  font-size: 12px;
+}
+.recommendation atlas-summary {
+  display: block;
+  margin-top: 16px;
+}
+.summary-heading {
+  align-items: flex-start;
+  font-size: 17px;
+}
+.summary-heading strong {
+  white-space: nowrap;
+  font-size: 15px;
+}
+.status-pill {
+  display: inline-block;
+  background: #edf2e5;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-weight: 600;
+}
+.catalog-workspace {
+  margin-top: 24px;
+}
+.view-toolbar {
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+.table-scroll,
+.plot-scroll {
+  overflow-x: auto;
+}
+.new-catalog {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+.new-catalog td,
+.new-catalog th {
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.new-catalog th button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.new-catalog td:first-child {
+  min-width: 200px;
+}
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.model-tile {
+  border: 1px solid var(--line);
+  padding: 18px;
+  border-radius: 12px;
+}
+.score-row {
+  display: grid !important;
+  grid-template-columns: minmax(180px, 1fr) 2fr 60px;
+  width: 100%;
+  gap: 12px;
+  text-align: left;
+  align-items: center;
+  border: 0 !important;
+  border-bottom: 1px solid var(--line) !important;
+  padding: 14px 0 !important;
+  background: transparent !important;
+}
+.bar-track {
+  display: block;
+  background: #edf0e8;
+  height: 16px;
+  border-radius: 5px;
+}
+.score-fill {
+  display: block;
+  background: #678e70;
+  height: 16px;
+  border-radius: 5px;
+}
+.speed-plot {
+  position: relative;
+  height: 480px;
+  min-width: 650px;
+  border-left: 1px solid #798d81;
+  border-bottom: 1px solid #798d81;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 94px,
+    #e2e8dd 95px
+  );
+}
+.plot-dot {
+  position: absolute !important;
+  padding: 2px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #25674f !important;
+}
+.point-label {
+  display: none;
+  position: absolute;
+  background: white;
+  border: 1px solid #789;
+  padding: 8px;
+  z-index: 4;
+  min-width: 180px;
+}
+.plot-dot:focus .point-label,
+.plot-dot:hover .point-label {
+  display: block;
+}
+.axis-x {
+  position: absolute;
+  bottom: 4px;
+  left: 50px;
+}
+.axis-y {
+  position: absolute;
+  left: 6px;
+  top: 4px;
+}
+.preview {
+  margin-top: 24px;
+  background: #f3f7ed;
+}
+.comparison-panel {
+  position: fixed;
+  right: 18px;
+  top: 100px;
+  width: 290px;
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #fbfcf8;
+  border-radius: 14px;
+  padding: 18px;
+  font-size: 12px;
+}
+.comparison-panel article {
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+}
+.comparison-panel h3 {
+  font-size: 15px;
+}
+.comparison-panel button {
+  margin-top: 8px;
+}
+.mobile-close {
+  display: none;
+}
+.detail-page {
+  max-width: 900px;
+  margin: auto;
+}
+.detail-page h2 {
+  margin-top: 28px;
+}
+.chat-output {
+  min-height: 120px;
+  background: #f0f4ea;
+  padding: 20px;
+  line-height: 1.8;
+  border-radius: 10px;
+}
+.recommendation-reason {
+  padding: 18px;
+  background: #e9f1db;
+  border-radius: 10px;
+  margin-top: 20px;
+}
+.method-page {
+  max-width: 900px;
+  margin: 30px auto;
+}
+.method-page h2 {
+  margin-top: 32px;
+  scroll-margin-top: 90px;
+}
+@media (max-width: 1150px) {
+  .atlas-workspace {
+    padding: 20px;
+  }
+  .comparison-panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: 24px;
+  }
+  .intro-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .atlas-workspace {
+    padding: 12px;
+  }
+  .intro-grid {
+    grid-template-columns: 1fr;
+  }
+  .surface {
+    padding: 18px;
+  }
+  .hardware-form h1 {
+    font-size: 30px;
+  }
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+  .comparison-panel {
+    display: none;
+  }
+  .comparison-panel.mobile-open {
+    display: block;
+    position: fixed;
+    inset: 70px 8px 8px;
+    width: auto;
+    max-height: none;
+    z-index: 50;
+    box-shadow: 0 0 0 80px #203c3450;
+  }
+  .mobile-close {
+    display: block;
+  }
+  .score-row {
+    grid-template-columns: 135px 1fr 55px;
+    font-size: 11px;
+  }
+  .method-page {
+    margin: 12px;
+  }
+  .summary-heading {
+    flex-wrap: wrap;
+  }
+  .app-header .offline-tag {
+    display: none;
+  }
+  .app-header .prototype-tag {
+    display: none;
+  }
+  .tile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.plot-tick-x {
+  position: absolute;
+  bottom: 6%;
+  transform: translateX(-50%);
+  font-size: 11px;
+}
+.plot-tick-y {
+  position: absolute;
+  left: 1%;
+  font-size: 11px;
+}
+.quality-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.quality-table td,
+.quality-table th {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.comparison-panel.mobile-open .mobile-close { display: block; }
+.table-scroll { max-height: 760px; }
+.new-catalog thead { position: sticky; top: 0; background: #e8efde; z-index: 2; }

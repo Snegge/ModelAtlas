@@ -1,0 +1,561 @@
+<div class="atlas-workspace">
+  @if (s.api.loading()) {
+    <p role="status">Loading bundled catalog…</p>
+  }
+  @if (s.api.error()) {
+    <p role="alert">
+      {{ s.api.error() }} <button (click)="s.api.retry()">Retry</button>
+    </p>
+  }
+  <div class="workspace-toolbar">
+    <a routerLink="/">← Explorer</a
+    ><button (click)="s.drawer.set(!s.drawer())">
+      Compare {{ s.comparisons().length }}/3
+    </button>
+  </div>
+  <p role="status">{{ s.message() }}</p>
+  @if (id()) {
+    @if (detail(); as x) {
+      <section class="surface detail-page">
+        <p class="eyebrow">MODEL / {{ x.r.publisher }}</p>
+        <h1>{{ x.r.name }}</h1>
+        <p>
+          {{ x.r.family }} language model from {{ x.r.publisher }}. Explore the
+          exact downloadable variants and evaluate them with your own task.
+        </p>
+        <p>
+          {{
+            x.r.totalParameters === null
+              ? "Unknown parameters"
+              : (x.r.totalParameters / 1e9).toFixed(1) + "B parameters"
+          }}
+          · maximum supported context {{ x.r.contextLimit ?? "unknown" }} tokens
+        </p>
+        <atlas-summary [row]="x" />
+        <p>
+          <a [href]="x.r.modelCardUrl">Original model card</a> ·
+          <a [href]="x.r.licenseUrl">License source</a> · Retrieved
+          {{ x.r.retrievedAt }}
+        </p>
+        <h2>Quality & benchmark evidence</h2>
+        <table class="quality-table">
+          <caption>
+            Synthetic task fixtures · not benchmark measurements
+          </caption>
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Demo value / 100</th>
+              <th>Conditions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of tasks.slice(1); track t) {
+              <tr>
+                <td>{{ t }}</td>
+                <td>{{ quality(x.r.id, t).toFixed(0) }}</td>
+                <td>No measured test; release-level demo only</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p>
+          No verified benchmark measurements are present in the bundled catalog.
+          Task values below are synthetic demo fixtures on a 0–100 scale; no
+          test conditions or measured quantization effects are available.
+        </p>
+        <p>
+          {{ s.task() }} demo quality: {{ x.q.toFixed(0) }}/100. This
+          release-level fixture is shared across variants for interaction
+          testing, not evidence of equal quantized quality.
+        </p>
+        @if (rank()) {
+          <section class="recommendation-reason">
+            <h2>Why this model is recommended</h2>
+            <p>
+              Rank {{ rank() }} for {{ s.task() }} with
+              {{ s.profile().vram }} GiB VRAM, {{ s.profile().ram }} GiB RAM and
+              {{ s.profile().context }} tokens. Demo quality
+              {{ x.q.toFixed(0) }}, hardware fit {{ x.fit }}, speed component
+              {{ x.speedScore === null ? "unknown" : x.speedScore.toFixed(0) }}.
+              Score {{ x.score }}; weighted evidence coverage {{ x.coverage }}%.
+              Only estimated compatible candidates enter this ranking.
+            </p>
+          </section>
+        }
+        <section class="mock-chat">
+          <h2>Try a simulated response</h2>
+          <p>
+            Prepared response · no inference. Timing uses the speed captured at
+            Start. Approximate token count = characters / 4; words are not
+            counted as exact tokens.
+          </p>
+          <label
+            >Example prompt
+            <select (change)="prompt.set($any($event.target).value)">
+              <option>Explain quantization simply.</option>
+              <option>How should I test a local model?</option>
+            </select></label
+          ><label
+            >Your prompt
+            <textarea
+              [value]="prompt()"
+              (input)="prompt.set($any($event.target).value)"
+            ></textarea>
+          </label>
+          <p>All prompts use the same prepared demonstration response.</p>
+          @if (!x.speed) {
+            <label
+              ><input
+                type="checkbox"
+                [checked]="demoRate()"
+                (change)="demoRate.set($any($event.target).checked)"
+              />
+              Use explicit demo speed: 12 approximate tokens/s</label
+            >
+          }
+          <div class="actions">
+            <button
+              (click)="start()"
+              [disabled]="running() || (!x.speed && !demoRate())"
+            >
+              Start simulation</button
+            ><button (click)="stop()" [disabled]="!running()">Stop</button
+            ><button (click)="resetChat()">Reset</button>
+          </div>
+          <p>
+            Simulation rate: {{ simulationRate() ?? "not started" }} approximate
+            tokens/s · {{ (output().length / 4).toFixed(0) }} approximate tokens
+            · {{ (ticks() / 10).toFixed(1) }} s
+          </p>
+          <div class="chat-output">{{ output() }}</div>
+        </section>
+      </section>
+    } @else if (!s.api.loading()) {
+      <h1>Model not found</h1>
+      <a routerLink="/">Return to catalog</a>
+    }
+  } @else {
+    <section class="intro-grid">
+      <form class="surface hardware-form" (submit)="$event.preventDefault()">
+        <p class="eyebrow">YOUR HARDWARE, YOUR TASK</p>
+        <h1>Which model fits your everyday work?</h1>
+        <p>
+          Start with memory. Compare quality and speed with their uncertainty
+          visible.
+        </p>
+        <label
+          >GPU profile (searchable)<input
+            list="gpu-list"
+            [value]="s.profile().gpu"
+            (change)="s.gpu($any($event.target).value)"
+            placeholder="Choose GPU or enter unknown hardware" /><datalist
+            id="gpu-list"
+          >
+            @for (g of gpus; track g.name) {
+              <option [value]="g.name"></option>
+            }
+            <option value="Unknown GPU"></option>
+            <option value="CPU-only"></option></datalist
+        ></label>
+        <div class="field-grid">
+          <label
+            >VRAM · GiB (0–192)<input
+              aria-label="VRAM · GiB (0–192)"
+              type="number"
+              min="0"
+              max="192"
+              [value]="s.profile().vram"
+              (input)="s.number('vram', $any($event.target).value)"
+            /><small>{{ manual("vram") }}</small></label
+          ><label
+            >GPU memory bandwidth · GB/s (0–10000)<input
+              aria-label="GPU memory bandwidth · GB/s (0–10000)"
+              type="number"
+              min="0"
+              max="10000"
+              [value]="s.profile().bandwidth"
+              (input)="s.number('bandwidth', $any($event.target).value)"
+            /><small
+              >{{ manual("bandwidth") }} · not internet bandwidth</small
+            ></label
+          >
+        </div>
+        <div class="field-grid">
+          <label
+            >System RAM · GiB (0–1024)<input
+              type="number"
+              min="0"
+              max="1024"
+              [value]="s.profile().ram"
+              (input)="s.number('ram', $any($event.target).value)" /></label
+          ><label
+            >CPU (optional free text)<input
+              [value]="s.profile().cpu"
+              (input)="s.patch({ cpu: $any($event.target).value })"
+              placeholder="CPU model or unknown"
+          /></label>
+        </div>
+        <label
+          ><input
+            type="checkbox"
+            [checked]="s.profile().offload"
+            (change)="s.patch({ offload: $any($event.target).checked })"
+          />
+          Consider CPU offloading</label
+        >
+        <p class="small">
+          Offloaded weights occupy separate system RAM and execute through the
+          CPU. CPU speed is unknown. CPU-only memory prediction is outside the
+          current estimator.
+        </p>
+        <details>
+          <summary>Advanced: context & memory</summary>
+          <label
+            >Requested context · tokens (256–1048576)<input
+              type="number"
+              min="256"
+              max="1048576"
+              [value]="s.profile().context"
+              (input)="s.number('context', $any($event.target).value)"
+          /></label>
+          <p>
+            Longer context needs more KV-cache memory. F16 cache, one sequence.
+            Quantization reduces weight precision, not the requested context.
+            VRAM is dedicated GPU memory; RAM is separate host memory.
+          </p>
+          <a routerLink="/methodology" fragment="memory">Memory assumptions</a>
+        </details>
+        <button type="button" (click)="s.reset()">Reset exploration</button>
+      </form>
+      <section class="surface recommendations">
+        <p class="eyebrow">SHORTLIST / UP TO FIVE</p>
+        <h2>
+          {{ s.entered() ? "Best fits for your profile" : "Popular models" }}
+        </h2>
+        <label
+          >Task
+          <select [value]="s.task()" (change)="task($any($event.target).value)">
+            @for (t of tasks; track t) {
+              <option>{{ t }}</option>
+            }
+          </select></label
+        >
+        <p class="small">
+          {{
+            s.entered()
+              ? "Prototype ranking includes demo quality. Incompatible and unassessable models are excluded."
+              : "Demo popularity only; the catalog has no measured popularity signal."
+          }}
+        </p>
+        @if (s.api.evaluating()) {
+          <p role="status">Updating memory estimates…</p>
+        }
+        @for (x of s.top(); track x.r.id; let i = $index) {
+          <details class="recommendation" [open]="i === 0">
+            <summary>
+              <b>{{ i + 1 }}.</b> {{ x.r.name }}
+              <span>{{
+                x.score === null ? "Unknown score" : x.score + "/100"
+              }}</span>
+            </summary>
+            <atlas-summary [row]="x" />
+          </details>
+        }
+        @if (s.entered() && s.top().length < 5) {
+          <p>
+            Only {{ s.top().length }} assessable candidates fit these
+            constraints. Supply VRAM and RAM or adjust context/offloading.
+            Unknown data is never treated as a fit.
+          </p>
+        }
+      </section>
+    </section>
+    <section class="surface catalog-workspace">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXPLORE THE CATALOG</p>
+          <h2>Every model, one shared comparison</h2>
+        </div>
+        <p>{{ s.visible().length }} / {{ s.rows().length }} releases</p>
+      </div>
+      <label
+        >Search model or provider<input
+          type="search"
+          [value]="s.search()"
+          (input)="s.search.set($any($event.target).value)"
+          placeholder="Search the catalog"
+      /></label>
+      <div class="view-toolbar">
+        <div class="actions" aria-label="Task filters">
+          @for (t of tasks; track t) {
+            <button [attr.aria-pressed]="s.task() === t" (click)="task(t)">
+              {{ t }}
+            </button>
+          }
+        </div>
+        <div class="actions" aria-label="Catalog views">
+          @for (v of views; track v) {
+            <button
+              [attr.aria-pressed]="s.view() === v"
+              (click)="s.view.set(v)"
+            >
+              {{ v }}
+            </button>
+          }
+        </div>
+      </div>
+      <p class="small">
+        Task categories refer to explicitly synthetic fixtures for every
+        release, not verified capabilities.
+        {{
+          s.entered()
+            ? "Default order: hardware/task score."
+            : "Default order: demo popularity."
+        }}
+        Quality is demo; speed and memory are estimates.
+        <a routerLink="/methodology">Understand the data</a>
+      </p>
+      @if (!s.visible().length && !s.api.loading()) {
+        <p role="status">
+          No models match your search.
+          <button (click)="s.search.set('')">Clear search</button>
+        </p>
+      }
+      @switch (s.view()) {
+        @case ("Table") {
+          <div
+            class="table-scroll"
+            tabindex="0"
+            aria-label="Scrollable model table"
+          >
+            <table class="new-catalog">
+              <thead>
+                <tr>
+                  @for (c of columns; track c[0]) {
+                    <th
+                      [attr.aria-sort]="
+                        s.sort() === c[0]
+                          ? s.descending()
+                            ? 'descending'
+                            : 'ascending'
+                          : 'none'
+                      "
+                    >
+                      <button (click)="s.order(c[0])">
+                        {{ c[1] }}
+                        {{
+                          s.sort() === c[0] ? (s.descending() ? "↓" : "↑") : ""
+                        }}
+                      </button>
+                    </th>
+                  }
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (x of s.visible(); track x.r.id) {
+                  <tr>
+                    <td>
+                      <a [routerLink]="['/models', x.r.id]">{{ x.r.name }}</a
+                      ><label
+                        >Variant<select
+                          [value]="x.a.id"
+                          (change)="
+                            s.variant(x.r.id, $any($event.target).value)
+                          "
+                        >
+                          @for (a of s.api.variants(x.r.id); track a.id) {
+                            <option [value]="a.id">{{ a.quantization }}</option>
+                          }
+                        </select></label
+                      ><small>{{ x.status }}</small>
+                    </td>
+                    <td>
+                      {{
+                        x.r.totalParameters === null
+                          ? "Unknown"
+                          : (x.r.totalParameters / 1e9).toFixed(1) + "B"
+                      }}
+                    </td>
+                    <td>
+                      {{ x.r.contextLimit ?? "Unknown"
+                      }}<small>Requested: {{ s.profile().context }}</small>
+                    </td>
+                    <td>
+                      {{ x.e?.gpuRequiredGiB?.toFixed(2) ?? "Unknown" }} /
+                      {{ x.e?.totalGiB?.toFixed(2) ?? "Unknown"
+                      }}<small
+                        >Available:
+                        {{ s.profile().vram ?? "Unknown" }} GiB</small
+                      >
+                    </td>
+                    <td>
+                      {{ x.speed ? x.speed.low + "–" + x.speed.high : "Unknown"
+                      }}<small>Rough estimate</small>
+                    </td>
+                    <td>
+                      {{ x.score ?? "Unknown"
+                      }}<small>Demo quality · {{ x.coverage }}% coverage</small>
+                    </td>
+                    <td>
+                      <button (click)="openPreview(x.a.id)">Preview</button
+                      ><button (click)="s.toggle(x.a.id)">
+                        {{
+                          s.comparisons().includes(x.a.id)
+                            ? "Remove"
+                            : "Compare +"
+                        }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        @case ("Tiles") {
+          <div class="tile-grid">
+            @for (x of s.visible(); track x.r.id) {
+              <article class="model-tile"><atlas-summary [row]="x" /></article>
+            }
+          </div>
+        }
+        @case ("Bars") {
+          <p>Score · fixed scale 0–100 · demo quality included</p>
+          <div class="score-bars">
+            @for (x of s.visible(); track x.r.id) {
+              <button class="score-row" (click)="openPreview(x.a.id)">
+                <span>{{ x.r.name }} · {{ x.a.quantization }}</span
+                ><span class="bar-track">
+                  @if (x.score !== null) {
+                    <span class="score-fill" [style.width.%]="x.score"></span>
+                  }</span
+                ><b>{{ x.score ?? "Unknown" }}</b>
+              </button>
+            }
+          </div>
+        }
+        @case ("Plot") {
+          <p>
+            Horizontal: estimated speed (tokens/s, midpoint, linear 0–200
+            display) · vertical: demo task quality (0–100). ● GPU fit · ◆
+            offloading. Unknown speeds are omitted:
+            {{ s.visible().length - plotted().length }} models.
+          </p>
+          <div class="plot-scroll">
+            <div class="speed-plot" aria-label="Speed versus demo quality">
+              @for (tick of [0, 50, 100, 150, 200]; track tick) {
+                <span
+                  class="plot-tick-x"
+                  [style.left.%]="10 + (70 * tick) / 200"
+                  >{{ tick }}</span
+                >
+              }
+              @for (tick of [0, 25, 50, 75, 100]; track tick) {
+                <span class="plot-tick-y" [style.bottom.%]="10 + tick * 0.75">{{
+                  tick
+                }}</span>
+              }
+              @for (x of plotted(); track x.a.id) {
+                <button
+                  class="plot-dot"
+                  [style.left.%]="
+                    10 + (70 * clamp((x.speed!.low + x.speed!.high) / 2)) / 200
+                  "
+                  [style.bottom.%]="10 + x.q * 0.75"
+                  (click)="openPreview(x.a.id)"
+                  [attr.aria-label]="
+                    x.r.name +
+                    ' ' +
+                    x.a.quantization +
+                    ' quality ' +
+                    x.q +
+                    ' speed ' +
+                    x.speed!.low +
+                    ' to ' +
+                    x.speed!.high
+                  "
+                >
+                  <span aria-hidden="true">●</span
+                  ><span class="point-label">{{ x.r.name }}</span>
+                </button>
+              }
+              <span class="axis-y">Demo quality ↑ 0–100</span
+              ><span class="axis-x"
+                >Estimated speed → tokens/s (values above 200 at boundary)</span
+              >
+            </div>
+          </div>
+        }
+      }
+      @if (s.preview(); as id) {
+        @if (s.row(id); as x) {
+          <section class="preview surface" tabindex="-1" aria-label="Selected variant preview">
+            <button (click)="s.preview.set(null)">Close preview</button
+            ><atlas-summary [row]="x" />
+            <p>
+              Relevant benchmarks: unavailable. Task quality is a demo fixture,
+              not a measured test result.
+            </p>
+          </section>
+        }
+      }
+    </section>
+  }
+  <aside
+    [cdkTrapFocus]="s.drawer()"
+    [cdkTrapFocusAutoCapture]="true"
+    (keydown.escape)="s.drawer.set(false)"
+    class="comparison-panel"
+    [class.mobile-open]="s.drawer()"
+    aria-label="Variant comparison"
+  >
+    <div class="section-heading">
+      <h2>Compare {{ s.comparisons().length }}/3</h2>
+      <button (click)="s.drawer.set(false)" class="mobile-close">
+        Close comparison
+      </button>
+    </div>
+    <p>
+      Exact variants · same hardware, task and {{ s.profile().context }}-token
+      context. Catalog variant changes never replace saved entries.
+    </p>
+    @if (!s.comparisons().length) {
+      <p>Add up to three variants from any view.</p>
+    }
+    @for (id of s.comparisons(); track id) {
+      @if (s.row(id); as x) {
+        <article>
+          <h3>{{ x.r.name }} · {{ x.a.quantization }}</h3>
+          <p>
+            Score {{ x.score ?? "Unknown" }} · demo quality
+            {{ x.q.toFixed(0) }} · {{ x.status }}
+          </p>
+          <p>
+            Speed
+            {{
+              x.speed
+                ? x.speed.low + "–" + x.speed.high + " estimated tokens/s"
+                : "unknown"
+            }}
+            · memory {{ x.e?.totalGiB?.toFixed(2) ?? "unknown" }} GiB
+          </p>
+          <p>
+            GPU {{ x.e?.gpuRequiredGiB?.toFixed(2) ?? "unknown" }} / RAM
+            {{ x.e?.systemRequiredGiB?.toFixed(2) ?? "unknown" }} GiB · max
+            context {{ x.r.contextLimit ?? "unknown" }} ·
+            {{ x.r.license ?? "Unknown license" }}
+          </p>
+          <p>
+            No measured benchmarks. Release-level demo quality; quantization
+            effects unknown.
+          </p>
+          <a [href]="x.a.sourceUrl">Variant source</a> ·
+          <a [routerLink]="['/models', x.r.id]">Details</a
+          ><button (click)="s.toggle(id)">Remove {{ x.a.quantization }}</button>
+        </article>
+      }
+    }
+  </aside>
+</div>

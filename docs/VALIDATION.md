@@ -1,3 +1,9 @@
+# Current workspace validation
+
+The interface has been revised to the hardware shortlist, four synchronized catalog views and routed detail workflow. Historical evidence below describes the previous interface. Current commands, assumptions and scenarios are documented in [PROTOTYPE.md](PROTOTYPE.md). The browser suite now targets the revised flows.
+
+Validated on 2026-11-06: 14 frontend/unit tests, 12 backend tests, 5 importer tests and 7 Playwright scenarios passed. The production Angular build (including TypeScript/template checks) passed. Browser scenarios exercised 1440 × 1000 and 390 × 844 viewports, RTX 3060 with 48 GiB RAM and RTX 3090 with 128 GiB RAM, keyboard plot selection, exact variant comparison, offloading and simulation. Desktop and mobile axe scans reported zero violations. Desktop and mobile screenshots were inspected; generated evidence is in ignored `client/test-results/`. An additional browser check confirmed the score explanation link navigates and scrolls to its section. `git diff --check` passed. No standalone lint command is configured.
+
 # Validation evidence
 
 Validated in the implementation cloud machine on 11 October 2026 using Node 24.19.0, npm 11.9.0 and 12.2.0, .NET SDK 10.0.401 / runtime 10.0.12, Python 3.12.14 and installed Chromium through Playwright.
