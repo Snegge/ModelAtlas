@@ -27,7 +27,7 @@ export class WorkspaceStore {
     }
   })();
   readonly profile = signal(this.saved.profile);
-  readonly comparisons = signal(this.saved.comparisons);
+  readonly favourites = signal(this.saved.favourites);
   readonly task = signal<Task>("All tasks");
   readonly search = signal("");
   readonly view = signal("Table");
@@ -39,7 +39,7 @@ export class WorkspaceStore {
   readonly selected = signal<Record<string, string>>({});
   readonly preview = signal<string | null>(null);
   readonly message = signal("", { equal: () => false });
-  readonly drawer = signal(false);
+  readonly favouritesOpen = signal(false);
   readonly entered = computed(() => {
     const p = this.profile();
     return (
@@ -120,7 +120,7 @@ export class WorkspaceStore {
       const c = this.api.catalog();
       if (c)
         untracked(() =>
-          this.comparisons.update((ids) =>
+          this.favourites.update((ids) =>
             ids.filter((id) => c.artifacts.some((a) => a.id === id)),
           ),
         );
@@ -144,7 +144,7 @@ export class WorkspaceStore {
           "atlas.workspace.v2",
           JSON.stringify({
             profile: this.profile(),
-            comparisons: this.comparisons(),
+            favourites: this.favourites(),
           }),
         );
       } catch {
@@ -196,16 +196,10 @@ export class WorkspaceStore {
     return this.all().find((x) => x.a.id === id);
   }
   toggle(id: string) {
-    if (this.comparisons().includes(id)) {
-      this.comparisons.update((v) => v.filter((x) => x !== id));
-      this.message.set("Variant removed from comparison.");
-    } else if (this.comparisons().length < 3) {
-      this.comparisons.update((v) => [...v, id]);
-      this.message.set(
-        `Variant saved (${this.comparisons().length}/3). View the comparison in Bars or Plot.`,
-      );
-    } else
-      this.message.set("Comparison is full (3/3). Remove a variant first.");
+    if (!this.api.artifact(id)) return;
+    const saved = this.favourites().includes(id);
+    this.favourites.update(ids => saved ? ids.filter(x => x !== id) : [...ids, id]);
+    this.message.set(saved ? "Favourite removed." : "Favourite saved. Open the Favourites rail beside the model catalog.");
   }
   order(key: string) {
     if (this.sort() === key) this.descending.update((x) => !x);
@@ -216,7 +210,7 @@ export class WorkspaceStore {
   }
   reset() {
     this.profile.set({ ...EMPTY_PROFILE });
-    this.comparisons.set([]);
+
     this.selected.set({});
     this.search.set("");
     this.task.set("All tasks");

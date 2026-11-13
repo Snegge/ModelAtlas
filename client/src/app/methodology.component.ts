@@ -5,19 +5,39 @@ import { AtlasStore } from "./core/atlas.store";
 @Component({
   standalone: true,
   imports: [RouterLink, DatePipe],
-  template: `<article class="method-page surface">
-    <a routerLink="/">← Explorer</a>
-    <h1>Method, data & limits</h1>
-    <p>
+  template: `<article class="method-page" aria-labelledby="method-title">
+    <header class="method-hero">
+    <p class="eyebrow">METHOD & DATA</p>
+    <h1 id="method-title">Understand the numbers.</h1>
+    <p class="page-intro">
       Model Atlas is a selection aid. Run your own prompts and evaluate
       correctness, latency and runtime support before adopting a model.
     </p>
+    </header>
+    <div class="evidence-key" aria-label="Evidence types">
+      <div><span class="evidence-tag">Sourced</span><h2>Files & metadata</h2><p>Revision-pinned records with traceable source links.</p></div>
+      <div><span class="evidence-tag">Estimated</span><h2>Memory & speed</h2><p>Calculations with assumptions, not runtime measurements.</p></div>
+      <div><span class="evidence-tag demo-tag">Demo</span><h2>Quality & popularity</h2><p>Synthetic fixtures. No measured quality or speed benchmarks.</p></div>
+    </div>
+    <div class="method-layout">
+    <nav class="method-nav" aria-label="On this page">
+      <p class="eyebrow">ON THIS PAGE</p>
+      <a routerLink="/methodology" fragment="data">01 &middot; Sources & data</a>
+      <a routerLink="/methodology" fragment="popularity">02 &middot; Popularity & tasks</a>
+      <a routerLink="/methodology" fragment="score">03 &middot; Prototype score</a>
+      <a routerLink="/methodology" fragment="memory">04 &middot; Memory & context</a>
+      <a routerLink="/methodology" fragment="speed">05 &middot; Speed estimates</a>
+      <a routerLink="/methodology" fragment="simulation">06 &middot; Chat simulation</a>
+      <a routerLink="/methodology" fragment="roadmap">07 &middot; What's next</a>
+    </nav>
+    <div class="method-content">
+    <section aria-labelledby="data">
     <h2 id="data">Sources and data status</h2>
     <p>
       @if (store.coverage(); as coverage) {
         The bundled revision-pinned Hugging Face catalog contains
         {{ coverage.releaseCount }} releases and {{ coverage.artifactCount }}
-        GGUF variants. Snapshot assembled {{ coverage.retrievedAt | date: "longDate" }}.
+        GGUF variants. Snapshot assembled {{ coverage.retrievedAt | date: "longDate" : "UTC" }}.
         Existing pinned records retain their original retrieval dates.
       } @else {
         The bundled catalog uses revision-pinned Hugging Face metadata.
@@ -34,6 +54,7 @@ import { AtlasStore } from "./core/atlas.store";
       data. Unknown means absent or unsupported. No measured quality or speed
       benchmarks exist in this catalog.
     </p>
+    </section><section aria-labelledby="popularity">
     <h2 id="popularity">Popularity and task categories</h2>
     <p>
       Popular models use a deterministic synthetic popularity ordering, not
@@ -45,7 +66,11 @@ import { AtlasStore } from "./core/atlas.store";
       Basemodel benchmarks are not claimed for quantized artifacts; the demo
       value is shared across variants solely to demonstrate interactions.
     </p>
+    </section><section aria-labelledby="score">
     <h2 id="score">Prototype score</h2>
+    <div class="score-weights" aria-label="Score weights: quality 50%, speed 25%, hardware fit 25%">
+      <span>50% <strong>Demo quality</strong></span><span>25% <strong>Speed</strong></span><span>25% <strong>Fit</strong></span>
+    </div>
     <p>
       Weights: quality 50%, speed 25%, hardware fit 25%. Quality is currently a
       demo fixture. Speed component = min(100, range midpoint / 50 tokens/s ×
@@ -65,6 +90,7 @@ import { AtlasStore } from "./core/atlas.store";
       unvalidated prototype heuristic; demo quality is not evidence of
       superiority.
     </p>
+    </section><section aria-labelledby="memory">
     <h2 id="memory">Memory, context and offloading</h2>
     <p>
       The existing dedicated-gpu/1.0.0 backend evaluates conventional supported
@@ -92,6 +118,7 @@ import { AtlasStore } from "./core/atlas.store";
       GB/s. Official NVIDIA profile links are listed in ranking.ts; manual
       overrides remain effective until a GPU change.
     </p>
+    </section><section aria-labelledby="speed">
     <h2 id="speed">Speed assumptions</h2>
     <p>
       For full GPU fit with known bandwidth, a rough bandwidth bound is GPU GB/s
@@ -108,6 +135,7 @@ import { AtlasStore } from "./core/atlas.store";
       200 tokens/s; values above 200 are at the boundary and the accessible
       point label retains the actual range. All views share one result layer.
     </p>
+    </section><section aria-labelledby="simulation">
     <h2 id="simulation">Chat simulation</h2>
     <p>
       A prepared response advances every 100 ms using the speed captured at
@@ -116,12 +144,13 @@ import { AtlasStore } from "./core/atlas.store";
       the timer; leaving the page also cancels it. Prompts do not trigger
       inference.
     </p>
-    <h2>Roadmap</h2>
+    </section><section aria-labelledby="roadmap"><h2 id="roadmap">What's next</h2>
     <p>
       Learning, models of the week, forum, ratings and reviews are deferred.
       Future work: sourced task benchmarks with conditions, measured
       runtime-specific throughput and CPU-only estimation.
     </p>
+    </section></div></div>
   </article>`,
 })
 export class MethodologyComponent {

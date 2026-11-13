@@ -46,3 +46,41 @@ CPU-only, unified memory, multi-GPU and unsupported architectures have no placem
 Workspace feedback uses a global fixed snackbar with polite live announcement, a dismiss button and a six-second automatic timeout. New messages restart the timeout; route changes do not shift page layout. Detail summaries keep quantization and evidence controls but omit their own Details and Compare actions.
 
 The catalog now contains 84 releases / 252 GGUF artifacts across 14 families. The November 6 expansion added 46 releases while preserving all previous records and comparison identities. Research, included sources and excluded candidates are recorded in [CATALOG-RESEARCH.md](CATALOG-RESEARCH.md) and [DATA-SOURCES.md](DATA-SOURCES.md). New architectures remain unassessable where the existing estimator has no supported formula. The information page reads counts and assembly date from the catalog-status API.
+
+## Favourites replace comparison
+The active workspace now has unlimited saved model variants instead of a three-item comparison. The existing atlas.workspace.v2 storage is read compatibly: legacy comparisons migrate into favourites, duplicates and invalid values are removed, and an explicit empty favourites list stays empty. Catalog validation still removes unknown artifact IDs. Hardware reset retains favourites. No backend or ranking formula changes.
+
+The panel is available beside every catalog view, with a native keyboard-operable disclosure and a plain count. At narrow widths it sits above the catalog, without a modal or hidden drawer. Model name is primary; provider, exact saved quantization and estimated memory are secondary. A scrollable list contains long collections. Removing an item moves focus to the next removal control (or the disclosure when empty). Opening a saved model restores its exact variant.
+
+This applies the supplied excerpt's "Not all elements are equal", "Size isn't everything" and spacing-system guidance: fewer competing numbers, stronger model names, muted metadata, 16px grouping and familiar blue controls. No new measured usability claims are made.
+
+Button review: previous mixed line heights and 3px icon-button padding caused uneven baselines; action controls now align through inline flex and consistent gaps. Catalog view icons use centered 44px squares. Table favourite actions and preview controls have readable 13px labels and 44px targets instead of the previous 9–10px text and small padding. Chart marks retain their spatial encoding.
+
+Validation: production build, 15 unit tests including legacy migration, 100 saved IDs and empty-list precedence; six Playwright scenarios at 390/768/1440px covering Discover plus adding six favourites, persistence, every catalog view, disclosure keyboard behavior, removal focus and overflow. Screenshots: client/test-results/favourites-{390,768,1440}.png. Browser fixtures use the bundled catalog and controlled API responses; live backend estimation and the full legacy E2E suite are not covered by this run.
+
+## Star controls and right drawer
+Following the user's layout choice, favourites now live in a global right-side Angular Material sidenav, opened from the main navigation on every route. This supersedes the fixed catalog sidebar. The catalog regains its full width; saved models remain available during Discover and model inspection. Mobile uses the same drawer at viewport width.
+
+Angular Material 22.2.2 was explicitly approved and added alongside the existing matching Angular/CDK versions. Material is used for the sidenav and per-model expansion panels; existing controls remain in their established components. A blue Material theme is adapted to the existing paper, text and border tokens.
+
+A shared 44px SVG star button replaces text actions throughout the catalog, summaries, model details, Discover and the drawer. Fill indicates saved state; aria-pressed, accessible Add/Remove labels and a model/variant tooltip preserve meaning without relying on color.
+
+Collapsed panels show model, publisher and saved variant. Expanded content exposes parameters, total/GPU/RAM estimates, maximum/requested context, speed, hardware fit, demo-qualified score, license, memory breakdown, reasons and original source links. Unknown values remain explicit. Multiple panels can be open. Removal preserves focus on the next panel header; the last removal focuses Close. Model-detail links restore the exact saved variant and close the drawer.
+Validation for the drawer revision: build and 15 unit tests pass; six Discover/favourites browser scenarios pass at 390/768/1440px. Drawer checks include filled/outline SVG state, persistence, expansion via keyboard, Escape and focus restoration, model navigation, page overflow and axe scans of the drawer. Desktop/mobile screenshots were visually inspected after adapting Material typography and removing excess panel shadows. The complete legacy live-backend E2E suite was not run.
+
+## Inline expansion panel (current layout)
+The right drawer has been replaced at the user's request. Favourites now occupy a catalog-adjacent Angular Material expansion panel only when opened. The collapsed state has no reserved sidebar column: an existing toolbar button opens the panel, and the catalog uses the full grid width. Closing the expansion header restores focus to that button and releases the column. On screens up to 800px, the panel stacks above the catalog and does not reduce its width. Model expansion panels, unlimited saved variants and star actions remain intact. The navigation entry opens the Explorer's catalog anchor and panel. There is no backdrop, modal focus trap or global overlay.
+
+## Vertical favourites rail (current)
+The navigation link and catalog-toolbar button have been removed. A persistent 44px vertical Favourites rail with count and directional chevron sits at the right edge of the catalog. It opens a local sidebar horizontally (380px on wide desktop, 320px on medium desktop), using the conventional collapsible-sidebar pattern rather than forcing Material's vertical expansion component into a different orientation. Individual model details still use Material expansion panels.
+
+Closed content is inert, hidden from accessibility APIs and occupies no content column beyond the rail. The same rail closes the sidebar without moving focus. Width transitions respect reduced motion. On screens up to 800px the local sidebar overlays the catalog instead of compressing its table; it is not a viewport drawer and has no global navigation trigger or backdrop. The rail remains available for closing.
+
+Validation checks the removed navigation/toolbar entry points, rail width, expanded widths, restored catalog width, model-panel keyboard operation and accessibility at 390/768/1440px.
+
+## Tile-style favourites and catalog actions
+Favourites now reuse the catalog's model-tile class and SummaryComponent instead of a second model-detail layout. The saved variant is shown as a fixed label (editing a catalog selection must not silently replace a favourite); score, description, memory display, context/speed, star and Details follow the existing tile structure. Detail links explicitly restore that card's exact variant. Removing a favourite focuses the next card's star or the rail when the list becomes empty.
+
+The table now has a non-sortable Actions column on the far right containing the favourite star. The model-name cell contains only identification, variant selection and status.
+
+Explorer and Discover carousel controls now use the same symmetric SVG chevrons, centered with inline flex. This avoids font glyph baseline offsets. Browser checks compare icon and button centers in the same layout frame and verify the Actions column and shared tile component at 390/768/1440px.

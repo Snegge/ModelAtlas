@@ -142,7 +142,7 @@ export function evaluate(
 }
 export type Row = ReturnType<typeof evaluate>;
 export function readWorkspace(raw: string | null) {
-  const empty = { profile: { ...EMPTY_PROFILE }, comparisons: [] as string[] };
+  const empty = { profile: { ...EMPTY_PROFILE }, favourites: [] as string[] };
   try {
     const s = JSON.parse(raw || "null");
     if (!s || typeof s !== "object") return empty;
@@ -169,10 +169,9 @@ export function readWorkspace(raw: string | null) {
       )
     )
       empty.profile = p;
-    if (Array.isArray(s.comparisons))
-      empty.comparisons = [
-        ...new Set(s.comparisons.filter((x: unknown) => typeof x === "string")),
-      ].slice(0, 3) as string[];
+    const saved = Array.isArray(s.favourites) ? s.favourites : s.comparisons;
+    if (Array.isArray(saved))
+      empty.favourites = [...new Set(saved.filter((x: unknown) => typeof x === "string" && x.length > 0))] as string[];
     return empty;
   } catch {
     return empty;

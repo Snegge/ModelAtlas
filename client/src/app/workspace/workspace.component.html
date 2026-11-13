@@ -9,29 +9,41 @@
   }
   @if (id()) {
     @if (detail(); as x) {
-      <section class="surface detail-page">
-        <a routerLink="/">← Explorer</a>
+      <section class="detail-page" aria-labelledby="model-title">
+        <header class="model-hero">
         <p class="eyebrow">MODEL / {{ x.r.publisher }}</p>
-        <h1>{{ x.r.name }}</h1>
+        <h1 id="model-title">{{ x.r.name }}</h1>
         <p>
           {{ x.r.family }} language model from {{ x.r.publisher }}. Explore the
           exact downloadable variants and evaluate them with your own task.
         </p>
-        <p>
-          {{
-            x.r.totalParameters === null
-              ? "Unknown parameters"
-              : (x.r.totalParameters / 1e9).toFixed(1) + "B parameters"
-          }}
-          · maximum supported context {{ x.r.contextLimit ?? "unknown" }} tokens
-        </p>
-        <atlas-summary [row]="x" [showCompare]="false" [showDetails]="false" />
-        <p>
-          <a [href]="x.r.modelCardUrl">Original model card</a> ·
-          <a [href]="x.r.licenseUrl">License source</a> · Retrieved
-          {{ x.r.retrievedAt }}
-        </p>
-        <h2>Quality & benchmark evidence</h2>
+        <dl class="model-facts">
+          <div><dt>Parameters</dt><dd>{{ x.r.totalParameters === null ? "Unknown" : (x.r.totalParameters / 1e9).toFixed(1) + "B" }}</dd></div>
+          <div><dt>Maximum context</dt><dd>{{ x.r.contextLimit?.toLocaleString() ?? "Unknown" }} <small>tokens</small></dd></div>
+          <div><dt>Family</dt><dd>{{ x.r.family }}</dd></div>
+          <div><dt>License</dt><dd><a [href]="x.r.licenseUrl" target="_blank" rel="noopener noreferrer">{{ x.r.license ?? "Unspecified" }} &nearr;</a></dd></div>
+        </dl></header>
+        <nav class="page-sections" aria-label="Model sections">
+          <a [routerLink]="[]" fragment="model-fit">Hardware fit</a>
+          <a [routerLink]="[]" fragment="model-evidence">Evidence</a>
+          <a [routerLink]="[]" fragment="model-files">Files & sources</a>
+          <a [routerLink]="[]" fragment="model-simulation">Simulation</a>
+        </nav>
+        <div class="model-layout">
+        <aside class="model-fit surface" id="model-fit" aria-labelledby="fit-heading">
+          <p class="eyebrow">YOUR SELECTED VARIANT</p>
+          <h2 id="fit-heading">Will it fit your setup?</h2>
+          <p class="muted">{{ s.profile().gpu || "No GPU selected" }} &middot; {{ s.profile().vram ?? "Unknown" }} GiB VRAM &middot; {{ s.profile().ram ?? "Unknown" }} GiB RAM</p>
+          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer &rarr;</a>
+          <atlas-summary [row]="x" [showFavourite]="true" [showDetails]="false" />
+          <p class="small muted">Memory fit is an estimate. Runtime support remains unverified.</p>
+        </aside>
+        <div class="model-content">
+        <section class="surface evidence-section" id="model-evidence" aria-labelledby="evidence-heading">
+          <p class="eyebrow">KNOW WHAT YOU'RE COMPARING</p>
+          <h2 id="evidence-heading">Quality & benchmark evidence</h2>
+          <p class="evidence-notice"><strong>Demo data, not measured performance.</strong> These task values demonstrate the interface. Use your own prompts to evaluate this model.</p>
+
         <table class="quality-table">
           <caption>
             Synthetic task fixtures · not benchmark measurements
@@ -53,16 +65,9 @@
             }
           </tbody>
         </table>
-        <p>
-          No verified benchmark measurements are present in the bundled catalog.
-          Task values below are synthetic demo fixtures on a 0–100 scale; no
-          test conditions or measured quantization effects are available.
-        </p>
-        <p>
-          {{ s.task() }} demo quality: {{ x.q.toFixed(0) }}/100. This
-          release-level fixture is shared across variants for interaction
-          testing, not evidence of equal quantized quality.
-        </p>
+        <p class="small muted">These release-level fixtures are shared across variants. They do not measure the effect of quantization on quality.</p>
+        <a routerLink="/methodology" fragment="popularity">How to read these values &rarr;</a>
+        </section>
         @if (rank() && recommendedDetail()) {
           @let rec = recommendedDetail()!;
           <section class="recommendation-reason">
@@ -81,7 +86,39 @@
             </p>
           </section>
         }
-        <section class="mock-chat">
+        </div>
+        <section class="surface model-files" id="model-files" aria-labelledby="files-heading">
+          <p class="eyebrow">TRACEABLE TO THE SOURCE</p>
+          <h2 id="files-heading">Files & sources</h2>
+          <p><strong>{{ x.a.quantization }} &middot; {{ x.a.format }}</strong> &middot; {{ (x.a.sizeBytes / 1073741824).toFixed(2) }} GiB across {{ x.a.files.length }} file(s)</p>
+          <p class="muted">Use the complete file set for this variant. File size is not the total memory needed to run it.</p>
+          <div class="source-actions">
+            <a [href]="x.r.modelCardUrl" target="_blank" rel="noopener noreferrer">Original model card &nearr;</a>
+            <a [href]="x.a.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned artifact repository &nearr;</a>
+          </div>
+          <details>
+            <summary>Complete file set & provenance</summary>
+            <dl class="artifact-provenance">
+              <div><dt>Repository</dt><dd>{{ x.a.repository }}</dd></div>
+              <div><dt>Artifact revision</dt><dd><code>{{ x.a.revision }}</code></dd></div>
+              <div><dt>Artifact retrieved</dt><dd>{{ x.a.retrievedAt | date: "mediumDate" : "UTC" }} UTC &middot; {{ x.a.validationStatus }}</dd></div>
+              <div><dt>Model revision</dt><dd><code>{{ x.r.revision }}</code></dd></div>
+            </dl>
+            <ul class="artifact-files">
+              @for (file of x.a.files; track file.path) {
+                <li><a [href]="file.url" target="_blank" rel="noopener noreferrer">{{ file.path }} &nearr;</a>
+                  <small>{{ file.sizeBytes.toLocaleString() }} bytes</small>
+                  <span class="small">SHA256: <code>{{ file.sha256 }}</code></span>
+                </li>
+              }
+            </ul>
+            @if (x.r.missingFields.length || x.a.missingFields.length) {
+              <p class="evidence-notice">Missing metadata: {{ x.r.missingFields.concat(x.a.missingFields).join(", ") }}</p>
+            }
+          </details>
+        </section>
+        <section class="surface mock-chat" id="model-simulation">
+          <p class="eyebrow">A FEEL FOR THE PACE</p>
           <h2>Try a simulated response</h2>
           <p>
             Prepared response · no inference. Timing uses the speed captured at
@@ -126,8 +163,9 @@
             tokens/s · {{ (output().length / 4).toFixed(0) }} approximate tokens
             · {{ (ticks() / 10).toFixed(1) }} s
           </p>
-          <div class="chat-output">{{ output() }}</div>
+          <div class="chat-output" role="region" aria-label="Simulated response" tabindex="0">{{ output() || "Your prepared response will appear here when you start the simulation." }}</div>
         </section>
+        </div>
       </section>
     } @else if (!s.api.loading()) {
       <h1>Model not found</h1>
@@ -135,7 +173,10 @@
     }
   } @else {
     <section class="intro-grid" aria-labelledby="intro-title">
-      <h1 id="intro-title">Which model fits best?</h1>
+      <div class="intro-heading">
+        <h1 id="intro-title">Which model fits best?</h1>
+        <button type="button" (click)="s.reset()">Reset exploration</button>
+      </div>
       <form class="hardware-form" (submit)="$event.preventDefault()">
         <label class="gpu-field"
           >GPU<input
@@ -199,33 +240,6 @@
           />
           Consider CPU offloading</label
         >
-        <details>
-          <summary>Advanced: context & memory</summary>
-          <p class="small">
-            Offloaded weights occupy separate system RAM and execute through the
-            CPU. CPU speed is unknown. CPU-only memory prediction is outside the
-            current estimator.
-          </p>
-          <p class="small">
-            GPU memory bandwidth is not internet bandwidth. Unknown values stay
-            blank.
-          </p>
-          <label
-            >Requested context · tokens (256–1048576)<input
-              type="number"
-              min="256"
-              max="1048576"
-              [value]="s.profile().context"
-              (input)="s.number('context', $any($event.target).value)"
-          /></label>
-          <p>
-            Longer context needs more KV-cache memory. F16 cache, one sequence.
-            Quantization reduces weight precision, not the requested context.
-            VRAM is dedicated GPU memory; RAM is separate host memory.
-          </p>
-          <a routerLink="/methodology" fragment="memory">Memory assumptions</a>
-        </details>
-        <button type="button" (click)="s.reset()">Reset exploration</button>
       </form>
       <section class="recommendations" aria-label="Model recommendations">
         <div
@@ -246,7 +260,7 @@
             (click)="nextRecommendation(-1)"
             aria-label="Previous recommendation"
           >
-            ‹
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" /></svg>
           </button>
           <div class="carousel-cards" aria-live="polite">
             @for (x of s.top(); track x.r.id; let i = $index) {
@@ -270,7 +284,7 @@
             (click)="nextRecommendation(1)"
             aria-label="Next recommendation"
           >
-            ›
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg>
           </button>
         </div>
         @if (s.api.evaluating()) {
@@ -284,7 +298,7 @@
         }
       </section>
     </section>
-    <div class="catalog-layout" [class.has-comparison]="s.chartView()">
+    <div class="catalog-layout" id="model-catalog" [class.favourites-expanded]="s.favouritesOpen()">
       <section class="surface catalog-workspace">
         <div class="section-heading">
           <div>
@@ -307,19 +321,11 @@
               </button>
             }
           </div>
-          @if (s.chartView()) {
-            <button
-              class="comparison-toggle"
-              (click)="s.drawer.set(!s.drawer())"
-            >
-              Compare {{ s.comparisons().length }}/3
-            </button>
-          }
           <div class="actions" aria-label="Catalog views">
             @for (v of views; track v) {
               <button
                 [attr.aria-pressed]="s.view() === v"
-                (click)="s.view.set(v); s.drawer.set(false)"
+                (click)="s.view.set(v)"
                 [attr.aria-label]="v"
                 [attr.title]="v"
               >
@@ -329,11 +335,6 @@
             }
           </div>
         </div>
-        <p class="catalog-note">
-          {{ s.entered() ? "Hardware/task score" : "Demo popularity" }} ·
-          quality: demo · memory & speed: estimated.
-          <a routerLink="/methodology">Data & assumptions ↗</a>
-        </p>
         <div
           class="catalog-body"
           [class.with-side-preview]="s.view() === 'Bars' && s.preview()"
@@ -377,6 +378,7 @@
                             </button>
                           </th>
                         }
+                        <th scope="col" class="catalog-actions">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -433,6 +435,7 @@
                               >Demo quality · {{ x.coverage }}% coverage</small
                             >
                           </td>
+                          <td class="catalog-actions"><atlas-favourite-button [row]="x" /></td>
                         </tr>
                       }
                     </tbody>
@@ -445,7 +448,7 @@
                     <article class="model-tile">
                       <atlas-summary
                         [row]="x"
-                        [showCompare]="false"
+                        [showFavourite]="true"
                         [showEvidence]="false"
                       />
                     </article>
@@ -471,39 +474,42 @@
                 </div>
               }
               @case ("Plot") {
-                <p>
-                  Horizontal: estimated speed (tokens/s, midpoint, linear 0–200
-                  display) · vertical: demo task quality (0–100). ● GPU fit · ◆
-                  offloading. Unknown speeds are omitted:
-                  {{ s.visible().length - plotted().length }} models.
-                </p>
+                <div class="plot-heading">
+                  <div><h3>Speed & task quality</h3><p>Select a model to inspect its exact variant.</p></div>
+                  <span class="plot-evidence">Estimated speed · Demo quality</span>
+                </div>
                 <div class="plot-scroll">
                   <div
                     class="speed-plot"
                     aria-label="Speed versus demo quality"
+                    role="group"
                   >
+                    <span class="axis-y">Demo task quality <span>/ 100</span></span>
+                    <div class="plot-area">
                     @for (tick of [0, 50, 100, 150, 200]; track tick) {
                       <span
                         class="plot-tick-x"
-                        [style.left.%]="10 + (70 * tick) / 200"
+                        [style.left.%]="tick / 2"
                         >{{ tick }}</span
                       >
                     }
                     @for (tick of [0, 25, 50, 75, 100]; track tick) {
                       <span
                         class="plot-tick-y"
-                        [style.bottom.%]="10 + tick * 0.75"
+                        [style.bottom.%]="tick"
                         >{{ tick }}</span
                       >
                     }
                     @for (x of plotted(); track x.a.id) {
                       <button
                         class="plot-dot"
+                        [class.is-selected]="s.preview() === x.a.id"
+                        [attr.aria-pressed]="s.preview() === x.a.id"
+                        [class.label-left]="(x.speed!.low + x.speed!.high) / 2 > 100"
                         [style.left.%]="
-                          10 +
-                          (70 * clamp((x.speed!.low + x.speed!.high) / 2)) / 200
+                          clamp((x.speed!.low + x.speed!.high) / 2) / 2
                         "
-                        [style.bottom.%]="10 + x.q * 0.75"
+                        [style.bottom.%]="x.q"
                         (click)="openPreview(x.a.id)"
                         [attr.aria-label]="
                           x.r.name +
@@ -517,17 +523,18 @@
                           x.speed!.high
                         "
                       >
-                        <span aria-hidden="true">●</span
-                        ><span class="point-label">{{ x.r.name }}</span>
+                        <span class="point-mark" aria-hidden="true"></span>
+                        <span class="point-label"><strong>{{ x.r.name }}</strong><span>{{ x.a.quantization }} · {{ x.speed!.low }}–{{ x.speed!.high }} tokens/s</span></span>
                       </button>
                     }
-                    <span class="axis-y">Demo quality ↑ 0–100</span
-                    ><span class="axis-x"
-                      >Estimated speed → tokens/s (values above 200 at
-                      boundary)</span
-                    >
+                    @if (!plotted().length) {
+                      <div class="plot-empty"><strong>No speed estimates to plot</strong><span>Check your GPU, VRAM, RAM and bandwidth settings, or broaden your search.</span></div>
+                    }
+                    </div>
+                    <span class="axis-x">Estimated speed <span>· tokens/s →</span></span>
                   </div>
                 </div>
+                <div class="plot-footer"><span>{{ plotted().length }} plotted · {{ s.visible().length - plotted().length }} omitted (unknown speed)</span><span>Speed midpoint · Linear scale · Values above 200 at boundary</span></div>
               }
             }
           </div>
@@ -538,7 +545,7 @@
                 tabindex="-1"
                 aria-label="Selected variant preview"
               >
-                <button (click)="s.preview.set(null)">Close preview</button>
+                <button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
                 @if (s.view() === "Bars") {
                   <div class="preview-heading">
                     <h3>
@@ -568,9 +575,17 @@
           }
         </div>
       </section>
-      @if (s.chartView()) {
-        <atlas-compare />
-      }
+      <div class="favourites-sidebar" [class.is-open]="s.favouritesOpen()">
+        <button class="catalog-favourites-trigger" aria-controls="catalog-favourites"
+          [attr.aria-expanded]="s.favouritesOpen()" (click)="s.favouritesOpen.set(!s.favouritesOpen())">
+          <svg viewBox="0 0 24 24" aria-hidden="true" [class.points-right]="s.favouritesOpen()"><path d="m15 6-6 6 6 6" /></svg>
+          <span>Favourites</span><span class="rail-count">{{ s.favourites().length }}</span>
+        </button>
+        <div class="favourites-slide" [attr.inert]="s.favouritesOpen() ? null : ''" [attr.aria-hidden]="!s.favouritesOpen()">
+          <atlas-favourites />
+        </div>
+      </div>
+
     </div>
   }
 </div>

@@ -1,4 +1,5 @@
-import { Component, input, inject } from "@angular/core";
+import { FavouriteButtonComponent } from "./favourite-button.component";
+import { Component, input, inject, output } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { MemoryComponent } from "../components/memory.component";
 import { WorkspaceStore } from "./workspace.store";
@@ -6,11 +7,11 @@ import { Row } from "./ranking";
 @Component({
   selector: "atlas-summary",
   standalone: true,
-  imports: [RouterLink, MemoryComponent],
+  imports: [FavouriteButtonComponent, RouterLink, MemoryComponent],
   template: `
     @let x = row();
     <div class="summary-heading">
-      <a [routerLink]="['/models', x.r.id]">{{ x.r.name }}</a
+      <a [routerLink]="['/models', x.r.id]" (click)="s.variant(x.r.id, x.a.id)">{{ x.r.name }}</a
       ><strong
         ><small>Score</small
         >{{ x.score === null ? "Unknown" : x.score + " / 100" }}</strong
@@ -47,6 +48,7 @@ import { Row } from "./ranking";
         <small>KV cache, runtime, reserve and free memory: unknown.</small>
       }
     </div>
+    @if (showVariants()) {
     <div class="quantization-chips" role="group" aria-label="Quantization">
       @for (a of s.api.variants(x.r.id); track a.id) {
         <button
@@ -57,6 +59,9 @@ import { Row } from "./ranking";
         </button>
       }
     </div>
+    } @else {
+      <p class="saved-variant">Saved variant <strong>{{ x.a.quantization }}</strong></p>
+    }
     <div class="card-metrics">
       <span
         ><b>{{ s.profile().context.toLocaleString() }}</b> tokens
@@ -72,19 +77,13 @@ import { Row } from "./ranking";
           ? "Demo quality " + x.q.toFixed(0) + " · " + x.coverage + "% coverage"
           : "Demo popularity"
       }}</span>
-      @if (showCompare() || showDetails()) {
+      @if (showFavourite() || showDetails()) {
         <div class="actions">
-          @if (showCompare()) {
-            <button (click)="s.toggle(x.a.id)">
-              {{
-                s.comparisons().includes(x.a.id)
-                  ? "Remove from comparison"
-                  : "Compare +"
-              }}
-            </button>
+          @if (showFavourite()) {
+            <atlas-favourite-button [row]="x" (removed)="removed.emit($event)" />
           }
           @if (showDetails()) {
-            <a class="details-link" [routerLink]="['/models', x.r.id]"
+            <a class="details-link" [routerLink]="['/models', x.r.id]" (click)="s.variant(x.r.id, x.a.id)"
               >Details →</a
             >
           }
@@ -127,7 +126,9 @@ import { Row } from "./ranking";
 })
 export class SummaryComponent {
   readonly row = input.required<Row>();
-  readonly showCompare = input(true);
+  readonly showVariants = input(true);
+  readonly removed = output<Event>();
+  readonly showFavourite = input(true);
   readonly showDetails = input(true);
   readonly showEvidence = input(true);
   readonly s = inject(WorkspaceStore);

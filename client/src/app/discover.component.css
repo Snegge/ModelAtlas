@@ -1,0 +1,69 @@
+:host { display: block; background: #f5f8ff; color: var(--ink); min-height: calc(100vh - 180px); }
+.discover-page { max-width: 1248px; margin: auto; padding: 36px 24px 64px;  }
+.discover-eyebrow { color: var(--green); font-size: 12px; font-weight: 600; margin: 0 0 18px; }
+h1 { font-size: 38px; line-height: 1.2; letter-spacing: -.5px; font-weight: 700; margin: 0 0 12px; }
+.discover-intro, .discover-description { color: var(--muted); font-size: 16px; line-height: 1.6; }
+.discover-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0; }
+button, .discover-actions a { border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--green); padding: 10px 13px; font-size: 13px; text-decoration: none; }
+.discover-filters button { border-color: transparent; color: var(--muted); padding: 7px 12px; }
+.discover-filters button[aria-pressed="true"] { color: var(--green); background: var(--accent); }
+.discover-layout { display: grid; grid-template-columns: 337px minmax(0, 1fr); gap: 23px; }
+.discover-shortlist, .discover-feature, .discover-empty { background: white; border: 1px solid var(--line); border-radius: 11px; }
+.discover-shortlist { padding: 12px 11px; }
+.discover-shortlist h2 { font-size: 16px; margin: 10px 12px 24px; }
+.discover-shortlist button { display: flex; gap: 26px; width: 100%; text-align: left; color: var(--ink); border: 0; padding: 12px 14px; margin-bottom: 10px; min-height: 64px; border-radius: 8px; }
+.discover-shortlist button[aria-pressed="true"] { background: var(--accent); }
+.discover-number { color: var(--green); font-size: 12px; padding-top: 2px; }
+.discover-shortlist strong { display: block; font-size: 16px; line-height: 1.3; }
+.discover-shortlist small { display: block; color: var(--muted); font-size: 12px; margin-top: 7px; }
+.discover-feature { padding: 25px 31px 36px;  }
+.discover-kicker { display: flex; align-items: center; gap: 21px; color: var(--muted); font-size: 12px; margin-bottom: 26px; }
+.discover-kicker span { color: var(--green); background: var(--accent); border-radius: 4px; padding: 8px 12px; }
+.discover-feature h2 { font-size: 30px; line-height: 1.3; overflow-wrap: anywhere; margin-bottom: 8px; }
+.discover-feature h3 { font-size: 19px; margin: 38px 0 12px; }
+.discover-reason { font-size: 16px; line-height: 1.55; max-width: 550px; }
+.discover-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 40px 0 32px; }
+.discover-metrics div { display: flex; flex-direction: column-reverse; gap: 9px; }
+dt { font-size: 13px; color: var(--muted); }
+dd { font-size: 28px; font-weight: 700; color: var(--green); margin: 0; overflow-wrap: anywhere; }
+.discover-caveat { border-top: 1px solid var(--line); padding-top: 22px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.discover-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 44px; }
+.discover-actions .discover-primary { background: var(--green); color: white; border-color: var(--green); min-width: 166px; }
+.discover-unavailable, .discover-empty { padding: 24px; line-height: 1.6; }
+button:hover { background: #edf3ff; }
+:is(button, a):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+@media (max-width: 850px) { .discover-layout { grid-template-columns: 260px minmax(0, 1fr); } .discover-feature { padding: 24px; } .discover-shortlist button { gap: 14px; } dd { font-size: 22px; } }
+@media (max-width: 650px) { .discover-page { padding: 28px 16px 40px; } h1 { font-size: 30px; } .discover-layout { grid-template-columns: 1fr; } .discover-shortlist button { min-height: auto; padding: 12px; margin: 0; } .discover-shortlist h2 { margin-bottom: 12px; } .discover-feature { min-height: auto; padding: 24px 20px; } .discover-feature h2 { font-size: 25px; } .discover-metrics { gap: 12px; } dd { font-size: 20px; } }
+
+
+.discover-entry { min-height: calc(100svh - 74px); padding: 24px 0 32px; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+.highlight-carousel { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 24px; align-items: center; touch-action: pan-y; margin: 24px 0; }
+.highlight-card { min-width: 0; padding: 24px 32px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-align: left; }
+.highlight-card h2 { font-size: 28px; overflow-wrap: anywhere; margin-bottom: 8px; }
+.highlight-card p { line-height: 1.5; }
+.highlight-card .discover-metrics { margin: 24px 0; }
+.highlight-card .discover-actions { margin-top: 24px; }
+.highlight-card .discover-kicker { justify-content: space-between; margin-bottom: 16px; }
+.highlight-card .discover-caveat { margin-top: 20px; padding-top: 16px; }
+.publisher, .highlight-reason, .collection-note { color: var(--muted); }
+.discover-primary { background: var(--green); color: white; }
+button, .discover-actions a { min-height: 44px; }
+button.carousel-arrow { width: 44px; height: 44px; padding: 0; font-size: 32px; line-height: 1; border-radius: 50%; }
+.discover-transition { align-self: center; display: inline-block; color: var(--muted); padding: 12px; }
+.discover-filters button[aria-pressed="true"] { box-shadow: inset 0 -3px var(--green); font-weight: 650; }
+.quantization-chips button[aria-pressed="true"] { background: var(--accent); box-shadow: inset 0 -2px var(--green); }
+.discover-layout { scroll-margin-top: 24px; align-items: start; }
+.discover-feature { position: sticky; top: 24px; }
+.discover-shortlist button[aria-pressed="true"] { box-shadow: inset 3px 0 var(--green); }
+.discover-description, .discover-reason { max-width: 65ch; line-height: 1.65; }
+@media(max-width: 650px) { .highlight-card { padding: 20px 16px; } .highlight-carousel { gap: 6px; } .highlight-card h2 { font-size: 24px; } .carousel-controls { gap: 12px; } .discover-feature { position: static; } .discover-shortlist { max-height: 300px; overflow-y: auto; } }
+@media(prefers-reduced-motion: reduce) { * { scroll-behavior: auto; transition: none; } }
+@media (max-width: 650px) {
+  .discover-metrics { grid-template-columns: 1fr; gap: 16px; }
+  .discover-metrics div { flex-direction: row-reverse; justify-content: space-between; align-items: baseline; }
+  .discover-metrics dd { overflow-wrap: normal; }
+  .discover-shortlist h2 { position: sticky; top: -12px; z-index: 1; background: var(--paper); margin: -12px -11px 12px; padding: 16px 12px; }
+}
+
+.discover-page { padding-top: 0; }
+@media(max-width:650px) { .discover-entry { min-height: calc(100svh - 96px); } .highlight-card h2 { font-size: 22px; } .highlight-card .discover-metrics div { flex-direction: column-reverse; gap: 4px; } }

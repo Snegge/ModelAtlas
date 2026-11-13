@@ -27,8 +27,13 @@ describe("shared ranking contract", () => {
           profile: { vram: -1 },
           comparisons: ["a", "a", "b", "c", "d"],
         }),
-      ).comparisons,
-    ).toEqual(["a", "b", "c"]);
+      ).favourites,
+    ).toEqual(["a", "b", "c", "d"]);
+  });
+  it("restores unlimited favourites and respects an explicitly empty new list", () => {
+    const ids = Array.from({ length: 100 }, (_, i) => "id-" + i);
+    expect(readWorkspace(JSON.stringify({ favourites: [...ids, ids[0], null, 1] })).favourites).toEqual(ids);
+    expect(readWorkspace(JSON.stringify({ favourites: [], comparisons: ["old"] })).favourites).toEqual([]);
   });
   it("uses fixed weighted normalization and preserves unknowns", () => {
     expect(score(80, 60, 100)).toEqual({ value: 80, coverage: 100 });

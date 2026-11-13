@@ -22,7 +22,7 @@ async function addFromBars(page: Page, index: number) {
   await page.locator(".score-row").nth(index).click();
   await page
     .locator(".preview")
-    .getByRole("button", { name: "Compare +", exact: true })
+    .getByRole("button", { name: "Add favourite", exact: true })
     .click();
 }
 
@@ -75,10 +75,10 @@ test("clean catalog views preserve search and chart comparisons", async ({
   await expect(
     page.locator(".workspace-toolbar,.recommendation-topline,.carousel-footer"),
   ).toHaveCount(0);
-  await expect(page.locator(".new-catalog th")).toHaveCount(6);
-  await expect(page.locator(".new-catalog tbody button")).toHaveCount(0);
+  await expect(page.locator(".new-catalog th")).toHaveCount(7);
+  await expect(page.locator(".new-catalog tbody button").first()).toBeVisible();
   await addFromBars(page, 0);
-  await expect(page.locator(".comparison-panel article")).toHaveCount(1);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(1);
   await page.getByLabel("Search model or provider").fill("Qwen");
   for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
     await view(page, name);
@@ -87,17 +87,17 @@ test("clean catalog views preserve search and chart comparisons", async ({
     );
     if (name === "Bars" || name === "Plot")
       await expect(
-        page.getByRole("heading", { name: "Compare 1/3" }),
+        page.locator(".catalog-favourites-trigger"),
       ).toBeVisible();
     else
-      await expect(page.locator(".comparison-panel,.preview")).toHaveCount(0);
+      await expect(page.locator(".catalog-favourites-trigger")).toBeVisible();
     if (name === "Tiles") {
       await expect(page.locator(".model-tile details")).toHaveCount(0);
       await expect(
         page
           .locator(".model-tile")
-          .getByRole("button", { name: /Compare|Remove from comparison/ }),
-      ).toHaveCount(0);
+          .getByRole("button", { name: /Add favourite|Remove favourite/ }).first(),
+      ).toBeVisible();
     }
   }
   await page.getByLabel("Search model or provider").fill("no-such-model");
@@ -156,46 +156,45 @@ test("profiles, overrides and All tasks recommendations stay independent of cata
   await page.waitForTimeout(250);
   expect(await page.locator(".chat-output").textContent()).toEqual(text);
   await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(page.locator(".chat-output")).toBeEmpty();
+  await expect(page.locator(".chat-output")).toContainText("Your prepared response will appear here");
   await page.getByRole("link", { name: "← Explorer", exact: true }).click();
   await expect(page.getByLabel("Search model or provider")).toHaveValue("Qwen");
 });
 
-test("comparison limit, exact variants and persistence through the chart preview", async ({
+test("unlimited favourites, exact variants and persistence through the chart preview", async ({
   page,
 }) => {
   await boot(page);
   for (let i = 0; i < 3; i++) {
     await addFromBars(page, i);
-    await expect(page.locator(".comparison-panel article")).toHaveCount(i + 1);
+    await expect(page.locator(".favourites-panel article")).toHaveCount(i + 1);
   }
   await addFromBars(page, 3);
-  await expect(
-    page.getByText("Comparison is full (3/3). Remove a variant first."),
-  ).toBeVisible();
+  await expect(page.locator(".favourites-panel article")).toHaveCount(4);
   const first = await page
-    .locator(".comparison-panel article h3")
+    .locator(".favourites-panel .summary-heading > a")
     .first()
     .textContent();
   await view(page, "Table");
-  await expect(page.locator(".comparison-panel")).toHaveCount(0);
+  await expect(page.locator(".catalog-favourites-trigger")).toBeVisible();
   await page.locator(".new-catalog select").first().selectOption({ index: 2 });
   await view(page, "Bars");
   expect(
-    await page.locator(".comparison-panel article h3").first().textContent(),
+    await page.locator(".favourites-panel .summary-heading > a").first().textContent(),
   ).toEqual(first);
   await expect(
-    page.locator(".comparison-panel article .comparison-quant").first(),
-  ).toHaveText("Q4_K_M");
+    page.locator(".favourites-panel .saved-variant").first(),
+  ).toContainText("Q4_K_M");
   await page.reload();
   await view(page, "Bars");
-  await expect(page.locator(".comparison-panel article")).toHaveCount(3);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(4);
+  await page.locator(".catalog-favourites-trigger").click();
   await page
-    .locator(".comparison-panel article")
+    .locator(".favourites-panel article")
     .first()
     .getByRole("button", { name: /Remove/ })
     .click();
-  await expect(page.locator(".comparison-panel article")).toHaveCount(2);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(3);
 });
 
 test("CPU-only and unknown model routes are explicit", async ({ page }) => {
@@ -226,11 +225,9 @@ test("desktop and mobile accessibility, drawer and screenshots", async ({
     ),
   ).toBe(true);
   await view(page, "Plot");
-  await page.getByRole("button", { name: "Compare 0/3", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Close comparison" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Close comparison" }).click();
+  await page.locator(".catalog-favourites-trigger").click();
+  await expect(page.locator(".catalog-favourites-trigger")).toHaveAttribute("aria-expanded", "true");
+  await page.locator(".catalog-favourites-trigger").click();
   await page.keyboard.press("Tab");
   expect(
     await page.evaluate(() => document.activeElement !== document.body),
@@ -253,7 +250,7 @@ test("offloading, context and variant changes use shared estimates", async ({
   await expect(row).toContainText("offload");
   await expect(row.locator("td").nth(4)).toContainText("Unknown");
   await addFromBars(page, 0);
-  await expect(page.locator(".comparison-panel article")).toHaveCount(1);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(1);
   await view(page, "Table");
   await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
   await view(page, "Bars");
@@ -269,10 +266,10 @@ test("offloading, context and variant changes use shared estimates", async ({
     "4,096 tokens requested",
   );
   await expect(
-    page.locator(".comparison-panel article .comparison-quant"),
-  ).toHaveText("Q4_K_M");
-  await expect(page.locator(".comparison-panel")).toContainText(
-    "4096-token context",
+    page.locator(".favourites-panel .saved-variant"),
+  ).toContainText("Q4_K_M");
+  await expect(page.locator(".favourites-panel")).toContainText(
+    "Memory:",
   );
 });
 
@@ -363,14 +360,11 @@ test("intro hierarchy, detached carousel arrows and flush comparison panel", asy
     "Recommendation 1 of 5",
   );
   await view(page, "Bars");
-  expect(
-    await page
-      .locator(".comparison-panel")
-      .evaluate((el) => getComputedStyle(el).marginTop),
-  ).toBe("0px");
-  const catalog = await page.locator(".catalog-workspace").boundingBox(),
-    panel = await page.locator(".comparison-panel").boundingBox();
-  expect(Math.abs(catalog!.y - panel!.y)).toBeLessThan(2);
+  await page.locator(".catalog-favourites-trigger").click();
+  const panel = await page.locator(".favourites-panel").boundingBox();
+  const catalog = await page.locator(".catalog-workspace").boundingBox();
+  expect(panel!.x).toBeGreaterThan(catalog!.x + catalog!.width);
+  expect(Math.abs(panel!.y - catalog!.y)).toBeLessThan(2);
 });
 
 test("bar detail rail, plot preview and compact tiles", async ({ page }) => {
@@ -425,9 +419,9 @@ test("feedback uses a transient dismissible snackbar without moving page content
     .evaluate((el) => (el as HTMLElement).offsetTop);
   await page
     .locator(".preview")
-    .getByRole("button", { name: "Compare +", exact: true })
+    .getByRole("button", { name: "Add favourite", exact: true })
     .click();
-  await expect(page.locator(".snackbar")).toContainText("Variant saved (1/3)");
+  await expect(page.locator(".snackbar")).toContainText("Favourite saved");
   await expect(page.locator('.atlas-workspace > p[role="status"]')).toHaveCount(
     0,
   );
@@ -445,14 +439,14 @@ test("feedback uses a transient dismissible snackbar without moving page content
   await expect(page.locator(".snackbar")).toHaveCount(0);
   await page
     .locator(".preview")
-    .getByRole("button", { name: "Remove from comparison" })
+    .getByRole("button", { name: "Remove favourite" })
     .click();
-  await expect(page.locator(".snackbar")).toContainText("Variant removed");
+  await expect(page.locator(".snackbar")).toContainText("Favourite removed");
   await page.getByRole("button", { name: "Dismiss notification" }).click();
   await expect(page.locator(".snackbar")).toHaveCount(0);
 });
 
-test("model detail summary has neither self-link action nor comparison action", async ({
+test("model detail summary offers favourites without a self-link", async ({
   page,
 }) => {
   await boot(page);
@@ -460,14 +454,12 @@ test("model detail summary has neither self-link action nor comparison action", 
     .locator(".recommendation:visible")
     .getByRole("link", { name: "Details →" })
     .click();
-  await expect(page.locator(".detail-page atlas-summary .actions")).toHaveCount(
-    0,
-  );
+  await expect(page.locator(".detail-page atlas-summary .actions")).toHaveCount(1);
   await expect(
     page
       .locator(".detail-page atlas-summary")
-      .getByRole("button", { name: /Compare|Remove from comparison/ }),
-  ).toHaveCount(0);
+      .getByRole("button", { name: /Add favourite|Remove favourite/ }),
+  ).toHaveCount(1);
   await expect(
     page.locator(".detail-page atlas-summary .details-link"),
   ).toHaveCount(0);

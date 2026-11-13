@@ -4,7 +4,7 @@ import { SnackbarComponent } from "./components/snackbar.component";
 @Component({
   selector: "atlas-app",
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, SnackbarComponent],
+  imports: [ RouterLink, RouterLinkActive, RouterOutlet, SnackbarComponent],
   template: `
     <a class="skip-link" href="#main-content">Skip to workspace</a>
     <header class="app-header">
@@ -19,6 +19,7 @@ import { SnackbarComponent } from "./components/snackbar.component";
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
           >Explorer</a
+        ><a routerLink="/discover" routerLinkActive="active">Discover</a
         ><a routerLink="/methodology" routerLinkActive="active"
           >Method & data</a
         >

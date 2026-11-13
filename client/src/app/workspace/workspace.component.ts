@@ -1,3 +1,6 @@
+import { DatePipe } from "@angular/common";
+import { FavouritesComponent } from "./favourites.component";
+import { FavouriteButtonComponent } from "./favourite-button.component";
 import {
   Component,
   inject,
@@ -12,11 +15,10 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { WorkspaceStore } from "./workspace.store";
 import { SummaryComponent } from "./summary.component";
-import { CompareComponent } from "./compare.component";
 import { GPUS, TASKS, Task, quality } from "./ranking";
 @Component({
   standalone: true,
-  imports: [RouterLink, SummaryComponent, A11yModule, CompareComponent, FormsModule],
+  imports: [DatePipe, FavouritesComponent, FavouriteButtonComponent, RouterLink, SummaryComponent, A11yModule, FormsModule],
   templateUrl: "./workspace.component.html",
 })
 export class WorkspaceComponent implements OnDestroy {
