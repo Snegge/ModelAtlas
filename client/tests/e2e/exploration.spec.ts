@@ -1,603 +1,469 @@
 import { test, expect, Page } from "@playwright/test";
-import fs from "node:fs";
-
-const browserErrors = new WeakMap<Page, string[]>();
-
-async function open(page: Page) {
+import AxeBuilder from "@axe-core/playwright";
+async function boot(page: Page) {
   await page.goto("/");
-  await expect(page.locator(".loading-state")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Export CSV" })).toBeEnabled();
+  await expect(page.locator(".recommendation")).toHaveCount(5);
 }
-async function settled(page: Page) {
-  await expect(page.locator(".chart-updating")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Export CSV" })).toBeEnabled();
+async function hardware(
+  page: Page,
+  gpu = "NVIDIA GeForce RTX 3060 · 12 GB",
+  ram = "48",
+) {
+  await page.getByLabel("GPU profile (searchable)").fill(gpu);
+  await page.getByLabel("GPU profile (searchable)").press("Tab");
+  await page.getByLabel("System RAM · GiB (0–1024)").fill(ram);
+  await expect(page.locator(".recommendation").first()).toContainText("/ 100");
 }
-test.beforeEach(async ({ page }) => {
-  const errors: string[] = [];
-  browserErrors.set(page, errors);
-  page.on("pageerror", (error) => errors.push(error.message));
-  page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
-  });
-  await page.goto("/");
-  await page.evaluate(() => localStorage.clear());
-  await page.reload();
-  await settled(page);
-});
-test.afterEach(async ({ page }, result) => {
-  const errors = browserErrors.get(page) ?? [];
-  if (
-    process.env["CI"] &&
-    (result.status !== result.expectedStatus || errors.length)
-  ) {
-    const message = [
-      ...result.errors.map((error) => error.message ?? "Browser test failed"),
-      ...errors,
-    ]
-      .join("\n")
-      .replaceAll("%", "%25")
-      .replaceAll("\r", "%0D")
-      .replaceAll("\n", "%0A");
-    console.log(
-      `::error title=Browser test failed::${result.title}: ${message}`,
-    );
-  }
-  expect(errors, "Browser console and runtime errors").toEqual([]);
-});
-
-test("desktop linked views, exact artifact selection and visible provenance", async ({
-  page,
-}) => {
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  const row = page.locator("tbody tr").nth(2);
-  const id = await row.getAttribute("data-release");
-  const model = await row.locator(".model-select").innerText();
-  await row.locator(".model-select").focus();
-  await expect(page.locator("#detail-heading")).toHaveText(model);
-  await expect(row).toHaveClass(/selected-row/);
-  const variants = page.locator("#detail-artifact option");
-  expect(await variants.count()).toBeGreaterThan(1);
-  const last = await variants.last().getAttribute("value");
-  await page.locator("#detail-artifact").selectOption(last!);
-  await expect(page.locator('tr[data-release="' + id + '"]')).toHaveClass(
-    /selected-row/,
-  );
+async function view(page: Page, name: string) {
+  await page.getByRole("button", { name, exact: true }).click();
+}
+async function addFromBars(page: Page, index: number) {
+  await view(page, "Bars");
+  await page.locator(".score-row").nth(index).click();
   await page
-    .getByRole("button", { name: "Compare this exact artifact" })
+    .locator(".preview")
+    .getByRole("button", { name: "Add favourite", exact: true })
     .click();
-  await expect(page.locator(".comparison-item")).toHaveCount(1);
-  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
-  await page
-    .getByText("Provenance & complete file set", { exact: true })
-    .click();
-  await expect(page.locator(".provenance").first()).toContainText(
-    "Artifact revision",
-  );
-  await page.screenshot({ path: "test-results/desktop.png", fullPage: true });
-  expect(errors).toEqual([]);
-});
+}
 
-test("compact workspace preserves context range, unclipped labels and visible comparison", async ({
+test("expanded catalog exposes sourced new families and retains exact variants across views", async ({
   page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(
-    page.locator(".workspace-intro, .overview-counts, #preset"),
-  ).toHaveCount(0);
-  await expect(
-    page.locator("atlas-chart + atlas-comparison + atlas-catalog"),
-  ).toHaveCount(1);
-  const chartState = () =>
-    page.evaluate(() => {
-      // Inspect the rendered canvas chart in the development build, rather than
-      // duplicating its scale calculations in the test.
-      const component = (window as any).ng.getComponent(
-        document.querySelector("atlas-chart"),
-      );
-      const chart = component.chart;
-      const options = chart.getOption();
-      const labels = chart
-        .getZr()
-        .storage.getDisplayList()
-        .filter(
-          (element: any) =>
-            element.style?.text === "DeepSeek-R1-Distill-Llama-8B",
-        )
-        .map((element: any) => {
-          const box = element.getBoundingRect().clone();
-          if (element.transform) box.applyTransform(element.transform);
-          return { x: box.x, y: box.y, width: box.width, height: box.height };
-        });
-      return {
-        min: options.yAxis[0].min,
-        max: options.yAxis[0].max,
-        boundaryLabels: options.series
-          .filter((series: any) => series.markLine)
-          .map((series: any) => series.markLine.label.show),
-        labels,
-        width: chart.getWidth(),
-        height: chart.getHeight(),
-      };
-    });
-  const initial = await chartState();
-  expect(initial.min).toBe(8192);
-  expect(initial.max).toBe(131072);
-  expect(initial.boundaryLabels.every((shown: boolean) => !shown)).toBe(true);
-  await page.locator("#search").fill("DeepSeek-R1-Distill-Llama-8B");
-  await page.locator("tbody .model-select").click();
-  for (const width of [1440, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    // Canvas resize and label layout settle on a later animation frame.
-    await expect
-      .poll(async () => {
-        const state = await chartState();
-        const label = state.labels[0];
-        const surfaceWidth = await page
-          .locator(".scatter-surface")
-          .evaluate((element) => element.clientWidth);
-        return (
-          state.width === surfaceWidth &&
-          state.labels.length === 1 &&
-          label.x >= 0 &&
-          label.y >= 0 &&
-          label.x + label.width <= state.width &&
-          label.y + label.height <= state.height
-        );
-      })
-      .toBe(true);
-    const state = await chartState();
-    expect(state.min).toBe(initial.min);
-    expect(state.max).toBe(initial.max);
-    const label = state.labels[0];
-    expect(label.x).toBeGreaterThanOrEqual(0);
-    expect(label.y).toBeGreaterThanOrEqual(0);
-    expect(label.x + label.width).toBeLessThanOrEqual(state.width);
-    expect(label.y + label.height).toBeLessThanOrEqual(state.height);
-  }
-  await page.locator("#context-exact").fill("4096");
-  await settled(page);
-  await expect(page.locator(".chart-threshold-note")).toContainText(
-    "Below plotted range",
-  );
-  await page.locator("#context-exact").fill("1048576");
-  await settled(page);
-  await expect(page.locator(".chart-threshold-note")).toContainText(
-    "Above all model limits",
-  );
-  const final = await chartState();
-  expect(final.min).toBe(initial.min);
-  expect(final.max).toBe(initial.max);
-  await page
-    .getByRole("button", { name: "Compare this exact artifact" })
-    .click();
-  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
-});
-
-test("desktop comparison stays fully visible with three artifacts and a baseline without moving the page", async ({
-  page,
-}) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.setViewportSize({ width: 1366, height: 768 });
-  await expect(page.locator(".comparison-panel")).toBeInViewport({ ratio: 1 });
-  await expect(page.locator(".chart-info-content")).toBeHidden();
-  await expect(
-    page.locator(".chart-caption, .chart-reading, .chart-limit"),
-  ).toHaveCount(0);
-  await page.getByRole("button", { name: "Pin as baseline" }).click();
-  await settled(page);
-  await expect(page.locator("atlas-hardware .baseline-strip")).toHaveCount(1);
-  const artifacts = await page
-    .locator("#detail-artifact option")
-    .evaluateAll((options) =>
-      options.slice(0, 3).map((option) => (option as HTMLOptionElement).value),
-    );
-  expect(artifacts).toHaveLength(3);
-  await page.evaluate(() => window.scrollTo(0, 0));
-  for (let index = 0; index < artifacts.length; index++) {
-    await page.locator("#detail-artifact").selectOption(artifacts[index]);
-    const button = page.getByRole("button", {
-      name: "Compare this exact artifact",
-    });
-    await button.focus();
-    expect(await page.evaluate(() => window.scrollY)).toBe(0);
-    if (index === 0) await button.click();
-    else await button.press("Enter");
-    await expect(page.locator(".comparison-item")).toHaveCount(index + 1);
-    await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
-    expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  }
-  let releaseCatalog!: () => void;
-  const catalogReady = new Promise<void>((resolve) => {
-    releaseCatalog = resolve;
-  });
-  await page.route("**/api/catalog", async (route) => {
-    await catalogReady;
-    await route.continue();
-  });
-  await page.reload({ waitUntil: "domcontentloaded" });
-  try {
-    await expect(page.locator(".comparison-empty")).toHaveText(
-      "Loading saved artifacts…",
-    );
-  } finally {
-    releaseCatalog();
-  }
-  await settled(page);
-  await page.unroute("**/api/catalog");
-  await expect(page.locator(".comparison-item")).toHaveCount(3);
-  for (const viewport of [
-    { width: 1280, height: 720 },
-    { width: 1366, height: 768 },
-    { width: 1440, height: 900 },
-    { width: 1920, height: 1080 },
-  ]) {
-    await page.setViewportSize(viewport);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(page.locator(".comparison-panel")).toBeInViewport({
-      ratio: 1,
-    });
-    const panel = (await page.locator(".comparison-panel").boundingBox())!;
-    expect(panel.y + panel.height).toBeLessThanOrEqual(viewport.height);
-    for (const bar of await page
-      .locator(".comparison-item .memory-track")
-      .all()) {
-      await expect(bar).toBeInViewport({ ratio: 1 });
-    }
-  }
-  await page.locator(".chart-info summary").focus();
-  await page.keyboard.press("Enter");
-  await expect(page.locator(".chart-info-content")).toContainText(
-    "37 of 38 matching releases plotted",
-  );
-  await expect(page.locator(".chart-info-content")).toContainText(
-    "no usable estimate",
-  );
-  await page.keyboard.press("Enter");
-  await expect(page.locator(".chart-info-content")).toBeHidden();
-  await page.locator(".comparison-more summary").first().click();
-  await expect(
-    page.locator(".comparison-more[open] .memory-legend"),
-  ).toContainText("KV cache");
-  await expect(page.locator(".comparison-more[open] a")).toHaveAttribute(
-    "href",
-    /^https:\/\/huggingface\.co\//,
-  );
-});
-
-test("baseline remains pinned, restoration and reset work and persist", async ({
-  page,
-}) => {
-  await page.getByRole("button", { name: "Pin as baseline" }).click();
-  await settled(page);
-  await page.locator("#context-exact").fill("16384");
-  await page.locator("#gpu-exact").fill("24");
-  await settled(page);
-  await expect(page.locator(".baseline-values")).toContainText("12 GiB GPU");
-  await expect(
-    page.getByRole("button", { name: "Pin as baseline" }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Replace pinned baseline" }),
-  ).toHaveCount(0);
-  await expect(page.locator(".baseline-values")).toContainText("8,192 tokens");
-  await expect(page.locator("atlas-detail .memory-row")).toHaveCount(2);
-  const exactArtifact = await page.locator("#detail-artifact").inputValue();
-  await page.locator("#quant-preference").selectOption("Q8_0");
-  await settled(page);
-  await expect(page.locator("tbody .variant-change").first()).toContainText(
-    "Was Q4_K_M",
-  );
-  await expect(page.locator("#detail-artifact")).toHaveValue(exactArtifact);
-  await page.reload();
-  await settled(page);
-  await expect(page.locator("#gpu-exact")).toHaveValue("24");
-  await expect(page.locator(".baseline-values")).toContainText("12 GiB GPU");
-  await page.getByRole("button", { name: "Restore baseline" }).click();
-  await settled(page);
-  await expect(page.locator("#gpu-exact")).toHaveValue("12");
-  await expect(page.locator("#context-exact")).toHaveValue("8192");
-  await page
-    .getByRole("button", { name: "Clear baseline", exact: true })
-    .click();
-  await settled(page);
-  await expect(page.locator(".baseline-strip")).toHaveCount(0);
-  await page.locator("#gpu-exact").fill("6");
-  await page
-    .getByRole("button", { name: "Reset exploration to defaults" })
-    .click();
-  await settled(page);
-  await expect(page.locator("#gpu-exact")).toHaveValue("12");
-  await expect(page.locator("#context-exact")).toHaveValue("8192");
-});
-
-test("comparison limit never replaces a selection, filters retain exact choices, empty search recovers", async ({
-  page,
-}) => {
-  const buttons = page.locator("tbody .compare-toggle");
-  for (let i = 0; i < 3; i++) await buttons.nth(i).click();
-  await expect(page.locator(".comparison-item")).toHaveCount(3);
-  const before = await page
-    .locator(".comparison-title .model-select")
-    .allTextContents();
-  await buttons.nth(3).click();
-  await expect(page.locator(".notice-banner")).toContainText("Remove one");
-  await expect(page.locator(".comparison-item")).toHaveCount(3);
-  expect(
-    await page.locator(".comparison-title .model-select").allTextContents(),
-  ).toEqual(before);
-  await page.locator("#search").fill("no-such-model-987");
-  await expect(page.locator(".empty-state")).toContainText(
-    "No matching releases",
-  );
-  await expect(page.locator(".comparison-item")).toHaveCount(3);
-  await expect(page.locator(".comparison-item .outside-filter")).toHaveCount(3);
-  await expect(page.locator("atlas-detail .outside-filter")).toHaveCount(1);
-  await page.getByRole("button", { name: "Clear all filters" }).click();
-  await expect(page.locator("tbody tr")).toHaveCount(12);
-  await page.locator(".comparison-item .remove-button").first().click();
-  await buttons.nth(3).click();
-  await expect(page.locator(".comparison-item")).toHaveCount(3);
-});
-
-test("export matches canonical displayed settings and estimates", async ({
-  page,
-}) => {
-  await page.locator("#gpu-exact").fill("24");
-  await page.locator("#context-exact").fill("4096");
-  await settled(page);
-  const downloaded = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Export CSV" }).click();
-  const download = await downloaded;
-  const text = fs
-    .readFileSync((await download.path())!, "utf8")
-    .replace(/^\uFEFF/, "");
-  const lines = text.split("\r\n");
-  const parse = (line: string) =>
-    [...line.matchAll(/"((?:[^"]|"")*)"(?:,|$)/g)].map((m) =>
-      m[1].replaceAll('""', '"'),
-    );
-  const headers = parse(lines[0]),
-    first = parse(lines[1]);
-  const value = (key: string) => first[headers.indexOf(key)];
-  expect(value("GPU_budget_GiB")).toBe("24");
-  expect(value("requested_context_tokens")).toBe("4096");
-  expect(value("artifact_revision")).toMatch(/^[a-f0-9]{40}$/);
-  expect(value("artifact_source")).toContain("https://huggingface.co/");
-  const api = await page.request.post("/api/evaluate", {
-    data: {
-      settings: {
-        gpuGiB: 24,
-        ramGiB: 32,
-        contextTokens: 4096,
-        quantization: "Q4_K_M",
-        allowOffload: true,
-        cachePrecision: "f16",
-        concurrency: 1,
-      },
-      baseline: null,
-    },
-  });
-  const evalData = await api.json();
-  const expected = evalData.artifacts.find(
-    (x: any) => x.artifactId === value("artifact_id"),
-  );
-  expect(Number(value("estimated_total_GiB"))).toBe(expected.scenario.totalGiB);
-});
-
-test("obsolete responses do not overwrite newer hardware", async ({ page }) => {
-  let observed = false;
-  await page.route("**/api/evaluate", async (route) => {
-    const data = route.request().postDataJSON();
-    if (data.settings.contextTokens === 4096) {
-      observed = true;
-      await new Promise((r) => setTimeout(r, 900));
-    }
-    try {
-      await route.continue();
-    } catch {
-      /* canceled requests are expected */
-    }
-  });
-  await page.locator("#context-exact").fill("4096");
-  await expect.poll(() => observed).toBe(true);
-  await page.locator("#context-exact").fill("16384");
-  await settled(page);
-  await page.waitForTimeout(1100);
-  await expect(page.locator("#context-exact")).toHaveValue("16384");
-  const saved = await page.evaluate(
-    () => JSON.parse(localStorage.getItem("model-atlas.session.v1")!).hardware,
-  );
-  expect(saved.contextTokens).toBe(16384);
-  await expect(page.locator(".chart-updating")).toHaveCount(0);
-});
-
-test("search, family, artifact availability, fits, sorting, custom hardware and advanced settings work", async ({
-  page,
-}) => {
-  await page.locator("#gpu-exact").fill("24");
-  await page.locator("#ram-exact").fill("64");
-  await settled(page);
-  await expect(page.locator("#gpu-exact")).toHaveValue("24");
-  await page.locator("#family-filter").selectOption("Qwen");
-  await expect(page.locator("tbody")).toContainText("Qwen");
-  await page.locator("#quant-filter").selectOption("Q8_0");
-  await page.getByLabel("Estimated GPU fits only", { exact: true }).check();
-  await expect(page.locator("tbody .status-label").first()).toHaveText(
-    /Estimated GPU fit/,
-  );
-  await page.locator("#sort").selectOption("context");
-  await page
-    .getByRole("button", { name: "Clear filters", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Advanced inference settings" })
-    .click();
-  await page.locator("#cache").selectOption("f32");
-  await page.locator("#concurrency").fill("2");
-  await settled(page);
-  await page
-    .getByLabel("Allow partial CPU/RAM offloading", { exact: true })
-    .uncheck();
-  await settled(page);
-  await page.getByRole("button", { name: "Enable chart zoom" }).click();
-  await expect(
-    page.getByRole("button", { name: "Reset & exit zoom" }),
-  ).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Reset & exit zoom" }).click();
-  await page.getByRole("link", { name: "Method & data" }).click();
-  await expect(
-    page.getByRole("heading", {
-      name: "Useful estimates. Visible uncertainty.",
-    }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Return to the explorer" }).click();
-  await expect(page.locator("#gpu-exact")).toHaveValue("24");
-});
-
-test("narrow viewport stays within the screen and supports the complete flow", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  await page.locator("#gpu-exact").fill("6");
-  await page.locator("#ram-exact").fill("16");
-  await settled(page);
-  await page.getByRole("button", { name: "Pin as baseline" }).click();
-  await settled(page);
-  await page.locator("#context-exact").fill("4096");
-  await settled(page);
-  await page.locator("tbody .model-select").first().click();
-  await page
-    .getByRole("button", { name: "Compare this exact artifact" })
-    .click();
-  await expect(page.locator(".comparison-item")).toHaveCount(1);
-  await expect(page.locator("atlas-detail .button.primary")).toBeFocused();
-  const width = await page.evaluate(() => ({
-    body: document.documentElement.scrollWidth,
-    viewport: window.innerWidth,
-  }));
-  expect(width.body).toBeLessThanOrEqual(width.viewport);
-  await page.screenshot({ path: "test-results/mobile.png", fullPage: true });
-  expect(errors).toEqual([]);
-});
-
-test("API supports queries, details, unknowns and input validation", async ({
   request,
 }) => {
-  const catalog = await (await request.get("/api/catalog")).json();
-  expect(catalog.releases.length).toBeGreaterThanOrEqual(20);
-  const filtered = await (
-    await request.get(
-      "/api/catalog?search=Qwen&family=Qwen&quantization=Q4_K_M",
-    )
-  ).json();
-  expect(filtered.releases.length).toBeGreaterThan(0);
-  expect(filtered.releases.every((r: any) => r.family === "Qwen")).toBe(true);
-  expect(
-    (await request.get("/api/models/" + catalog.releases[0].id)).status(),
-  ).toBe(200);
-  expect(
-    (await request.get("/api/artifacts/" + catalog.artifacts[0].id)).status(),
-  ).toBe(200);
-  expect((await request.get("/api/models/absent")).status()).toBe(404);
-  expect(
-    (
-      await request.post("/api/evaluate", {
-        data: { settings: { gpuGiB: -2 }, baseline: null },
-      })
-    ).status(),
-  ).toBe(400);
-  const result = await (
-    await request.post("/api/evaluate", {
-      data: {
-        settings: {
-          gpuGiB: 12,
-          ramGiB: 32,
-          contextTokens: 8192,
-          quantization: "Q4_K_M",
-          allowOffload: true,
-          cachePrecision: "f16",
-          concurrency: 1,
-        },
-        baseline: null,
-      },
-    })
-  ).json();
-  expect(result.releases.length).toBe(catalog.releases.length);
-  expect(result.artifacts.length).toBe(catalog.artifacts.length);
-  expect(
-    result.releases.some((p: any) => p.scenario.status === "unknown"),
-  ).toBe(true);
-  expect(
-    (
-      await request.post("/api/evaluate", {
-        data: { settings: null, baseline: null },
-      })
-    ).status(),
-  ).toBe(400);
+  const status = await (await request.get("/api/catalog/status")).json();
+  expect(status.releaseCount).toBeGreaterThanOrEqual(76);
+  expect(status.families.map((f: { name: string }) => f.name)).toEqual(
+    expect.arrayContaining(["SmolLM", "OLMo", "Falcon", "EXAONE", "LFM"]),
+  );
+  await boot(page);
+  await expect(page.locator(".new-catalog tbody tr")).toHaveCount(status.releaseCount);
+  await hardware(page);
+  await page.getByLabel("Search model or provider").fill("SmolLM2-1.7B-Instruct");
+  const row = page.locator(".new-catalog tbody tr");
+  await expect(row).toHaveCount(1);
+  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
+  await expect(row).toContainText("gpu-fit");
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
+    await expect(page.getByLabel("Search model or provider")).toHaveValue("SmolLM2-1.7B-Instruct");
+    if (name === "Tiles")
+      await expect(page.locator(".model-tile .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
+    if (name === "Plot") await expect(page.locator(".plot-dot")).toHaveCount(1);
+  }
+  await expect(row.getByLabel("Variant").locator("option:checked")).toHaveText("Q8_0");
+  await row.getByRole("link", { name: "SmolLM2-1.7B-Instruct", exact: true }).click();
+  await expect(page.locator(".detail-page .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
+  await page.locator(".card-evidence summary").click();
+  await expect(page.getByRole("link", { name: "Artifact source", exact: true })).toHaveAttribute(
+    "href", /^https:\/\/huggingface\.co\/bartowski\/SmolLM2-1.7B-Instruct-GGUF\/tree\/[a-f0-9]{40}$/,
+  );
+  await page.goto("/methodology");
+  await expect(page.locator(".method-page")).toContainText(`${status.releaseCount} releases`);
+  await expect(page.locator(".method-page")).toContainText(`${status.artifactCount} GGUF variants`);
 });
 
-test("accessibility scan on desktop and narrow viewport", async ({ page }) => {
-  const { default: AxeBuilder } = await import("@axe-core/playwright");
-  for (const width of [1440, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    const result = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-      .analyze();
+test("clean catalog views preserve search and chart comparisons", async ({
+  page,
+}) => {
+  await boot(page);
+  await expect(
+    page.getByRole("region", { name: "Popular models · demo popularity" }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("VRAM · GiB (0–192)", { exact: true }),
+  ).toHaveValue("");
+  await expect(
+    page.locator(".workspace-toolbar,.recommendation-topline,.carousel-footer"),
+  ).toHaveCount(0);
+  await expect(page.locator(".new-catalog th")).toHaveCount(7);
+  await expect(page.locator(".new-catalog tbody button").first()).toBeVisible();
+  await addFromBars(page, 0);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(1);
+  await page.getByLabel("Search model or provider").fill("Qwen");
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
+    await expect(page.getByLabel("Search model or provider")).toHaveValue(
+      "Qwen",
+    );
+    if (name === "Bars" || name === "Plot")
+      await expect(
+        page.locator(".catalog-favourites-trigger"),
+      ).toBeVisible();
+    else
+      await expect(page.locator(".catalog-favourites-trigger")).toBeVisible();
+    if (name === "Tiles") {
+      await expect(page.locator(".model-tile details")).toHaveCount(0);
+      await expect(
+        page
+          .locator(".model-tile")
+          .getByRole("button", { name: /Add favourite|Remove favourite/ }).first(),
+      ).toBeVisible();
+    }
+  }
+  await page.getByLabel("Search model or provider").fill("no-such-model");
+  await expect(page.getByText("No models match your search.")).toBeVisible();
+});
+
+test("profiles, overrides and All tasks recommendations stay independent of catalog filters", async ({
+  page,
+}) => {
+  await boot(page);
+  await hardware(page);
+  await expect(
+    page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
+  ).toHaveValue("360");
+  await page.getByLabel("VRAM · GiB (0–192)", { exact: true }).fill("10");
+  await expect(
+    page.getByText("Manual override", { exact: true }),
+  ).toBeVisible();
+  await hardware(page, "NVIDIA GeForce RTX 3090 · 24 GB", "128");
+  await expect(
+    page.getByLabel("VRAM · GiB (0–192)", { exact: true }),
+  ).toHaveValue("24");
+  await expect(
+    page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
+  ).toHaveValue("936");
+  const recommendations = await page
+    .locator(".recommendation .summary-heading")
+    .allTextContents();
+  const oldScores = await page
+    .locator(".new-catalog tbody tr td:nth-child(6)")
+    .allTextContents();
+  await page.getByRole("button", { name: "Coding", exact: true }).click();
+  expect(
+    await page.locator(".recommendation .summary-heading").allTextContents(),
+  ).toEqual(recommendations);
+  await expect.poll(() => page
+    .locator(".new-catalog tbody tr td:nth-child(6)")
+    .allTextContents(),
+  ).not.toEqual(oldScores);
+  await page.getByLabel("Search model or provider").fill("Qwen");
+  await page.getByRole("button", { name: "Parameters", exact: true }).click();
+  expect(
+    await page.locator(".recommendation .summary-heading").allTextContents(),
+  ).toEqual(recommendations);
+  await page
+    .locator(".recommendation:visible")
+    .getByRole("link", { name: "Details →" })
+    .click();
+  await expect(page.locator(".recommendation-reason")).toContainText(
+    "All tasks",
+  );
+  await page.getByRole("button", { name: "Start simulation" }).click();
+  await expect(page.locator(".chat-output")).not.toBeEmpty();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  const text = await page.locator(".chat-output").textContent();
+  await page.waitForTimeout(250);
+  expect(await page.locator(".chat-output").textContent()).toEqual(text);
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(page.locator(".chat-output")).toContainText("Your prepared response will appear here");
+  await page.getByRole("link", { name: "← Explorer", exact: true }).click();
+  await expect(page.getByLabel("Search model or provider")).toHaveValue("Qwen");
+});
+
+test("unlimited favourites, exact variants and persistence through the chart preview", async ({
+  page,
+}) => {
+  await boot(page);
+  for (let i = 0; i < 3; i++) {
+    await addFromBars(page, i);
+    await expect(page.locator(".favourites-panel article")).toHaveCount(i + 1);
+  }
+  await addFromBars(page, 3);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(4);
+  const first = await page
+    .locator(".favourites-panel .summary-heading > a")
+    .first()
+    .textContent();
+  await view(page, "Table");
+  await expect(page.locator(".catalog-favourites-trigger")).toBeVisible();
+  await page.locator(".new-catalog select").first().selectOption({ index: 2 });
+  await view(page, "Bars");
+  expect(
+    await page.locator(".favourites-panel .summary-heading > a").first().textContent(),
+  ).toEqual(first);
+  await expect(
+    page.locator(".favourites-panel .saved-variant").first(),
+  ).toContainText("Q4_K_M");
+  await page.reload();
+  await view(page, "Bars");
+  await expect(page.locator(".favourites-panel article")).toHaveCount(4);
+  await page.locator(".catalog-favourites-trigger").click();
+  await page
+    .locator(".favourites-panel article")
+    .first()
+    .getByRole("button", { name: /Remove/ })
+    .click();
+  await expect(page.locator(".favourites-panel article")).toHaveCount(3);
+});
+
+test("CPU-only and unknown model routes are explicit", async ({ page }) => {
+  await boot(page);
+  await page.getByLabel("GPU profile (searchable)").fill("CPU-only");
+  await page.getByLabel("GPU profile (searchable)").press("Tab");
+  await page.getByLabel("System RAM · GiB (0–1024)").fill("48");
+  await expect(page.locator(".recommendation")).toHaveCount(0);
+  await page.goto("/models/missing");
+  await expect(
+    page.getByRole("heading", { name: "Model not found" }),
+  ).toBeVisible();
+});
+
+test("desktop and mobile accessibility, drawer and screenshots", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await boot(page);
+  await hardware(page);
+  await page.screenshot({ path: "test-results/desktop.png", fullPage: true });
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: "test-results/mobile.png", fullPage: true });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await view(page, "Plot");
+  await page.locator(".catalog-favourites-trigger").click();
+  await expect(page.locator(".catalog-favourites-trigger")).toHaveAttribute("aria-expanded", "true");
+  await page.locator(".catalog-favourites-trigger").click();
+  await page.keyboard.press("Tab");
+  expect(
+    await page.evaluate(() => document.activeElement !== document.body),
+  ).toBe(true);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
+test("offloading, context and variant changes use shared estimates", async ({
+  page,
+}) => {
+  await boot(page);
+  await hardware(page);
+  await page
+    .getByLabel("Search model or provider")
+    .fill("Qwen2.5-14B-Instruct");
+  const row = page.locator(".new-catalog tbody tr");
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText("outside-budget");
+  await page.getByLabel("Consider CPU offloading").check();
+  await expect(row).toContainText("offload");
+  await expect(row.locator("td").nth(4)).toContainText("Unknown");
+  await addFromBars(page, 0);
+  await expect(page.locator(".favourites-panel article")).toHaveCount(1);
+  await view(page, "Table");
+  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
+  await view(page, "Bars");
+  await page.locator(".score-row").first().click();
+  await expect(
+    page.locator(".preview .quantization-chips button[aria-pressed=true]"),
+  ).toHaveText("Q8_0");
+  await page.getByText("Advanced: context & memory", { exact: true }).click();
+  await page
+    .getByLabel("Requested context · tokens (256–1048576)")
+    .fill("4096");
+  await expect(page.locator(".preview")).toContainText(
+    "4,096 tokens requested",
+  );
+  await expect(
+    page.locator(".favourites-panel .saved-variant"),
+  ).toContainText("Q4_K_M");
+  await expect(page.locator(".favourites-panel")).toContainText(
+    "Memory:",
+  );
+});
+
+test("same-task scores agree across recommendation, table and detail; plot keyboard preview", async ({
+  page,
+}) => {
+  await boot(page);
+  await hardware(page);
+  const first = page.locator(".recommendation").first();
+  const name = await first.locator(".summary-heading a").textContent();
+  const score = await first.locator(".summary-heading strong").textContent();
+  const row = page
+    .locator(".new-catalog tbody tr")
+    .filter({ has: page.getByRole("link", { name: name!, exact: true }) });
+  await expect(row.locator("td").nth(5)).toContainText(
+    score!.split("/")[0].replace("Score", "").trim(),
+  );
+  await view(page, "Plot");
+  await page.locator(".plot-dot").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".preview")).toBeVisible();
+  await first.getByRole("link", { name: "Details →" }).click();
+  await expect(page.locator(".detail-page .summary-heading strong")).toHaveText(
+    score!,
+  );
+  await page.getByRole("link", { name: "← Explorer", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Plot", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
+    await view(page, name);
     expect(
-      result.violations.map((v) => ({
-        id: v.id,
-        nodes: v.nodes.map((n) => ({
-          target: n.target,
-          summary: n.failureSummary,
-        })),
-      })),
-    ).toEqual([]);
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
   }
 });
 
-test("keyboard plot navigation synchronizes catalog and details", async ({
+test("intro hierarchy, detached carousel arrows and flush comparison panel", async ({
   page,
 }) => {
-  const original = await page.locator("#detail-heading").innerText();
-  await page.locator(".scatter-surface").focus();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await boot(page);
+  await hardware(page);
+  const form = await page.locator(".hardware-form").boundingBox(),
+    card = await page.locator(".recommendations").boundingBox(),
+    title = await page.locator("#intro-title").boundingBox();
+  expect(form!.x + form!.width).toBeLessThan(card!.x);
+  expect(title!.y + title!.height).toBeLessThan(Math.min(form!.y, card!.y));
+  expect(Math.abs(form!.y - card!.y)).toBeLessThan(2);
+  expect(
+    await page.locator(".intro-grid").evaluate((el) => ({
+      background: getComputedStyle(el).backgroundColor,
+      border: getComputedStyle(el).borderTopWidth,
+    })),
+  ).toEqual({ background: "rgba(0, 0, 0, 0)", border: "0px" });
+  await expect(
+    page.getByRole("button", { name: "Previous recommendation" }),
+  ).not.toBeVisible();
+  for (let i = 1; i <= 5; i++) {
+    await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+      "aria-label",
+      `Recommendation ${i} of 5`,
+    );
+    const box = await page.locator(".recommendation:visible").boundingBox(),
+      next = await page.locator(".carousel-next").boundingBox();
+    expect(next!.x - box!.x - box!.width).toBeGreaterThanOrEqual(8);
+    if (i > 1) {
+      await expect(
+        page.getByRole("button", { name: "Previous recommendation" }),
+      ).toBeVisible();
+      const prev = await page.locator(".carousel-previous").boundingBox();
+      expect(box!.x - prev!.x - prev!.width).toBeGreaterThanOrEqual(8);
+    }
+    await page.getByRole("button", { name: "Next recommendation" }).click();
+  }
+  await page.locator(".carousel-next").focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator("#detail-heading")).not.toHaveText(original);
-  await expect(page.locator("tbody tr.selected-row")).toHaveCount(1);
-  await page.keyboard.press("Escape");
+  await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+    "aria-label",
+    "Recommendation 2 of 5",
+  );
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.locator(".recommendation:visible")).toHaveAttribute(
+    "aria-label",
+    "Recommendation 1 of 5",
+  );
+  await view(page, "Bars");
+  await page.locator(".catalog-favourites-trigger").click();
+  const panel = await page.locator(".favourites-panel").boundingBox();
+  const catalog = await page.locator(".catalog-workspace").boundingBox();
+  expect(panel!.x).toBeGreaterThan(catalog!.x + catalog!.width);
+  expect(Math.abs(panel!.y - catalog!.y)).toBeLessThan(2);
 });
 
-test("unknown MoE record remains inspectable and accessible with baseline and comparison", async ({
+test("bar detail rail, plot preview and compact tiles", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await boot(page);
+  await hardware(page);
+  await addFromBars(page, 0);
+  await addFromBars(page, 1);
+  await page.locator(".score-row").first().click();
+  await expect(page.locator(".mini-benchmarks")).toBeVisible();
+  const bars = await page.locator(".score-bars").boundingBox(),
+    preview = await page.locator(".preview").boundingBox();
+  expect(preview!.x).toBeGreaterThan(bars!.x + bars!.width);
+  await page.screenshot({
+    path: "test-results/wireframe-bars.png",
+    fullPage: true,
+  });
+  await view(page, "Plot");
+  await page.locator(".plot-dot").first().click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.querySelector(".preview")!.getBoundingClientRect().top -
+          document.querySelector(".speed-plot")!.getBoundingClientRect().bottom,
+      ),
+    )
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: "test-results/wireframe-plot.png",
+    fullPage: true,
+  });
+  await view(page, "Tiles");
+  await expect(
+    page.locator(".model-tile").first().locator(".quantization-chips"),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/wireframe-tiles.png",
+    fullPage: true,
+  });
+});
+
+test("feedback uses a transient dismissible snackbar without moving page content", async ({
   page,
 }) => {
-  await page.locator("#search").fill("Qwen3-30B-A3B");
-  await page.locator("tbody .model-select").click();
-  await expect(page.locator("atlas-detail .detail-status")).toContainText(
-    "Insufficient information",
+  await page.clock.install();
+  await boot(page);
+  await view(page, "Bars");
+  await page.locator(".score-row").first().click();
+  const before = await page
+    .locator("#intro-title")
+    .evaluate((el) => (el as HTMLElement).offsetTop);
+  await page
+    .locator(".preview")
+    .getByRole("button", { name: "Add favourite", exact: true })
+    .click();
+  await expect(page.locator(".snackbar")).toContainText("Favourite saved");
+  await expect(page.locator('.atlas-workspace > p[role="status"]')).toHaveCount(
+    0,
   );
-  await page
-    .getByRole("button", { name: "Compare this exact artifact" })
-    .click();
-  await page.getByRole("button", { name: "Pin as baseline" }).click();
-  await settled(page);
-  await page
-    .getByRole("button", { name: "Advanced inference settings" })
-    .click();
-  const { default: AxeBuilder } = await import("@axe-core/playwright");
-  const scan = await new AxeBuilder({ page })
-    .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
-    .analyze();
   expect(
-    scan.violations.map((v) => ({
-      id: v.id,
-      nodes: v.nodes.map((n) => n.failureSummary),
-    })),
-  ).toEqual([]);
+    await page
+      .locator("#intro-title")
+      .evaluate((el) => (el as HTMLElement).offsetTop),
+  ).toBe(before);
+  expect(
+    await page
+      .locator(".snackbar")
+      .evaluate((el) => getComputedStyle(el).position),
+  ).toBe("fixed");
+  await page.clock.fastForward(6001);
+  await expect(page.locator(".snackbar")).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Clear filters", exact: true })
+    .locator(".preview")
+    .getByRole("button", { name: "Remove favourite" })
     .click();
-  await expect(page.locator("#detail-heading")).toHaveText("Qwen3-30B-A3B");
-  await expect(page.locator(".comparison-item")).toHaveCount(1);
+  await expect(page.locator(".snackbar")).toContainText("Favourite removed");
+  await page.getByRole("button", { name: "Dismiss notification" }).click();
+  await expect(page.locator(".snackbar")).toHaveCount(0);
+});
+
+test("model detail summary offers favourites without a self-link", async ({
+  page,
+}) => {
+  await boot(page);
+  await page
+    .locator(".recommendation:visible")
+    .getByRole("link", { name: "Details →" })
+    .click();
+  await expect(page.locator(".detail-page atlas-summary .actions")).toHaveCount(1);
+  await expect(
+    page
+      .locator(".detail-page atlas-summary")
+      .getByRole("button", { name: /Add favourite|Remove favourite/ }),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".detail-page atlas-summary .details-link"),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".detail-page atlas-summary .quantization-chips"),
+  ).toBeVisible();
 });

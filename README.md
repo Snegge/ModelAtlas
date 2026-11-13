@@ -2,7 +2,13 @@
 
 Model Atlas helps you explore which language-model files might fit your computer's memory. Enter a hardware budget, change settings and compare models before deciding what to download.
 
-This is a university Interaction Design prototype. It shows **memory estimates**; it does not install or run models. You do not need a powerful GPU to try the interface. The included catalog contains **38 model releases and 114 downloadable variants across six families**.
+This is a university Interaction Design prototype. It combines **memory estimates**, rough bandwidth-based speed ranges and explicitly synthetic task-quality fixtures. It does not install or run models. You do not need a powerful GPU to try the interface. The included catalog contains **84 model releases and 252 downloadable variants across 14 families**.
+
+## Updated workspace
+
+The Explorer opens with no hardware and five **demo-popularity** candidates. Configure GPU, separate RAM, bandwidth and context to see an estimated shortlist. Table, Plot, Bars and Tiles share search, task, selected variants and a three-variant comparison. Model routes `/models/:id` provide sources, variant selection and a prepared chat simulation. `/methodology` documents the exact formulas and data limits.
+
+The UI remains English, matching the existing project. See [prototype decisions](docs/PROTOTYPE.md) for data status, testing and roadmap.
 
 ## Start here
 
@@ -61,7 +67,7 @@ The Windows instructions use `npm.cmd` so they work even when PowerShell blocks 
 
 ## 2. Download and open the project
 
-If you already have this repository, open its folder in VS Code and use the `prototype/interaction-design` branch. You can skip the clone commands below.
+If you already have this repository, open its folder in VS Code and use the current checkout. You can skip the clone commands below.
 
 For a new copy, run these commands in the VS Code terminal. They create a `ModelAtlas` folder inside your user folder.
 
@@ -69,7 +75,7 @@ For a new copy, run these commands in the VS Code terminal. They create a `Model
 
 ```powershell
 cd $env:USERPROFILE
-git clone --branch prototype/interaction-design --single-branch https://github.com/Snegge/ModelAtlas.git
+git clone --branch main --single-branch https://github.com/Snegge/ModelAtlas.git
 cd ModelAtlas
 ```
 
@@ -77,7 +83,7 @@ cd ModelAtlas
 
 ```sh
 cd ~
-git clone --branch prototype/interaction-design --single-branch https://github.com/Snegge/ModelAtlas.git
+git clone --branch main --single-branch https://github.com/Snegge/ModelAtlas.git
 cd ModelAtlas
 ```
 
@@ -91,7 +97,7 @@ To check the branch:
 git branch --show-current
 ```
 
-It should print `prototype/interaction-design`. For an existing checkout that has another branch selected, run `git fetch origin` and then `git switch prototype/interaction-design`. If Git reports uncommitted changes, keep those changes safe before switching; do not discard them just to follow this guide.
+It should print `main`. For an existing checkout that has another branch selected, run `git fetch origin` and then `git switch main`. If Git reports uncommitted changes, keep those changes safe before switching; do not discard them just to follow this guide.
 
 ## 3. Install the project dependencies
 
@@ -292,6 +298,6 @@ See [data sources and coverage](docs/DATA-SOURCES.md) for provenance, missing me
 
 The frontend uses Angular 22, Angular CDK and ECharts. The backend uses ASP.NET Core on .NET 10 LTS, with JSON files instead of a database. It supports memory estimation for conventional transformers with sufficient architecture metadata. Unsupported models, mixture-of-experts models and incomplete records are labelled **Unknown**.
 
-A memory fit is an estimate, not a guarantee that an inference runtime supports a model or that it will run successfully. CPU-only, unified-memory and multi-GPU configurations are outside this prototype. There are no speed predictions or quality rankings.
+A memory fit is an estimate, not a guarantee that an inference runtime supports a model or that it will run successfully. CPU-only, unified-memory and multi-GPU configurations are outside this prototype. The workspace additionally shows explicitly synthetic task-quality rankings and rough GPU-bandwidth-based speed ranges; neither is measured performance. Offloading speed remains unknown.
 
 More project documentation: [design rationale](docs/DESIGN-RATIONALE.md), [usability-study plan](docs/USABILITY-STUDY.md), [data sources](docs/DATA-SOURCES.md) and [validation](docs/VALIDATION.md).

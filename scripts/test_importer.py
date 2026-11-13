@@ -34,4 +34,43 @@ class ImporterTests(unittest.TestCase):
    with patch.object(sys,'argv',['import_catalog.py','--sources',str(sources),'--output',str(output)]), patch.object(imp,'normalize',side_effect=ValueError('Unavailable source')), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
     self.assertEqual(imp.main(),1)
    self.assertEqual(output.read_bytes(),before)
+ def run_extension(self, results, minimum):
+  from unittest.mock import patch
+  from contextlib import redirect_stdout, redirect_stderr
+  import io, sys
+  with tempfile.TemporaryDirectory() as d:
+   output=Path(d)/'catalog.json';sources=Path(d)/'sources.json'
+   before=(imp.ROOT/'data/catalog.json').read_bytes();output.write_bytes(before)
+   sources.write_text(json.dumps({'repositories':list(results)}))
+   def normalize(repo):
+    result=results[repo]
+    if isinstance(result,Exception): raise result
+    return result
+   with patch.object(sys,'argv',['import_catalog.py','--extend','--minimum-releases',str(minimum),'--sources',str(sources),'--output',str(output)]), patch.object(imp,'normalize',side_effect=normalize), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+    status=imp.main()
+   return status,before,output.read_bytes()
+ def test_extension_preserves_pinned_records_and_deduplicates_releases(self):
+  old=json.loads((imp.ROOT/'data/catalog.json').read_text())
+  release={**old['releases'][0],'id':'r-added','name':'New release'}
+  artifact={**old['artifacts'][0],'id':'a-added','releaseId':'r-added','repository':'test/addition'}
+  replacement={**old['releases'][0],'revision':'should-not-replace-existing'}
+  status,before,after=self.run_extension({
+   'test/addition':(release,[artifact]),
+   'test/duplicate-new':(release,[{**artifact,'id':'a-duplicate'}]),
+   'test/duplicate-old':(replacement,[])
+  },len(old['releases'])+1)
+  self.assertEqual(status,0)
+  new=json.loads(after)
+  self.assertEqual(len(new['releases']),len(old['releases'])+1)
+  self.assertEqual(len(new['artifacts']),len(old['artifacts'])+1)
+  for record in old['releases']: self.assertIn(record,new['releases'])
+  for record in old['artifacts']: self.assertIn(record,new['artifacts'])
+  self.assertIn(artifact,new['artifacts'])
+ def test_failed_extension_cannot_meet_target_by_retaining_old_records(self):
+  old=json.loads((imp.ROOT/'data/catalog.json').read_text())
+  status,before,after=self.run_extension({'test/missing':ValueError('Missing verified base_model mapping')},len(old['releases'])+1)
+  self.assertEqual(status,1);self.assertEqual(before,after)
+ def test_extension_access_failure_preserves_snapshot_even_with_enough_releases(self):
+  status,before,after=self.run_extension({'test/blocked':ValueError('HTTP Error 403: Forbidden')},20)
+  self.assertEqual(status,1);self.assertEqual(before,after)
 if __name__=='__main__':unittest.main()

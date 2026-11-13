@@ -5,7 +5,7 @@ import argparse, concurrent.futures, datetime, hashlib, json, re, struct, sys, t
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = 'hf-gguf/1.0.0'
+VERSION = 'hf-gguf/1.1.0'
 MAX_HEADER = 8 * 1024 * 1024
 INITIAL_HEADER = 512 * 1024
 FILE_TYPES = {7: 'Q8_0', 15: 'Q4_K_M', 17: 'Q5_K_M', 18: 'Q6_K', 2: 'Q4_0', 10: 'Q2_K', 12: 'Q3_K_M'}
@@ -172,7 +172,15 @@ def normalize(repo):
     missing = [k for k,v in {'instructionTuned':tuning,'totalParameters':params,'license':license_id,'contextLimit':text.get('max_position_embeddings'), **({'activeParameters':None} if experts else {}), **{f'architecture.{k}':arch[k] for k in ['type','layers','kvHeads','headDim']}}.items() if v is None]
     name = base.split('/')[1]
     low = name.lower()
-    family = 'DeepSeek' if 'deepseek' in low else 'Llama' if 'llama' in low else 'Qwen' if 'qwen' in low else 'Gemma' if 'gemma' in low else 'Mistral' if any(s in low for s in ['mistral','ministral','mixtral']) else 'Phi' if 'phi' in low else base.split('/')[0]
+    family = next((label for tokens, label in [
+        (['deepseek'], 'DeepSeek'), (['nemotron'], 'Nemotron'), (['llama'], 'Llama'),
+        (['qwen'], 'Qwen'), (['gemma'], 'Gemma'),
+        (['mistral','ministral','mixtral','magistral','devstral'], 'Mistral'),
+        (['phi'], 'Phi'), (['smollm'], 'SmolLM'), (['granite'], 'Granite'),
+        (['olmo'], 'OLMo'), (['falcon'], 'Falcon'), (['exaone'], 'EXAONE'),
+        (['apertus'], 'Apertus'), (['lfm2'], 'LFM'), (['gpt-oss'], 'GPT-OSS'),
+        (['glm'], 'GLM')
+    ] if any(token in low for token in tokens)), base.split('/')[0])
     release = {'id':artifacts[0]['releaseId'], 'name':name, 'publisher':base.split('/')[0], 'family':family,
                'releaseIdentifier':base, 'instructionTuned':tuning,
                'totalParameters':params, 'activeParameters':None, 'architecture':arch,
@@ -189,16 +197,25 @@ def main():
     p.add_argument('--sources',type=Path,default=ROOT/'data/sources.json')
     p.add_argument('--output',type=Path,default=ROOT/'data/catalog.json')
     p.add_argument('--workers',type=int,default=4)
+    p.add_argument('--extend',action='store_true',help='Preserve existing pinned releases/artifacts and import only additional sources')
+    p.add_argument('--minimum-releases',type=int,default=20,help='Reject output below this distinct-release count')
     args=p.parse_args(); sources=json.loads(args.sources.read_text())['repositories']
-    releases, artifacts, issues = {}, [], []
+    previous=json.loads(args.output.read_text()) if args.output.exists() else None
+    if args.extend and previous is None:
+        print('Extension requires an existing snapshot.',file=sys.stderr); return 1
+    releases = {r['id']:r for r in previous['releases']} if args.extend else {}
+    artifacts = list(previous['artifacts']) if args.extend else []
+    existing_repos = {a['repository'] for a in artifacts}
+    sources = sorted(set(sources) - existing_repos)
+    issues = [i for i in previous.get('importIssues',[]) if i['repository'] not in sources] if args.extend else []
+    imported = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1,min(args.workers,8))) as pool:
         futures={pool.submit(normalize,s):s for s in sources}
         for future in concurrent.futures.as_completed(futures):
             repo=futures[future]
             try:
                 release, variants=future.result()
-                if release['id'] in releases: continue
-                releases[release['id']]=release; artifacts.extend(variants)
+                imported[repo]=(release,variants)
                 print(f"OK {repo}: {len(variants)} verified artifacts",flush=True)
             except Exception as e:
                 message = str(e)
@@ -206,15 +223,19 @@ def main():
                 if 'https://' in message: message=type(e).__name__
                 issues.append({'repository':repo,'reason':message})
                 print(f"SKIP {repo}: {message}",flush=True)
-    previous=json.loads(args.output.read_text()) if args.output.exists() else None
+    # Source order, not network completion order, resolves duplicate base releases.
+    # Extension never rewrites existing variant IDs, citations or retrieval dates.
+    for repo, (release, variants) in sorted(imported.items()):
+        if release['id'] not in releases:
+            releases[release['id']]=release; artifacts.extend(variants)
     missing_previous = {r['id'] for r in previous['releases']} - set(releases) if previous else set()
-    if len(releases)<20 or missing_previous:
+    if len(releases)<max(20,args.minimum_releases) or missing_previous:
         print('Refresh rejected: incomplete coverage. Last valid snapshot unchanged.',file=sys.stderr); return 1
     if any('403' in i['reason'] or '429' in i['reason'] or 'Tunnel' in i['reason'] for i in issues):
         print('Refresh rejected: access/rate-limit failure. Last valid snapshot unchanged.',file=sys.stderr); return 1
     snapshot={'schemaVersion':1,'importerVersion':VERSION,'retrievedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'releases':sorted(releases.values(),key=lambda r:(r['family'],r['name'])),
-              'artifacts':sorted(artifacts,key=lambda a:(a['releaseId'],a['quantization'])), 'importIssues':issues}
+              'artifacts':sorted(artifacts,key=lambda a:(a['releaseId'],a['quantization'])), 'importIssues':sorted(issues,key=lambda i:i['repository'])}
     args.output.parent.mkdir(parents=True,exist_ok=True)
     temporary=args.output.with_suffix('.json.tmp'); temporary.write_text(json.dumps(snapshot,indent=2)+'\n'); temporary.replace(args.output)
     print(f"Saved {len(releases)} releases, {len(artifacts)} artifacts, {len(set(r['family'] for r in releases.values()))} families. {len(issues)} unavailable sources.")

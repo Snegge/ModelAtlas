@@ -1,0 +1,591 @@
+<div class="atlas-workspace">
+  @if (s.api.loading()) {
+    <p role="status">Loading bundled catalog…</p>
+  }
+  @if (s.api.error()) {
+    <p role="alert">
+      {{ s.api.error() }} <button (click)="s.api.retry()">Retry</button>
+    </p>
+  }
+  @if (id()) {
+    @if (detail(); as x) {
+      <section class="detail-page" aria-labelledby="model-title">
+        <header class="model-hero">
+        <p class="eyebrow">MODEL / {{ x.r.publisher }}</p>
+        <h1 id="model-title">{{ x.r.name }}</h1>
+        <p>
+          {{ x.r.family }} language model from {{ x.r.publisher }}. Explore the
+          exact downloadable variants and evaluate them with your own task.
+        </p>
+        <dl class="model-facts">
+          <div><dt>Parameters</dt><dd>{{ x.r.totalParameters === null ? "Unknown" : (x.r.totalParameters / 1e9).toFixed(1) + "B" }}</dd></div>
+          <div><dt>Maximum context</dt><dd>{{ x.r.contextLimit?.toLocaleString() ?? "Unknown" }} <small>tokens</small></dd></div>
+          <div><dt>Family</dt><dd>{{ x.r.family }}</dd></div>
+          <div><dt>License</dt><dd><a [href]="x.r.licenseUrl" target="_blank" rel="noopener noreferrer">{{ x.r.license ?? "Unspecified" }} &nearr;</a></dd></div>
+        </dl></header>
+        <nav class="page-sections" aria-label="Model sections">
+          <a [routerLink]="[]" fragment="model-fit">Hardware fit</a>
+          <a [routerLink]="[]" fragment="model-evidence">Evidence</a>
+          <a [routerLink]="[]" fragment="model-files">Files & sources</a>
+          <a [routerLink]="[]" fragment="model-simulation">Simulation</a>
+        </nav>
+        <div class="model-layout">
+        <aside class="model-fit surface" id="model-fit" aria-labelledby="fit-heading">
+          <p class="eyebrow">YOUR SELECTED VARIANT</p>
+          <h2 id="fit-heading">Will it fit your setup?</h2>
+          <p class="muted">{{ s.profile().gpu || "No GPU selected" }} &middot; {{ s.profile().vram ?? "Unknown" }} GiB VRAM &middot; {{ s.profile().ram ?? "Unknown" }} GiB RAM</p>
+          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer &rarr;</a>
+          <atlas-summary [row]="x" [showFavourite]="true" [showDetails]="false" />
+          <p class="small muted">Memory fit is an estimate. Runtime support remains unverified.</p>
+        </aside>
+        <div class="model-content">
+        <section class="surface evidence-section" id="model-evidence" aria-labelledby="evidence-heading">
+          <p class="eyebrow">KNOW WHAT YOU'RE COMPARING</p>
+          <h2 id="evidence-heading">Quality & benchmark evidence</h2>
+          <p class="evidence-notice"><strong>Demo data, not measured performance.</strong> These task values demonstrate the interface. Use your own prompts to evaluate this model.</p>
+
+        <table class="quality-table">
+          <caption>
+            Synthetic task fixtures · not benchmark measurements
+          </caption>
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Demo value / 100</th>
+              <th>Conditions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of tasks.slice(1); track t) {
+              <tr>
+                <td>{{ t }}</td>
+                <td>{{ quality(x.r.id, t).toFixed(0) }}</td>
+                <td>No measured test; release-level demo only</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="small muted">These release-level fixtures are shared across variants. They do not measure the effect of quantization on quality.</p>
+        <a routerLink="/methodology" fragment="popularity">How to read these values &rarr;</a>
+        </section>
+        @if (rank() && recommendedDetail()) {
+          @let rec = recommendedDetail()!;
+          <section class="recommendation-reason">
+            <h2>Why this model is recommended</h2>
+            <p>
+              Rank {{ rank() }} for All tasks with {{ s.profile().vram }} GiB
+              VRAM, {{ s.profile().ram }} GiB RAM and
+              {{ s.profile().context }} tokens. Demo quality
+              {{ rec.q.toFixed(0) }}, hardware fit {{ rec.fit }}, speed
+              component
+              {{
+                rec.speedScore === null ? "unknown" : rec.speedScore.toFixed(0)
+              }}. Score {{ rec.score }}; weighted evidence coverage
+              {{ rec.coverage }}%. Only estimated compatible candidates enter
+              this ranking.
+            </p>
+          </section>
+        }
+        </div>
+        <section class="surface model-files" id="model-files" aria-labelledby="files-heading">
+          <p class="eyebrow">TRACEABLE TO THE SOURCE</p>
+          <h2 id="files-heading">Files & sources</h2>
+          <p><strong>{{ x.a.quantization }} &middot; {{ x.a.format }}</strong> &middot; {{ (x.a.sizeBytes / 1073741824).toFixed(2) }} GiB across {{ x.a.files.length }} file(s)</p>
+          <p class="muted">Use the complete file set for this variant. File size is not the total memory needed to run it.</p>
+          <div class="source-actions">
+            <a [href]="x.r.modelCardUrl" target="_blank" rel="noopener noreferrer">Original model card &nearr;</a>
+            <a [href]="x.a.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned artifact repository &nearr;</a>
+          </div>
+          <details>
+            <summary>Complete file set & provenance</summary>
+            <dl class="artifact-provenance">
+              <div><dt>Repository</dt><dd>{{ x.a.repository }}</dd></div>
+              <div><dt>Artifact revision</dt><dd><code>{{ x.a.revision }}</code></dd></div>
+              <div><dt>Artifact retrieved</dt><dd>{{ x.a.retrievedAt | date: "mediumDate" : "UTC" }} UTC &middot; {{ x.a.validationStatus }}</dd></div>
+              <div><dt>Model revision</dt><dd><code>{{ x.r.revision }}</code></dd></div>
+            </dl>
+            <ul class="artifact-files">
+              @for (file of x.a.files; track file.path) {
+                <li><a [href]="file.url" target="_blank" rel="noopener noreferrer">{{ file.path }} &nearr;</a>
+                  <small>{{ file.sizeBytes.toLocaleString() }} bytes</small>
+                  <span class="small">SHA256: <code>{{ file.sha256 }}</code></span>
+                </li>
+              }
+            </ul>
+            @if (x.r.missingFields.length || x.a.missingFields.length) {
+              <p class="evidence-notice">Missing metadata: {{ x.r.missingFields.concat(x.a.missingFields).join(", ") }}</p>
+            }
+          </details>
+        </section>
+        <section class="surface mock-chat" id="model-simulation">
+          <p class="eyebrow">A FEEL FOR THE PACE</p>
+          <h2>Try a simulated response</h2>
+          <p>
+            Prepared response · no inference. Timing uses the speed captured at
+            Start. Approximate token count = characters / 4; words are not
+            counted as exact tokens.
+          </p>
+          <label
+            >Example prompt
+            <select (change)="prompt.set($any($event.target).value)">
+              <option>Explain quantization simply.</option>
+              <option>How should I test a local model?</option>
+            </select></label
+          ><label
+            >Your prompt
+            <textarea
+              [value]="prompt()"
+              (input)="prompt.set($any($event.target).value)"
+            ></textarea>
+          </label>
+          <p>All prompts use the same prepared demonstration response.</p>
+          @if (!x.speed) {
+            <label
+              ><input
+                type="checkbox"
+                [checked]="demoRate()"
+                (change)="demoRate.set($any($event.target).checked)"
+              />
+              Use explicit demo speed: 12 approximate tokens/s</label
+            >
+          }
+          <div class="actions">
+            <button
+              (click)="start()"
+              [disabled]="running() || (!x.speed && !demoRate())"
+            >
+              Start simulation</button
+            ><button (click)="stop()" [disabled]="!running()">Stop</button
+            ><button (click)="resetChat()">Reset</button>
+          </div>
+          <p>
+            Simulation rate: {{ simulationRate() ?? "not started" }} approximate
+            tokens/s · {{ (output().length / 4).toFixed(0) }} approximate tokens
+            · {{ (ticks() / 10).toFixed(1) }} s
+          </p>
+          <div class="chat-output" role="region" aria-label="Simulated response" tabindex="0">{{ output() || "Your prepared response will appear here when you start the simulation." }}</div>
+        </section>
+        </div>
+      </section>
+    } @else if (!s.api.loading()) {
+      <h1>Model not found</h1>
+      <a routerLink="/">Return to catalog</a>
+    }
+  } @else {
+    <section class="intro-grid" aria-labelledby="intro-title">
+      <div class="intro-heading">
+        <h1 id="intro-title">Which model fits best?</h1>
+        <button type="button" (click)="s.reset()">Reset exploration</button>
+      </div>
+      <form class="hardware-form" (submit)="$event.preventDefault()">
+        <label class="gpu-field"
+          >GPU<input
+            aria-label="GPU profile (searchable)"
+            list="gpu-list"
+            [value]="s.profile().gpu"
+            (change)="s.gpu($any($event.target).value)"
+            placeholder="Choose or type your GPU" /><datalist id="gpu-list">
+            @for (g of gpus; track g.name) {
+              <option [value]="g.name"></option>
+            }
+            <option value="Unknown GPU"></option>
+            <option value="CPU-only"></option></datalist
+        ></label>
+        <div class="field-grid">
+          <label
+            >VRAM <span class="unit">GiB</span
+            ><input
+              aria-label="VRAM · GiB (0–192)"
+              type="number"
+              min="0"
+              max="192"
+              [value]="s.profile().vram"
+              (input)="s.number('vram', $any($event.target).value)"
+            /><small>{{ manual("vram") }}</small></label
+          ><label
+            >Memory bandwidth <span class="unit">GB/s</span
+            ><input
+              aria-label="GPU memory bandwidth · GB/s (0–10000)"
+              type="number"
+              min="0"
+              max="10000"
+              [value]="s.profile().bandwidth"
+              (input)="s.number('bandwidth', $any($event.target).value)"
+            /><small> {{ manual("bandwidth") }}</small></label
+          >
+        </div>
+        <div class="field-grid">
+          <label
+            >RAM <span class="unit">GiB</span
+            ><input
+              aria-label="System RAM · GiB (0–1024)"
+              type="number"
+              min="0"
+              max="1024"
+              [value]="s.profile().ram"
+              (input)="s.number('ram', $any($event.target).value)" /></label
+          ><label
+            >CPU<input
+              aria-label="CPU (optional free text)"
+              [value]="s.profile().cpu"
+              (input)="s.patch({ cpu: $any($event.target).value })"
+              placeholder="CPU model or unknown"
+          /></label>
+        </div>
+        <label
+          ><input
+            type="checkbox"
+            [checked]="s.profile().offload"
+            (change)="s.patch({ offload: $any($event.target).checked })"
+          />
+          Consider CPU offloading</label
+        >
+      </form>
+      <section class="recommendations" aria-label="Model recommendations">
+        <div
+          class="carousel"
+          role="region"
+          [attr.aria-label]="
+            s.entered()
+              ? 'All tasks recommendations'
+              : 'Popular models · demo popularity'
+          "
+          (keydown.arrowright)="nextRecommendation(1)"
+          (keydown.arrowleft)="nextRecommendation(-1)"
+        >
+          <button
+            class="carousel-arrow carousel-previous"
+            [class.unavailable]="activeRecommendation() === 0"
+            [disabled]="activeRecommendation() === 0"
+            (click)="nextRecommendation(-1)"
+            aria-label="Previous recommendation"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" /></svg>
+          </button>
+          <div class="carousel-cards" aria-live="polite">
+            @for (x of s.top(); track x.r.id; let i = $index) {
+              <article
+                class="recommendation"
+                [hidden]="i !== activeRecommendation()"
+                [attr.aria-label]="
+                  'Recommendation ' + (i + 1) + ' of ' + s.top().length
+                "
+              >
+                <span class="rank-badge"
+                  >{{ i + 1 }}<small>/ {{ s.top().length }}</small></span
+                ><atlas-summary [row]="x" />
+              </article>
+            }
+          </div>
+          <button
+            class="carousel-arrow carousel-next"
+            [class.unavailable]="s.top().length < 2"
+            [disabled]="s.top().length < 2"
+            (click)="nextRecommendation(1)"
+            aria-label="Next recommendation"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg>
+          </button>
+        </div>
+        @if (s.api.evaluating()) {
+          <p class="small" role="status">Updating memory estimates…</p>
+        }
+        @if (s.entered() && s.top().length < 5) {
+          <p class="small">
+            Only {{ s.top().length }} assessable candidates fit. Supply VRAM and
+            RAM or adjust context/offloading; unknown data is not a fit.
+          </p>
+        }
+      </section>
+    </section>
+    <div class="catalog-layout" id="model-catalog" [class.favourites-expanded]="s.favouritesOpen()">
+      <section class="surface catalog-workspace">
+        <div class="section-heading">
+          <div>
+            <h2>Model catalog</h2>
+          </div>
+          <p>{{ s.visible().length }} / {{ s.rows().length }} releases</p>
+        </div>
+        <label
+          >Search model or provider<input
+            type="search"
+            [value]="s.search()"
+            (input)="s.search.set($any($event.target).value)"
+            placeholder="Search the catalog"
+        /></label>
+        <div class="view-toolbar">
+          <div class="actions" aria-label="Task filters">
+            @for (t of tasks; track t) {
+              <button [attr.aria-pressed]="s.task() === t" (click)="task(t)">
+                {{ t }}
+              </button>
+            }
+          </div>
+          <div class="actions" aria-label="Catalog views">
+            @for (v of views; track v) {
+              <button
+                [attr.aria-pressed]="s.view() === v"
+                (click)="s.view.set(v)"
+                [attr.aria-label]="v"
+                [attr.title]="v"
+              >
+                <span aria-hidden="true">{{ viewIcons[v] }}</span
+                ><span class="view-name">{{ v }}</span>
+              </button>
+            }
+          </div>
+        </div>
+        <div
+          class="catalog-body"
+          [class.with-side-preview]="s.view() === 'Bars' && s.preview()"
+        >
+          <div class="catalog-visual">
+            @if (!s.visible().length && !s.api.loading()) {
+              <p role="status">
+                No models match your search.
+                <button (click)="s.search.set('')">Clear search</button>
+              </p>
+            }
+            @switch (s.view()) {
+              @case ("Table") {
+                <div
+                  class="table-scroll"
+                  tabindex="0"
+                  aria-label="Scrollable model table"
+                >
+                  <table class="new-catalog">
+                    <thead>
+                      <tr>
+                        @for (c of columns; track c[0]) {
+                          <th
+                            [attr.aria-sort]="
+                              s.sort() === c[0]
+                                ? s.descending()
+                                  ? 'descending'
+                                  : 'ascending'
+                                : 'none'
+                            "
+                          >
+                            <button (click)="s.order(c[0])">
+                              {{ c[1] }}
+                              {{
+                                s.sort() === c[0]
+                                  ? s.descending()
+                                    ? "↓"
+                                    : "↑"
+                                  : ""
+                              }}
+                            </button>
+                          </th>
+                        }
+                        <th scope="col" class="catalog-actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (x of s.visible(); track x.r.id) {
+                        <tr>
+                          <td>
+                            <a [routerLink]="['/models', x.r.id]">{{
+                              x.r.name
+                            }}</a
+                            ><label
+                              >Variant<select
+                                [ngModel]="x.a.id"
+                                (ngModelChange)="s.variant(x.r.id, $event)"
+                              >
+                                @for (a of s.api.variants(x.r.id); track a.id) {
+                                  <option [value]="a.id">
+                                    {{ a.quantization }}
+                                  </option>
+                                }
+                              </select></label
+                            ><small>{{ x.status }}</small>
+                          </td>
+                          <td>
+                            {{
+                              x.r.totalParameters === null
+                                ? "Unknown"
+                                : (x.r.totalParameters / 1e9).toFixed(1) + "B"
+                            }}
+                          </td>
+                          <td>
+                            {{ x.r.contextLimit ?? "Unknown"
+                            }}<small
+                              >Requested: {{ s.profile().context }}</small
+                            >
+                          </td>
+                          <td>
+                            {{ x.e?.gpuRequiredGiB?.toFixed(2) ?? "Unknown" }} /
+                            {{ x.e?.totalGiB?.toFixed(2) ?? "Unknown"
+                            }}<small
+                              >Available:
+                              {{ s.profile().vram ?? "Unknown" }} GiB</small
+                            >
+                          </td>
+                          <td>
+                            {{
+                              x.speed
+                                ? x.speed.low + "–" + x.speed.high
+                                : "Unknown"
+                            }}<small>Rough estimate</small>
+                          </td>
+                          <td>
+                            {{ x.score ?? "Unknown"
+                            }}<small
+                              >Demo quality · {{ x.coverage }}% coverage</small
+                            >
+                          </td>
+                          <td class="catalog-actions"><atlas-favourite-button [row]="x" /></td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+              @case ("Tiles") {
+                <div class="tile-grid">
+                  @for (x of s.visible(); track x.r.id) {
+                    <article class="model-tile">
+                      <atlas-summary
+                        [row]="x"
+                        [showFavourite]="true"
+                        [showEvidence]="false"
+                      />
+                    </article>
+                  }
+                </div>
+              }
+              @case ("Bars") {
+                <p>Score · fixed scale 0–100 · demo quality included</p>
+                <div class="score-bars">
+                  @for (x of s.visible(); track x.r.id) {
+                    <button class="score-row" (click)="openPreview(x.a.id)">
+                      <span>{{ x.r.name }} · {{ x.a.quantization }}</span
+                      ><span class="bar-track">
+                        @if (x.score !== null) {
+                          <span
+                            class="score-fill"
+                            [style.width.%]="x.score"
+                          ></span>
+                        }</span
+                      ><b>{{ x.score ?? "Unknown" }}</b>
+                    </button>
+                  }
+                </div>
+              }
+              @case ("Plot") {
+                <div class="plot-heading">
+                  <div><h3>Speed & task quality</h3><p>Select a model to inspect its exact variant.</p></div>
+                  <span class="plot-evidence">Estimated speed · Demo quality</span>
+                </div>
+                <div class="plot-scroll">
+                  <div
+                    class="speed-plot"
+                    aria-label="Speed versus demo quality"
+                    role="group"
+                  >
+                    <span class="axis-y">Demo task quality <span>/ 100</span></span>
+                    <div class="plot-area">
+                    @for (tick of [0, 50, 100, 150, 200]; track tick) {
+                      <span
+                        class="plot-tick-x"
+                        [style.left.%]="tick / 2"
+                        >{{ tick }}</span
+                      >
+                    }
+                    @for (tick of [0, 25, 50, 75, 100]; track tick) {
+                      <span
+                        class="plot-tick-y"
+                        [style.bottom.%]="tick"
+                        >{{ tick }}</span
+                      >
+                    }
+                    @for (x of plotted(); track x.a.id) {
+                      <button
+                        class="plot-dot"
+                        [class.is-selected]="s.preview() === x.a.id"
+                        [attr.aria-pressed]="s.preview() === x.a.id"
+                        [class.label-left]="(x.speed!.low + x.speed!.high) / 2 > 100"
+                        [style.left.%]="
+                          clamp((x.speed!.low + x.speed!.high) / 2) / 2
+                        "
+                        [style.bottom.%]="x.q"
+                        (click)="openPreview(x.a.id)"
+                        [attr.aria-label]="
+                          x.r.name +
+                          ' ' +
+                          x.a.quantization +
+                          ' quality ' +
+                          x.q +
+                          ' speed ' +
+                          x.speed!.low +
+                          ' to ' +
+                          x.speed!.high
+                        "
+                      >
+                        <span class="point-mark" aria-hidden="true"></span>
+                        <span class="point-label"><strong>{{ x.r.name }}</strong><span>{{ x.a.quantization }} · {{ x.speed!.low }}–{{ x.speed!.high }} tokens/s</span></span>
+                      </button>
+                    }
+                    @if (!plotted().length) {
+                      <div class="plot-empty"><strong>No speed estimates to plot</strong><span>Check your GPU, VRAM, RAM and bandwidth settings, or broaden your search.</span></div>
+                    }
+                    </div>
+                    <span class="axis-x">Estimated speed <span>· tokens/s →</span></span>
+                  </div>
+                </div>
+                <div class="plot-footer"><span>{{ plotted().length }} plotted · {{ s.visible().length - plotted().length }} omitted (unknown speed)</span><span>Speed midpoint · Linear scale · Values above 200 at boundary</span></div>
+              }
+            }
+          </div>
+          @if (s.chartView() ? s.preview() : null; as id) {
+            @if (s.row(id); as x) {
+              <section
+                class="preview surface"
+                tabindex="-1"
+                aria-label="Selected variant preview"
+              >
+                <button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+                @if (s.view() === "Bars") {
+                  <div class="preview-heading">
+                    <h3>
+                      <mark>{{ x.r.name }}</mark>
+                    </h3>
+                    <strong>Score {{ x.score ?? "Unknown" }}</strong>
+                  </div>
+                  <div class="mini-benchmarks">
+                    <span>Task quality · demo / 100</span>
+                    <div class="mini-benchmark-bars">
+                      @for (t of tasks.slice(1); track t) {
+                        <div>
+                          <i [style.height.px]="quality(x.r.id, t)"></i
+                          ><small>{{ t }}</small>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                <atlas-summary [row]="x" />
+                <p>
+                  Relevant benchmarks: unavailable. Task quality is a demo
+                  fixture, not a measured test result.
+                </p>
+              </section>
+            }
+          }
+        </div>
+      </section>
+      <div class="favourites-sidebar" [class.is-open]="s.favouritesOpen()">
+        <button class="catalog-favourites-trigger" aria-controls="catalog-favourites"
+          [attr.aria-expanded]="s.favouritesOpen()" (click)="s.favouritesOpen.set(!s.favouritesOpen())">
+          <svg viewBox="0 0 24 24" aria-hidden="true" [class.points-right]="s.favouritesOpen()"><path d="m15 6-6 6 6 6" /></svg>
+          <span>Favourites</span><span class="rail-count">{{ s.favourites().length }}</span>
+        </button>
+        <div class="favourites-slide" [attr.inert]="s.favouritesOpen() ? null : ''" [attr.aria-hidden]="!s.favouritesOpen()">
+          <atlas-favourites />
+        </div>
+      </div>
+
+    </div>
+  }
+</div>

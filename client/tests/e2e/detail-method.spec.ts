@@ -1,0 +1,32 @@
+import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+test("detail sources follow the exact variant and reading pages work on mobile", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".new-catalog tbody tr").first().getByRole("link").first().click();
+  await expect(page.locator("#model-title")).toBeVisible();
+  const chips = page.locator(".detail-page .quantization-chips button");
+  await chips.last().click();
+  const variant = await chips.last().textContent();
+  await expect(page.locator("#model-files")).toContainText(variant!.trim());
+  await page.getByRole("navigation", { name: "Model sections" }).getByRole("link", { name: "Files & sources" }).click();
+  await expect(page).toHaveURL(/#model-files$/);
+  await page.getByText("Complete file set & provenance", { exact: true }).click();
+  await expect(page.locator(".artifact-files a").first()).toHaveAttribute("href", /^https:\/\//);
+  await expect(page.locator(".artifact-provenance")).toContainText("Artifact revision");
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: "test-results/model-desktop.png", fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: "test-results/model-mobile.png", fullPage: true });
+  await page.goto("/methodology");
+  await page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: /Prototype score/ }).click();
+  await expect(page).toHaveURL(/#score$/);
+  await expect(page.locator(".score-weights")).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.screenshot({ path: "test-results/method-mobile.png", fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: "test-results/method-desktop.png", fullPage: true });
+});

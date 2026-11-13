@@ -1,10 +1,10 @@
-import { Component, inject } from "@angular/core";
+import { Component } from "@angular/core";
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
-import { AtlasStore } from "./core/atlas.store";
+import { SnackbarComponent } from "./components/snackbar.component";
 @Component({
   selector: "atlas-app",
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [ RouterLink, RouterLinkActive, RouterOutlet, SnackbarComponent],
   template: `
     <a class="skip-link" href="#main-content">Skip to workspace</a>
     <header class="app-header">
@@ -19,6 +19,7 @@ import { AtlasStore } from "./core/atlas.store";
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
           >Explorer</a
+        ><a routerLink="/discover" routerLinkActive="active">Discover</a
         ><a routerLink="/methodology" routerLinkActive="active"
           >Method & data</a
         >
@@ -28,15 +29,11 @@ import { AtlasStore } from "./core/atlas.store";
       >
     </header>
     <main id="main-content" tabindex="-1"><router-outlet /></main>
-    <div class="announcement" aria-live="polite" role="status">
-      {{ s.notice() }}
-    </div>
+    <atlas-snackbar />
     <footer class="app-footer">
       <span>Model Atlas / Interaction Design prototype</span
       ><span>Memory estimates, not execution guarantees.</span>
     </footer>
   `,
 })
-export class AppComponent {
-  readonly s = inject(AtlasStore);
-}
+export class AppComponent {}
