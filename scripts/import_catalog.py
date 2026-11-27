@@ -1,25 +1,59 @@
 #!/usr/bin/env python3
 """Import public, revision-pinned HF metadata and bounded GGUF headers. No weights are downloaded."""
 from __future__ import annotations
-import argparse, concurrent.futures, datetime, hashlib, json, re, struct, sys, time, urllib.error, urllib.parse, urllib.request
+import argparse, concurrent.futures, datetime, hashlib, json, re, struct, sys, time, urllib.error, urllib.parse, urllib.request, os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = 'hf-gguf/1.1.0'
+VERSION = 'hf-gguf/2.0.0'
 MAX_HEADER = 8 * 1024 * 1024
 INITIAL_HEADER = 512 * 1024
 FILE_TYPES = {7: 'Q8_0', 15: 'Q4_K_M', 17: 'Q5_K_M', 18: 'Q6_K', 2: 'Q4_0', 10: 'Q2_K', 12: 'Q3_K_M'}
 WANTED = {'Q4_K_M', 'Q8_0', 'Q5_K_M'}
+CACHE = ROOT / '.cache/catalog'
+
+def token():
+    value = os.environ.get('HuggingFace__Token')
+    if value: return value
+    base = Path(os.environ['APPDATA']) / 'Microsoft/UserSecrets' if os.environ.get('APPDATA') else Path.home() / '.microsoft/usersecrets'
+    path = base / 'ModelAtlas-HuggingFace-local/secrets.json'
+    if not path.exists(): return None
+    data = json.loads(path.read_text(encoding='utf-8-sig'))
+    return data.get('HuggingFace:Token') or data.get('HuggingFace', {}).get('Token')
+
+class SafeRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        host = urllib.parse.urlparse(newurl).hostname or ''
+        if not newurl.startswith('https://') or not (host == 'huggingface.co' or host.endswith(('.huggingface.co', '.hf.co', '.xethub.hf.co'))):
+            raise ValueError('Untrusted metadata redirect')
+        redirect = super().redirect_request(req, fp, code, msg, headers, newurl)
+        redirect.remove_header('Authorization')
+        return redirect
+
+def open_public(url, headers=None):
+    req = urllib.request.Request(url, headers={'User-Agent':'ModelAtlas-catalog/2.0', **(headers or {})})
+    if urllib.parse.urlparse(url).hostname == 'huggingface.co' and (secret := token()):
+        req.add_unredirected_header('Authorization', 'Bearer ' + secret)
+    return urllib.request.build_opener(SafeRedirect()).open(req, timeout=45)
 
 
 def request_json(url):
+    CACHE.mkdir(parents=True, exist_ok=True)
+    path = CACHE / (hashlib.sha256(url.encode()).hexdigest()+'.json')
+    if path.exists() and time.time()-path.stat().st_mtime < 86400:
+        return json.loads(path.read_text(encoding='utf-8'))
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'ModelAtlas-academic-catalog/1.0'}), timeout=35) as r:
-                return json.load(r)
+            with open_public(url) as r:
+                raw = r.read(64*1024*1024+1)
+                if len(raw)>64*1024*1024: raise ValueError('Metadata response exceeds limit')
+                data = json.loads(raw)
+                temporary = path.with_suffix('.tmp'); temporary.write_bytes(raw); temporary.replace(path)
+                return data
         except urllib.error.HTTPError as e:
             if e.code not in (429, 500, 502, 503, 504) or attempt == 2: raise
-            time.sleep(2 ** attempt)
+            retry=e.headers.get('Retry-After','') if e.headers else ''
+            time.sleep(min(60,int(retry)) if retry.isdigit() else 2 ** attempt)
 
 
 def api(repo):
@@ -28,13 +62,20 @@ def api(repo):
 
 def header(repo, revision, filename, require_quant=True):
     url = 'https://huggingface.co/' + repo + '/resolve/' + revision + '/' + urllib.parse.quote(filename, safe='/')
+    CACHE.mkdir(parents=True, exist_ok=True)
+    cached = CACHE / ('gguf-'+hashlib.sha256(url.encode()).hexdigest()+'.json')
+    if cached.exists():
+        fields=json.loads(cached.read_text(encoding='utf-8'))
+        if not require_quant or 'general.file_type' in fields:return fields
     for limit in (INITIAL_HEADER, MAX_HEADER):
-        req = urllib.request.Request(url, headers={'Range': f'bytes=0-{limit - 1}', 'User-Agent': 'ModelAtlas-academic-catalog/1.0'})
-        with urllib.request.urlopen(req, timeout=45) as r:
+        with open_public(url, {'Range': f'bytes=0-{limit - 1}'}) as r:
             # Reject ignored ranges before reading any weights.
             if r.status != 206: raise ValueError('Server did not honor bounded Range request')
             data = r.read(limit)
-        try: return parse_header(data, require_quant)
+        try:
+            fields=parse_header(data, require_quant)
+            cached.write_text(json.dumps(fields),encoding='utf-8')
+            return fields
         except ValueError as e:
             if limit == MAX_HEADER or 'Quantization absent' not in str(e): raise
     raise ValueError('GGUF header unavailable within bounded requests')
@@ -96,7 +137,7 @@ def normalize(repo):
     try:
         config = request_json(config_url)
     except urllib.error.HTTPError as e:
-        if e.code != 401: raise
+        if e.code not in (401,403): raise
     text = config.get('text_config', config) if config else {}
     siblings = meta.get('siblings', [])
     groups = {}
@@ -143,7 +184,6 @@ def normalize(repo):
             'retrievedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'ggufMetadata': {k:v for k,v in fields.items() if k in ['general.architecture','general.file_type','general.quantization_version','split.no','split.count'] or k.endswith(('.block_count','.context_length','.embedding_length','.attention.head_count','.attention.head_count_kv','.attention.key_length','.attention.value_length'))}
         })
-        if len(artifacts) == 3: break
     if not artifacts: raise ValueError('No complete GGUF artifacts with verified quantization')
     fallback = artifacts[0]['ggufMetadata']
     gguf_arch = fallback.get('general.architecture')
@@ -193,52 +233,8 @@ def normalize(repo):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--sources',type=Path,default=ROOT/'data/sources.json')
-    p.add_argument('--output',type=Path,default=ROOT/'data/catalog.json')
-    p.add_argument('--workers',type=int,default=4)
-    p.add_argument('--extend',action='store_true',help='Preserve existing pinned releases/artifacts and import only additional sources')
-    p.add_argument('--minimum-releases',type=int,default=20,help='Reject output below this distinct-release count')
-    args=p.parse_args(); sources=json.loads(args.sources.read_text())['repositories']
-    previous=json.loads(args.output.read_text()) if args.output.exists() else None
-    if args.extend and previous is None:
-        print('Extension requires an existing snapshot.',file=sys.stderr); return 1
-    releases = {r['id']:r for r in previous['releases']} if args.extend else {}
-    artifacts = list(previous['artifacts']) if args.extend else []
-    existing_repos = {a['repository'] for a in artifacts}
-    sources = sorted(set(sources) - existing_repos)
-    issues = [i for i in previous.get('importIssues',[]) if i['repository'] not in sources] if args.extend else []
-    imported = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1,min(args.workers,8))) as pool:
-        futures={pool.submit(normalize,s):s for s in sources}
-        for future in concurrent.futures.as_completed(futures):
-            repo=futures[future]
-            try:
-                release, variants=future.result()
-                imported[repo]=(release,variants)
-                print(f"OK {repo}: {len(variants)} verified artifacts",flush=True)
-            except Exception as e:
-                message = str(e)
-                # Do not log signed redirect URLs.
-                if 'https://' in message: message=type(e).__name__
-                issues.append({'repository':repo,'reason':message})
-                print(f"SKIP {repo}: {message}",flush=True)
-    # Source order, not network completion order, resolves duplicate base releases.
-    # Extension never rewrites existing variant IDs, citations or retrieval dates.
-    for repo, (release, variants) in sorted(imported.items()):
-        if release['id'] not in releases:
-            releases[release['id']]=release; artifacts.extend(variants)
-    missing_previous = {r['id'] for r in previous['releases']} - set(releases) if previous else set()
-    if len(releases)<max(20,args.minimum_releases) or missing_previous:
-        print('Refresh rejected: incomplete coverage. Last valid snapshot unchanged.',file=sys.stderr); return 1
-    if any('403' in i['reason'] or '429' in i['reason'] or 'Tunnel' in i['reason'] for i in issues):
-        print('Refresh rejected: access/rate-limit failure. Last valid snapshot unchanged.',file=sys.stderr); return 1
-    snapshot={'schemaVersion':1,'importerVersion':VERSION,'retrievedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
-              'releases':sorted(releases.values(),key=lambda r:(r['family'],r['name'])),
-              'artifacts':sorted(artifacts,key=lambda a:(a['releaseId'],a['quantization'])), 'importIssues':sorted(issues,key=lambda i:i['repository'])}
-    args.output.parent.mkdir(parents=True,exist_ok=True)
-    temporary=args.output.with_suffix('.json.tmp'); temporary.write_text(json.dumps(snapshot,indent=2)+'\n'); temporary.replace(args.output)
-    print(f"Saved {len(releases)} releases, {len(artifacts)} artifacts, {len(set(r['family'] for r in releases.values()))} families. {len(issues)} unavailable sources.")
-    return 0
+    # Keep the established entry point; publication always passes the evidence gate.
+    from curate_catalog import main as curate
+    return curate()
 
 if __name__=='__main__': sys.exit(main())

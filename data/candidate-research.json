@@ -1,0 +1,179 @@
+{
+  "retrievedAt": "2026-11-27T12:25:51.259238+00:00",
+  "selection": "Recent official releases, monthly HF downloads and GGUF search as discovery hints. These records are excluded candidates, not catalog releases.",
+  "models": [
+    {
+      "model": "Qwen/Qwen3.8-27B",
+      "revision": "37561816e66b5b9153b1b64c10968c18c1e6f4a0",
+      "createdAt": "2026-08-05T08:22:59.000Z",
+      "downloadsLastMonth": 5752506,
+      "architecture": "qwen3_5",
+      "modelSource": "https://huggingface.co/Qwen/Qwen3.8-27B/blob/37561816e66b5b9153b1b64c10968c18c1e6f4a0/README.md",
+      "ggufCandidates": [
+        "nari-labs/Qwen3.8-27B-NariQ-GGUF",
+        "DavidAU/Qwen3.8-27B-TURBO-Fable-Cold-Fusion-735-882-Heretic-Uncensored-NEO-CODER-MAX-MTP-GGUF",
+        "huihui-ai/Huihui-Qwen3.8-27B-abliterated-GGUF",
+        "unsloth/Qwen3.8-27B-GGUF",
+        "orcarouter/Qwen3.8-27B-Uncensored-GGUF",
+        "ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF",
+        "0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF",
+        "harness-hub/Qwen3.8-27B-pi-adapted-GGUF",
+        "harness-hub/Qwen3.8-27B-opencode-adapted-GGUF",
+        "JonathanColetti/Qwen3.8-27B-Uncensored-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "Qwen/Qwen3.6-27B",
+      "revision": "1cda14dd71a3f47115850eb790f416f165da1cb5",
+      "createdAt": "2026-04-21T07:50:43.000Z",
+      "downloadsLastMonth": 2235019,
+      "architecture": "qwen3_5",
+      "modelSource": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/1cda14dd71a3f47115850eb790f416f165da1cb5/README.md",
+      "ggufCandidates": [
+        "DavidAU/Qwen3.6-27B-Fable-Fusion-711-Uncensored-Heretic-NM-DAU-NEO-MAX-MTP-GGUF",
+        "ggufbench/Qwen3.6-27B-4bpw-16GB-VRAM",
+        "lododoai/Qwen3.6-35B-A3B-Distill-Qwen3.8-27B-GGUF-lora",
+        "DavidAU/Qwen3.6-27B-Heretic-Uncensored-FINETUNE-NEO-CODE-Di-IMatrix-MAX-GGUF",
+        "llmfan46/Qwen3.6-27B-uncensored-heretic-v2-Native-MTP-Preserved-GGUF",
+        "huihui-ai/Huihui-Qwen3.6-27B-abliterated-MTP-GGUF",
+        "cloudbjorn/merged_Qwen3.6-27B_eschaton-uncensored-GGUF",
+        "unsloth/Qwen3.6-27B-GGUF",
+        "prithivMLmods/Qwen3.6-27B-GGUF",
+        "sm54/Qwen3.6-27B-Q6_K-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "Qwen/Qwen3.5-9B",
+      "revision": "c202236235762e1c871ad0ccb60c8ee5ba337b9a",
+      "createdAt": "2026-02-27T12:58:26.000Z",
+      "downloadsLastMonth": 5674085,
+      "architecture": "qwen3_5",
+      "modelSource": "https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/README.md",
+      "ggufCandidates": [
+        "DavidAU/Qwen3.5-9B-The-Defiant-Fable-Uncensored-Heretic-NEO-IMATRIX-MAX-MTP-GGUF",
+        "mradermacher/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-GGUF",
+        "mradermacher/DeepSeek-V4-Pro-Qwen3.5-9B-UNCENSORED-heretic-i1-GGUF",
+        "unsloth/Qwen3.5-9B-GGUF",
+        "xtools-at/Qwensploit-V2-9B-CyberSecurity-Qwen3.5-GGUF",
+        "bartowski/Qwen_Qwen3.5-9B-GGUF",
+        "Jackrong/DeepSeek-V4-Pro-Qwen3.5-9B-MTP-GGUF",
+        "pytraveler/MiniMax-H3-Prompt-Rewriter-Qwen3.5-9B-FL2VA-GGUF",
+        "mradermacher/Huihui-Qwen3.5-9B-abliterated-GGUF",
+        "lmstudio-community/Qwen3.5-9B-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "google/gemma-4-E2B-it",
+      "revision": "4adf15748de9e1a0097b6274cee9c15836c41c37",
+      "createdAt": "2026-03-02T19:58:09.000Z",
+      "downloadsLastMonth": 2420398,
+      "architecture": "gemma4",
+      "modelSource": "https://huggingface.co/google/gemma-4-E2B-it/blob/4adf15748de9e1a0097b6274cee9c15836c41c37/README.md",
+      "ggufCandidates": [
+        "unsloth/gemma-4-E2B-it-GGUF",
+        "llmfan46/gemma-4-E2B-it-ultra-uncensored-heretic-GGUF",
+        "huihui-ai/Huihui-gemma-4-E2B-it-qat-q4_0-unquantized-abliterated-GGUF",
+        "ggml-org/gemma-4-E2B-it-GGUF",
+        "google/gemma-4-E2B-it-qat-q4_0-gguf",
+        "entrick/Security-SLM-Gemma-4-E2B-it-GGUF",
+        "lmstudio-community/gemma-4-E2B-it-QAT-GGUF",
+        "unsloth/gemma-4-E2B-it-qat-GGUF",
+        "turintech/gemma-4-E2B-it-Artemis-GGUF",
+        "Joachym738399/gemma-4-E2B-it-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "google/gemma-4-12B-it",
+      "revision": "43c9d014b231474fa7212dbb48a762566c2b255d",
+      "createdAt": "2026-05-23T01:17:15.000Z",
+      "downloadsLastMonth": 1546230,
+      "architecture": "gemma4_unified",
+      "modelSource": "https://huggingface.co/google/gemma-4-12B-it/blob/43c9d014b231474fa7212dbb48a762566c2b255d/README.md",
+      "ggufCandidates": [
+        "google/gemma-4-12B-it-qat-q4_0-gguf",
+        "TrevorJS/gemma-4-12B-it-uncensored-GGUF",
+        "unsloth/gemma-4-12b-it-GGUF",
+        "unsloth/gemma-4-12B-it-qat-GGUF",
+        "huihui-ai/Huihui-gemma-4-12B-it-qat-q4_0-unquantized-abliterated-GGUF",
+        "zaakirio/gemma-4-12b-it-uncensored-GGUF",
+        "llmfan46/gemma-4-12B-it-uncensored-heretic-GGUF",
+        "SC117/gemma-4-12B-it-heretic-QAT-GGUF",
+        "SC117/Gemma-4-12B-it-heretic-GGUF",
+        "google/gemma-3-12b-it-qat-q4_0-gguf"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "google/gemma-4-31B-it",
+      "revision": "842da3794eaa0b77d5f08bae87a17459d91ff475",
+      "createdAt": "2026-03-11T18:22:36.000Z",
+      "downloadsLastMonth": 5123349,
+      "architecture": "gemma4",
+      "modelSource": "https://huggingface.co/google/gemma-4-31B-it/blob/842da3794eaa0b77d5f08bae87a17459d91ff475/README.md",
+      "ggufCandidates": [
+        "unsloth/gemma-4-31B-it-qat-GGUF",
+        "mradermacher/gemma-4-31B-it-ARA-heretic-GGUF",
+        "unsloth/gemma-4-31B-it-GGUF",
+        "mradermacher/Gemma-4-Queen-31B-it-i1-GGUF",
+        "google/gemma-4-31B-it-qat-q4_0-gguf",
+        "Anbeeld/gemma-4-31B-it-DFlash-GGUF",
+        "williamliao/gemma-4-31B-it-EAGLE3-Speculator-GGUF",
+        "prithivMLmods/gemma-4-31B-it-NVFP4-GGUF",
+        "TrevorJS/gemma-4-31B-it-uncensored-GGUF",
+        "mradermacher/gemma-4-31b-it-heretic-ara-i1-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "openai/gpt-oss-20b",
+      "revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+      "createdAt": "2025-08-04T22:33:29.000Z",
+      "downloadsLastMonth": 5128622,
+      "architecture": "gpt_oss",
+      "modelSource": "https://huggingface.co/openai/gpt-oss-20b/blob/6cee5e81ee83917806bbde320786a8fb61efebee/README.md",
+      "ggufCandidates": [
+        "unsloth/gpt-oss-20b-GGUF",
+        "lmstudio-community/gpt-oss-20b-GGUF",
+        "DavidAU/OpenAi-GPT-oss-20b-abliterated-uncensored-NEO-Imatrix-gguf",
+        "DavidAU/Openai_gpt-oss-20b-CODER-NEO-CODE-DI-MATRIX-GGUF",
+        "DavidAU/OpenAi-GPT-oss-20b-HERETIC-uncensored-NEO-Imatrix-gguf",
+        "mradermacher/Huihui-gpt-oss-20b-BF16-abliterated-GGUF",
+        "ggml-org/gpt-oss-20b-GGUF",
+        "gabriellarson/gpt-oss-20b-GGUF",
+        "DevQuasar/openai.gpt-oss-20b-GGUF",
+        "bartowski/openai_gpt-oss-20b-GGUF-MXFP4-Experimental"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    },
+    {
+      "model": "mistralai/Ministral-3-8B-Instruct-2512-BF16",
+      "revision": "fb3313d27dd71163eb24636a1845883489b542f2",
+      "createdAt": "2025-10-31T08:41:17.000Z",
+      "downloadsLastMonth": 58009,
+      "architecture": "mistral3",
+      "modelSource": "https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512-BF16/blob/fb3313d27dd71163eb24636a1845883489b542f2/README.md",
+      "ggufCandidates": [
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-GGUF",
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-i1-GGUF",
+        "ungreased8757/Ministral-3-8B-Instruct-2512-BF16-Q4_K_M-GGUF",
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-SOM-MPOA-GGUF",
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-SOM-MPOA-i1-GGUF",
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-abliterated-GGUF",
+        "mradermacher/Ministral-3-8B-Instruct-2512-BF16-abliterated-i1-GGUF"
+      ],
+      "uniformBenchmarkRows": 0,
+      "reason": "Outside the supported dense-transformer subset and/or no evaluation in the fixed comparable suite."
+    }
+  ]
+}

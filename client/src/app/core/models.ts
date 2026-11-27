@@ -1,10 +1,11 @@
-export type Status = "gpu-fit" | "offload" | "outside-budget" | "unknown";
+export type Status = "gpu-fit" | "outside-budget" | "unknown";
 export interface Hardware {
+  ramGiB?: number | null;
   gpuGiB: number;
-  ramGiB: number;
+  bandwidthGBps: number | null;
+  minimumTokensPerSecond: number;
   contextTokens: number;
   quantization: string;
-  allowOffload: boolean;
   cachePrecision: string;
   concurrency: number;
 }
@@ -19,7 +20,18 @@ export interface Architecture {
   slidingWindow: number | null;
   sourceUrl: string;
 }
+export interface ReferenceQuality {
+  suite: string; values: number[]; score: number; modelRevision: string;
+  sourceUrl: string; sourceRevision: string; evaluatedAt: string; retrievedAt: string;
+  harnessRevision: string; precision: string; conditionsHash: string; identityVerification: string;
+}
 export interface Release {
+  releaseCreatedAt: string | null;
+  referenceQuality: ReferenceQuality | null;
+  qualityRating: { score: number; basis: 'reference-benchmark' | 'external-curated'; sourceUrl: string; asOf: string; note: string };
+  tasks: string[];
+  taskSource: string;
+  downloadsLastMonth: number | null;
   id: string;
   name: string;
   publisher: string;
@@ -39,6 +51,8 @@ export interface Release {
   missingFields: string[];
 }
 export interface Artifact {
+  sourceModel: string;
+  mappingVerification: string;
   id: string;
   releaseId: string;
   repository: string;
@@ -57,6 +71,11 @@ export interface Catalog {
   artifacts: Artifact[];
 }
 export interface Estimate {
+  suitabilityScore: number | null;
+  speed: { low: number; high: number; method: string; typical: number } | null;
+  scoreBreakdown: { quality: number; fit: number; speed: number; utilization: number } | null;
+  ramAdvice: string | null;
+  eligible: boolean;
   artifactId: string;
   status: Status;
   weightsGiB: number | null;
@@ -65,7 +84,6 @@ export interface Estimate {
   safetyGiB: number | null;
   totalGiB: number | null;
   gpuRequiredGiB: number | null;
-  systemRequiredGiB: number | null;
   contextSatisfied: boolean | null;
   estimatorVersion: string;
   runtimeCompatibility: string;
@@ -115,22 +133,21 @@ export interface Filters {
 }
 export const STATUS_LABEL: Record<Status, string> = {
   "gpu-fit": "Estimated GPU fit",
-  offload: "Possible with offloading",
   "outside-budget": "Outside constraints",
   unknown: "Insufficient information",
 };
 export const STATUS_SYMBOL: Record<Status, string> = {
   "gpu-fit": "●",
-  offload: "◆",
   "outside-budget": "▲",
   unknown: "■",
 };
 export const DEFAULTS: Hardware = {
   gpuGiB: 12,
-  ramGiB: 32,
+  bandwidthGBps: null,
+  minimumTokensPerSecond: 0,
+  ramGiB: null,
   contextTokens: 8192,
   quantization: "Q4_K_M",
-  allowOffload: true,
   cachePrecision: "f16",
   concurrency: 1,
 };

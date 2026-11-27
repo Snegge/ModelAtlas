@@ -1,3 +1,7 @@
+import { MatTabsModule } from "@angular/material/tabs";
+import { NgTemplateOutlet } from "@angular/common";
+import { MatButtonModule } from "@angular/material/button";
+import { contextK } from "./core/gpus";
 import { MatIconModule } from "@angular/material/icon";
 import { FavouriteButtonComponent } from "./workspace/favourite-button.component";
 import { Component, computed, inject, signal } from "@angular/core";
@@ -8,7 +12,7 @@ import { WorkspaceStore } from "./workspace/workspace.store";
 
 @Component({
   standalone: true,
-  imports: [MatIconModule, FavouriteButtonComponent, RouterLink],
+  imports: [MatTabsModule, NgTemplateOutlet, MatButtonModule, MatIconModule, FavouriteButtonComponent, RouterLink],
   template: `
     <section class="discover-page" aria-labelledby="discover-title">
       <div class="discover-entry">
@@ -17,10 +21,10 @@ import { WorkspaceStore } from "./workspace/workspace.store";
       <section class="highlight-carousel" aria-label="Model highlights" aria-roledescription="carousel"
         tabindex="0" (keydown.arrowleft)="step(-1); $event.preventDefault()" (keydown.arrowright)="step(1); $event.preventDefault()"
         (pointercancel)="touch = null" (pointerdown)="touchStart($event)" (pointerup)="touchEnd($event)">
-        <button class="carousel-arrow" aria-label="Previous highlight" (click)="step(-1)"><mat-icon fontIcon="chevron_left"></mat-icon></button>
+        <button mat-icon-button class="carousel-arrow" aria-label="Previous highlight" (click)="step(-1)"><mat-icon fontIcon="chevron_left"></mat-icon></button>
         <article class="highlight-card active">
           <div class="discover-kicker"><span>{{ highlight().category }}</span><span role="status">{{ index() + 1 }} of 10</span></div>
-          <h2>{{ highlight().name }}</h2>
+          <h2><a class="model-name-link" [routerLink]="['/models', highlight().id]">{{ highlight().name }}</a></h2>
           <p class="publisher">{{ highlight().publisher }}</p>
           <p>{{ highlight().description }} Typical tasks: {{ highlight().tasks }}.</p>
           <p class="highlight-reason"><strong>Why this model?</strong> {{ highlight().subtitle }}</p>
@@ -30,44 +34,51 @@ import { WorkspaceStore } from "./workspace/workspace.store";
               <div><dt>Selected variant</dt><dd>{{ x.a.quantization }}</dd></div>
               <div><dt>Estimated memory</dt><dd>{{ x.e?.totalGiB == null ? 'Unknown' : x.e!.totalGiB!.toFixed(1) + ' GiB' }}</dd></div>
             </dl>
-            <p class="publisher">Model context limit: {{ x.r.contextLimit?.toLocaleString() ?? 'Unknown' }} tokens &middot; Requested: {{ s.profile().context.toLocaleString() }} tokens</p>
+            <p class="publisher">Model context limit: {{ contextK(x.r.contextLimit) }} tokens &middot; Requested: {{ contextK(s.profile().context) }} tokens</p>
             <div class="quantization-chips" role="group" aria-label="Highlight variant">
               @for (variant of s.api.variants(x.r.id); track variant.id) {
-                <button [attr.aria-pressed]="variant.id === x.a.id" (click)="s.variant(x.r.id, variant.id)">{{ variant.quantization }}</button>
+                <button mat-stroked-button [attr.aria-pressed]="variant.id === x.a.id" (click)="s.variant(x.r.id, variant.id)">{{ variant.quantization }}</button>
               }
             </div>
             <p class="discover-caveat">Memory is estimated, not a hardware guarantee. Speed and answer quality require your own tests; runtime compatibility is unverified.</p>
             <div class="discover-actions">
-              <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon fontIcon="arrow_forward"></mat-icon></a>
+              <a mat-flat-button class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></a>
               <atlas-favourite-button [row]="x" />
-              <button (click)="learn()">Learn more <mat-icon fontIcon="arrow_downward"></mat-icon></button>
+              <button mat-stroked-button (click)="learn()">Learn more <mat-icon iconPositionEnd fontIcon="arrow_downward"></mat-icon></button>
             </div>
           } @else { <p role="status">{{ s.api.loading() ? 'Loading model information...' : 'Model information unavailable. Open Explorer to retry.' }}</p><a routerLink="/">Open Explorer</a> }
         </article>
-        <button class="carousel-arrow" aria-label="Next highlight" (click)="step(1)"><mat-icon fontIcon="chevron_right"></mat-icon></button>
+        <button mat-icon-button class="carousel-arrow" aria-label="Next highlight" (click)="step(1)"><mat-icon fontIcon="chevron_right"></mat-icon></button>
       </section>
-      <a class="discover-transition" href="#discover-details" (click)="$event.preventDefault(); learn()">Explore the selection below <mat-icon fontIcon="arrow_downward"></mat-icon></a>
+      <a class="discover-transition" href="#discover-details" (click)="$event.preventDefault(); learn()">Explore the selection below <mat-icon iconPositionEnd fontIcon="arrow_downward"></mat-icon></a>
       </div>
-        <div class="discover-filters" role="group" aria-label="Discover collections">
+        <mat-tab-group class="discover-filters" aria-label="Discover collections"
+          [selectedIndex]="tabs.indexOf(collection())" (selectedIndexChange)="changeCollection(tabs[$event])"
+          [mat-stretch-tabs]="false" mat-align-tabs="start" animationDuration="0ms">
           @for (tab of tabs; track tab) {
-            <button [attr.aria-pressed]="collection() === tab" (click)="changeCollection(tab)">{{ tab }}</button>
+            <mat-tab [label]="tab">
+              <ng-template matTabContent><ng-container [ngTemplateOutlet]="collectionContent" /></ng-template>
+            </mat-tab>
           }
-        </div>
+        </mat-tab-group>
+        <ng-template #collectionContent>
         <p class="collection-note">{{ collectionNote() }}</p>
         <div class="discover-layout" id="discover-details">
 
           <aside class="discover-shortlist" aria-label="Models to explore">
             <h2>{{ picks().length }} models to explore</h2>
             @for (pick of picks(); track pick.id; let i = $index) {
-              <button [attr.aria-pressed]="selected() === pick.id" (click)="select(pick.id)">
+              <button mat-stroked-button [attr.aria-pressed]="selected() === pick.id" (click)="select(pick.id)">
+                <span class="shortlist-label">
                 <span class="discover-number">{{ selected() === pick.id ? "Selected" : i + 1 }}</span>
-                <span><strong>{{ pick.name }}</strong><small>{{ pick.category }} · {{ pick.subtitle }}</small></span>
+                <span><strong>{{ pick.name }}</strong><small>{{ collection() === 'Highlights' ? pick.category + ' · ' + pick.subtitle : shortlistMetric(pick.id) }}</small></span>
+                </span>
               </button>
             }
           </aside>
           <article class="discover-feature">
             <div class="discover-kicker"><span>EDITOR’S PICK</span>{{ pick().category }}</div>
-            <h2 id="detail-title" tabindex="-1">{{ row()?.r?.name ?? pick().name }}</h2><p class="publisher">{{ pick().publisher }}</p>
+            <h2 id="detail-title" tabindex="-1"><a class="model-name-link" [routerLink]="['/models', pick().id]">{{ row()?.r?.name ?? pick().name }}</a></h2><p class="publisher">{{ pick().publisher }}</p>
             <p class="discover-description">{{ pick().description }}</p>
             <h3>Why this model?</h3>
             <p class="discover-reason">{{ pick().reason }}</p>
@@ -85,20 +96,22 @@ import { WorkspaceStore } from "./workspace/workspace.store";
             <p class="discover-caveat">Typical tasks: {{ pick().tasks }}.<br>Estimates are not measured performance. Runtime compatibility is unverified.<br>Hardware fit depends on context and runtime.<br>Popularity is not proof of quality for your task.</p>
             <div class="discover-actions">
               @if (row(); as x) {
-                <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon fontIcon="arrow_forward"></mat-icon></a>
+                <a mat-flat-button class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></a>
                 <atlas-favourite-button [row]="x" />
                 @if (s.favourites().length) {
-                  <a routerLink="/" fragment="model-catalog" (click)="s.favouritesOpen.set(true)">View favourites <mat-icon fontIcon="arrow_forward"></mat-icon></a>
+                  <a routerLink="/" fragment="model-catalog" (click)="s.favouritesOpen.set(true)">View favourites <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></a>
                 }
-              } @else { <a routerLink="/">Explore the catalog <mat-icon fontIcon="arrow_forward"></mat-icon></a> }
+              } @else { <a routerLink="/">Explore the catalog <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></a> }
             </div>
           </article>
         </div>
+        </ng-template>
     </section>
   `,
   styleUrl: "./discover.component.css",
 })
 export class DiscoverComponent {
+  readonly contextK = contextK;
   readonly s = inject(WorkspaceStore);
   readonly tabs = ["Highlights", "New Releases", "Most discussed", "Popular"];
   readonly collection = signal("Highlights");
@@ -107,10 +120,16 @@ export class DiscoverComponent {
   readonly index = computed(() => HIGHLIGHTS.findIndex(x => x.id === this.highlightId()));
   readonly highlight = computed(() => HIGHLIGHTS[this.index()]);
   readonly highlightRow = computed(() => this.s.rows().find(x => x.r.id === this.highlightId()));
+  readonly discoveryMetadata = computed(() => (this.s.api.catalog()?.releases ?? []).map(r => ({
+    id:r.id, createdAt:r.releaseCreatedAt ?? r.retrievedAt,
+    downloads:r.downloadsLastMonth ?? 0,
+    discussions:DISCOVER_METADATA.models.find(m => m.id === r.id)?.discussions ?? 0,
+    source:r.modelCardUrl,
+  })));
   readonly picks = computed(() => {
     if (this.collection() === "Highlights") return [...HIGHLIGHTS];
     const metric = this.collection();
-    return [...DISCOVER_METADATA.models]
+    return [...this.discoveryMetadata()]
       .sort((a, b) => metric === "New Releases" ? b.createdAt.localeCompare(a.createdAt) :
         metric === "Popular" ? b.downloads - a.downloads : b.discussions - a.discussions)
       .filter(m => this.s.api.release(m.id))
@@ -125,17 +144,21 @@ export class DiscoverComponent {
   });
   readonly pick = computed(() => this.picks().find(x => x.id === this.selected()) ?? this.picks()[0] ?? HIGHLIGHTS[0]);
   readonly row = computed(() => this.s.rows().find(x => x.r.id === this.pick().id));
-  readonly metadata = computed(() => DISCOVER_METADATA.models.find(x => x.id === this.pick().id));
+  readonly metadata = computed(() => this.discoveryMetadata().find(x => x.id === this.pick().id));
   readonly evidence = computed(() => this.metadata() ? this.metricText(this.metadata()!) : "Metadata unavailable");
   readonly collectionNote = computed(() => this.collection() === "Highlights" ? "Curated prototype selection. The same ten models appear in the carousel." :
     (this.collection() === "New Releases" ? "Newest repository creation dates in this catalog; these may precede the public model release." :
      this.collection() === "Popular" ? "Most Hugging Face downloads in the last 30 days, among catalog models." :
      "Most Hugging Face community threads, including pull requests, among catalog models.") +
-    " Snapshot: " + DISCOVER_METADATA.retrievedAt.slice(0, 10) + ". Not a live ranking.");
-  metricText(m: typeof DISCOVER_METADATA.models[number]) {
+    " Snapshot: " + (this.collection() === "Most discussed" ? DISCOVER_METADATA.retrievedAt : this.s.api.coverage()?.retrievedAt ?? "").slice(0, 10) + ". Not a live ranking.");
+  metricText(m: {createdAt:string;downloads:number;discussions:number}) {
     return this.collection() === "New Releases" ? "Repository created " + m.createdAt.slice(0, 10) :
       this.collection() === "Popular" ? m.downloads.toLocaleString() + " downloads / 30 days" :
       m.discussions.toLocaleString() + " community threads (including PRs)";
+  }
+  shortlistMetric(id: string) {
+    const metadata = this.discoveryMetadata().find(m => m.id === id);
+    return metadata ? this.metricText(metadata) : 'Metadata unavailable';
   }
   changeCollection(tab: string) {
     this.collection.set(tab);
@@ -151,10 +174,10 @@ export class DiscoverComponent {
   }
   learn() {
     this.changeCollection("Highlights");
-    document.getElementById("detail-title")?.focus({ preventScroll: true });
-    document.getElementById("detail-title")?.scrollIntoView({
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
-      block: "start",
+    requestAnimationFrame(() => {
+      const tabs = document.querySelector<HTMLElement>('.discover-filters');
+      tabs?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus({preventScroll:true});
+      tabs?.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block:'start'});
     });
   }
   touch: { x: number; y: number } | null = null;

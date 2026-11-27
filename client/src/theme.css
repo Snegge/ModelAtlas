@@ -22,10 +22,11 @@
   --neutral: #536369;
   --unknown: #684f84;
   --chart-reference: #365c88;
-  --memory-weights: #8ba7ee;
-  --memory-cache: #8edbd9;
-  --memory-runtime: #bcc9f4;
-  --memory-safety: #d5dce9;
+  --memory-weights: #5e88c9;
+  --memory-cache: #76b8d6;
+  --memory-runtime: #9275b6;
+  --memory-safety: #b87489;
+  --memory-free: #f0f3f8;
   --shadow-color: #1e293b18;
   --overlay: #1d2e4b60;
   --selection-halo: #2563eb20;
@@ -45,6 +46,7 @@
   --radius-small: 4px;
   --radius-control: 6px;
   --radius-panel: 12px;
+  --radius-pill: 9999px;
   --space-4: 4px;
   --space-8: 8px;
   --space-12: 12px;

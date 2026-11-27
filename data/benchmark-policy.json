@@ -1,0 +1,116 @@
+{
+  "id": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+  "decidedAt": "2026-11-27",
+  "source": "https://huggingface.co/docs/leaderboards/open_llm_leaderboard/about",
+  "selectionReason": "Both tasks cover the same 34 candidate release IDs in the public contents dataset; fixed versions and complete detailed runs are checked before admission. No substitution or missing-value reweighting.",
+  "metrics": [
+    {
+      "name": "IFEval",
+      "task": "leaderboard_ifeval",
+      "version": 2.0,
+      "metric": "inst_level_strict_acc,none",
+      "shots": 0,
+      "scale": [
+        0,
+        1
+      ],
+      "weight": 0.5
+    },
+    {
+      "name": "MMLU-Pro",
+      "task": "leaderboard_mmlu_pro",
+      "version": 0.1,
+      "metric": "acc,none",
+      "shots": 5,
+      "scale": [
+        0,
+        1
+      ],
+      "weight": 0.5
+    }
+  ],
+  "formula": "100 * (0.5 * IFEval + 0.5 * MMLU-Pro); original-model reference quality, not quantized quality",
+  "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+  "conditions": {
+    "leaderboard_ifeval": {
+      "dataset_path": "wis-k/instruction-following-eval",
+      "dataset_name": null,
+      "test_split": "train",
+      "fewshot_split": null,
+      "output_type": "generate_until",
+      "num_fewshot": 0,
+      "generation_kwargs": {
+        "until": [],
+        "do_sample": false,
+        "temperature": 0.0,
+        "max_gen_toks": 1280
+      },
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "doc_to_text": "prompt",
+      "doc_to_target": 0,
+      "doc_to_choice": null,
+      "process_results": "def process_results(doc, results):\n    inp = InputExample(\n        key=doc[\"key\"],\n        instruction_id_list=doc[\"instruction_id_list\"],\n        prompt=doc[\"prompt\"],\n        kwargs=doc[\"kwargs\"],\n    )\n    response = results[0]\n\n    out_strict = test_instruction_following_strict(inp, response)\n    out_loose = test_instruction_following_loose(inp, response)\n\n    return {\n        \"prompt_level_strict_acc\": out_strict.follow_all_instructions,\n        \"inst_level_strict_acc\": out_strict.follow_instruction_list,\n        \"prompt_level_loose_acc\": out_loose.follow_all_instructions,\n        \"inst_level_loose_acc\": out_loose.follow_instruction_list,\n    }\n",
+      "metric_list": [
+        {
+          "metric": "prompt_level_strict_acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "inst_level_strict_acc",
+          "aggregation": "def agg_inst_level_acc(items):\n    flat_items = [item for sublist in items for item in sublist]\n    inst_level_acc = sum(flat_items) / len(flat_items)\n    return inst_level_acc\n",
+          "higher_is_better": true
+        },
+        {
+          "metric": "prompt_level_loose_acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        },
+        {
+          "metric": "inst_level_loose_acc",
+          "aggregation": "def agg_inst_level_acc(items):\n    flat_items = [item for sublist in items for item in sublist]\n    inst_level_acc = sum(flat_items) / len(flat_items)\n    return inst_level_acc\n",
+          "higher_is_better": true
+        }
+      ],
+      "filter_list": null,
+      "repeats": 1,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "samples": 541
+    },
+    "leaderboard_mmlu_pro": {
+      "dataset_path": "TIGER-Lab/MMLU-Pro",
+      "dataset_name": null,
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "output_type": "multiple_choice",
+      "num_fewshot": 5,
+      "generation_kwargs": null,
+      "fewshot_config": {
+        "sampler": "first_n"
+      },
+      "doc_to_text": "def doc_to_text(doc):\n    doc_to_text = f\"{doc['question']}\\n\"\n\n    for i in range(len(doc[\"options\"])):\n        doc_to_text += f\"{string.ascii_uppercase[i]}. {doc['options'][i]}\\n\"\n\n    doc_to_text += \"Answer:\"\n    return doc_to_text\n",
+      "doc_to_target": "answer",
+      "doc_to_choice": "def doc_to_choice(doc):\n    return [string.ascii_uppercase[i] for i in range(len(doc[\"options\"]))]\n",
+      "process_results": null,
+      "metric_list": [
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true
+        }
+      ],
+      "filter_list": null,
+      "repeats": 1,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "samples": 12032
+    },
+    "chatTemplateApplied": true,
+    "fewshotAsMultiturn": true
+  }
+}

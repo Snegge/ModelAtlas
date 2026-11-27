@@ -8,7 +8,11 @@ for (const width of [390, 768, 1440]) {
     await page.route("**/api/**", route => {
       const path = new URL(route.request().url()).pathname;
       return path === "/api/catalog" ? route.fulfill({ json: catalog }) :
-        path === "/api/catalog/status" ? route.fulfill({ json: {} }) : route.abort();
+        path === "/api/catalog/status" ? route.fulfill({ json: {
+          releaseCount: catalog.releases.length, artifactCount: catalog.artifacts.length,
+          retrievedAt: catalog.retrievedAt, importIssues: catalog.importIssues,
+        } }) :
+        route.fulfill({ json: { settings: route.request().postDataJSON().settings, baseline: null, releases: [], artifacts: [], estimatorVersion: "layout-test" } });
     });
     await page.goto("/");
     const buttons = page.locator(".new-catalog tbody atlas-favourite-button button");

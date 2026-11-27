@@ -1,13 +1,13 @@
 export const HIGHLIGHTS = [
   {
-    "id": "r-e9624a298e92",
-    "name": "Qwen2.5-Coder-7B-Instruct",
+    "id": "r-f04849394802",
+    "name": "Qwen2.5-Coder-14B-Instruct",
     "publisher": "Qwen",
     "category": "Coding",
-    "description": "A focused starting point for code tasks.",
-    "subtitle": "Compare a coding-focused candidate.",
+    "description": "Compare a qualified model using your own prompts.",
+    "subtitle": "Explore another model with complete reference evidence.",
     "tasks": "explain code, draft tests",
-    "reason": "Compare a coding-focused candidate. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
+    "reason": "Both reference benchmarks and pinned GGUF variants are available. These are editorial testing suggestions, not task-specific benchmark claims."
   },
   {
     "id": "r-7b223ae532aa",
@@ -50,44 +50,44 @@ export const HIGHLIGHTS = [
     "reason": "Compare a different model family. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
   },
   {
-    "id": "r-8d2ea51cdbfb",
-    "name": "granite-3.3-2b-instruct",
-    "publisher": "ibm-granite",
+    "id": "r-b745acd26c3c",
+    "name": "Phi-3.5-mini-instruct",
+    "publisher": "microsoft",
     "category": "General use",
-    "description": "Explore instruction-following on your own examples.",
-    "subtitle": "Add an IBM Granite candidate to your tests.",
+    "description": "Compare a qualified model using your own prompts.",
+    "subtitle": "Explore another model with complete reference evidence.",
     "tasks": "extract information, summarize notes",
-    "reason": "Add an IBM Granite candidate to your tests. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
+    "reason": "Both reference benchmarks and pinned GGUF variants are available. These are editorial testing suggestions, not task-specific benchmark claims."
   },
   {
-    "id": "r-8830c5bde0ee",
-    "name": "Falcon3-3B-Instruct",
+    "id": "r-34f2825a62aa",
+    "name": "Falcon3-1B-Instruct",
     "publisher": "tiiuae",
     "category": "General use",
-    "description": "Test familiar tasks across another family.",
-    "subtitle": "Broaden the comparison beyond one provider.",
+    "description": "Compare a qualified model using your own prompts.",
+    "subtitle": "Explore another model with complete reference evidence.",
     "tasks": "draft text, explain concepts",
-    "reason": "Broaden the comparison beyond one provider. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
+    "reason": "Both reference benchmarks and pinned GGUF variants are available. These are editorial testing suggestions, not task-specific benchmark claims."
   },
   {
-    "id": "r-56b0e656b3f5",
-    "name": "EXAONE-4.0-1.2B",
-    "publisher": "LGAI-EXAONE",
+    "id": "r-4966979a5713",
+    "name": "Qwen2.5-1.5B-Instruct",
+    "publisher": "Qwen",
     "category": "Lightweight",
-    "description": "Try a small candidate with your own prompts.",
-    "subtitle": "A second small-model baseline for testing.",
+    "description": "Compare a qualified model using your own prompts.",
+    "subtitle": "Explore another model with complete reference evidence.",
     "tasks": "short answers, text editing",
-    "reason": "A second small-model baseline for testing. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
+    "reason": "Both reference benchmarks and pinned GGUF variants are available. These are editorial testing suggestions, not task-specific benchmark claims."
   },
   {
-    "id": "r-70ce169e4905",
-    "name": "Apertus-8B-Instruct-2509",
-    "publisher": "swiss-ai",
+    "id": "r-0311af13fabf",
+    "name": "Qwen2.5-7B-Instruct",
+    "publisher": "Qwen",
     "category": "General use",
-    "description": "Explore a larger candidate from Swiss AI.",
-    "subtitle": "Compare a different provider at the 8B scale.",
+    "description": "Compare a qualified model using your own prompts.",
+    "subtitle": "Explore another model with complete reference evidence.",
     "tasks": "summaries, instruction-following",
-    "reason": "Compare a different provider at the 8B scale. Use the same prompt across candidates and check correctness, usefulness and memory requirements. These are editorial testing suggestions, not benchmark results."
+    "reason": "Both reference benchmarks and pinned GGUF variants are available. These are editorial testing suggestions, not task-specific benchmark claims."
   },
   {
     "id": "r-1f9bfb32cf6a",

@@ -2,11 +2,11 @@
 
 Model Atlas helps you explore which language-model files might fit your computer's memory. Enter a hardware budget, change settings and compare models before deciding what to download.
 
-This is a university Interaction Design prototype. It combines **memory estimates**, rough bandwidth-based speed ranges and explicitly synthetic task-quality fixtures. It does not install or run models. You do not need a powerful GPU to try the interface. The included catalog contains **84 model releases and 252 downloadable variants across 14 families**.
+This is a university Interaction Design prototype with a validated catalog of **44 model releases and 132 GGUF variants across 9 families**. Its WillItRunAI-inspired suitability score combines sourced original-model quality, GPU fit, estimated speed and VRAM utilization. Quality inputs distinguish measured reference indices from attributed editorial ratings. It does not install or run models; see [catalog qualification and limits](docs/CATALOG-QUALITY.md).
 
 ## Updated workspace
 
-The Explorer opens with no hardware and five **demo-popularity** candidates. Configure GPU, separate RAM, bandwidth and context to see an estimated shortlist. Table, Plot, Bars and Tiles share search, task, selected variants and a three-variant comparison. Model routes `/models/:id` provide sources, variant selection and a prepared chat simulation. `/methodology` documents the exact formulas and data limits.
+The Explorer opens with no hardware and five candidates ordered by recent HF downloads. Search 30 NVIDIA desktop GPU profiles; VRAM and bandwidth fill automatically. Enter optional system RAM and context in K. Every variant is checked for full GPU residency; eligible releases rank by composite suitability. RAM never enables CPU offloading. Table, Plot, Bars and Tiles share search, Chat/Coding/Reasoning/Agentic filters and selected variants. The table scrolls with the page beneath sticky navigation. Model routes `/models/:id` provide evidence provenance, variant selection and a prepared chat simulation. `/methodology` documents formulas and exclusions.
 
 The UI remains English, matching the existing project. See [prototype decisions](docs/PROTOTYPE.md) for data status, testing and roadmap.
 
@@ -210,6 +210,8 @@ If npm reports security advisories, inspect them with `npm.cmd audit --prefix cl
 
 ## Optional: tests and builds
 
+For local Hugging Face credentials and free, server-side source connection tests, see [Hugging Face setup and findings](docs/HUGGING-FACE.md). Tokens use .NET User Secrets outside this repository; the frontend does not receive them.
+
 These checks are useful when changing code. They are not required just to open the app. Stop the running servers first, especially on Windows, where the backend can lock its build files. All commands below run from the repository root.
 
 **Windows PowerShell:**
@@ -259,16 +261,16 @@ To fetch updated public Hugging Face metadata, install [Python 3.10 or newer](ht
 **Windows PowerShell:**
 
 ```powershell
-py -3 .\scripts\import_catalog.py --workers 4
+py -3 .\scripts\import_catalog.py
 ```
 
 **Linux or macOS:**
 
 ```sh
-python3 scripts/import_catalog.py --workers 4
+python3 scripts/import_catalog.py
 ```
 
-This command reads model metadata and small portions of file headers; it does not download complete model weights. No Hugging Face token is required for the selected public records. A failed refresh preserves the last valid catalog. Restart the backend after a successful refresh so it reads the updated file.
+This command reads public metadata, evaluation results and bounded GGUF headers, using the existing server-side HF token if configured. It downloads no complete model weights. Add `--watch` for updates every 24 hours while the process runs. A failed or coverage-reducing refresh preserves the last valid catalog; the API validates changed snapshots before reloading them. See [configuration, caching and update instructions](docs/CATALOG-QUALITY.md#refresh-and-local-configuration).
 
 Python's importer tests are also optional:
 
@@ -296,9 +298,9 @@ See [data sources and coverage](docs/DATA-SOURCES.md) for provenance, missing me
 | `scripts/` | Catalog importer, its tests and a script for the Codex cloud environment. |
 | `.vscode/` | VS Code tasks. |
 
-The frontend uses Angular 22, Angular CDK and ECharts. The backend uses ASP.NET Core on .NET 10 LTS, with JSON files instead of a database. It supports memory estimation for conventional transformers with sufficient architecture metadata. Unsupported models, mixture-of-experts models and incomplete records are labelled **Unknown**.
+The frontend uses Angular 22, Angular CDK and ECharts. The backend uses ASP.NET Core on .NET 10 LTS, with JSON files instead of a database. Unsupported architectures and incomplete candidates remain outside the visible catalog, with documented exclusion reasons.
 
-A memory fit is an estimate, not a guarantee that an inference runtime supports a model or that it will run successfully. CPU-only, unified-memory and multi-GPU configurations are outside this prototype. The workspace additionally shows explicitly synthetic task-quality rankings and rough GPU-bandwidth-based speed ranges; neither is measured performance. Offloading speed remains unknown.
+A memory fit is an estimate, not a runtime guarantee. Only full placement on one NVIDIA GPU is modeled. Quality is a fixed IFEval/MMLU-Pro reference of the original model; quantization effects are unmeasured. Speed is a rounded bandwidth-and-context heuristic range, not a statistical confidence interval.
 
 More project documentation: [design rationale](docs/DESIGN-RATIONALE.md), [usability-study plan](docs/USABILITY-STUDY.md), [data sources](docs/DATA-SOURCES.md) and [validation](docs/VALIDATION.md).
 

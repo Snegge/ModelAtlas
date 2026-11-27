@@ -62,14 +62,7 @@ import { MemoryComponent } from "./memory.component";
           </div>
           <h3>Estimated full-residency memory</h3>
           <atlas-memory [estimate]="e.scenario" [baseline]="e.baseline" />
-          @if (e.scenario.status === "offload") {
-            <p class="offload-note">
-              Planned GPU residency:
-              {{ e.scenario.gpuRequiredGiB!.toFixed(2) }} GiB. Separate RAM
-              requirement: {{ e.scenario.systemRequiredGiB!.toFixed(2) }} GiB,
-              including host reserve.
-            </p>
-          }
+
           @for (reason of e.scenario.reasons; track $index) {
             <p class="estimate-reason">{{ reason }}</p>
           }

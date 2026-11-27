@@ -4,7 +4,7 @@
   }
   @if (s.api.error()) {
     <p role="alert">
-      {{ s.api.error() }} <button (click)="s.api.retry()">Retry</button>
+      {{ s.api.error() }} <button mat-stroked-button (click)="s.api.retry()">Retry</button>
     </p>
   }
   @if (id()) {
@@ -19,7 +19,7 @@
         </p>
         <dl class="model-facts">
           <div><dt>Parameters</dt><dd>{{ x.r.totalParameters === null ? "Unknown" : (x.r.totalParameters / 1e9).toFixed(1) + "B" }}</dd></div>
-          <div><dt>Maximum context</dt><dd>{{ x.r.contextLimit?.toLocaleString() ?? "Unknown" }} <small>tokens</small></dd></div>
+          <div><dt>Maximum context</dt><dd>{{ contextK(x.r.contextLimit) }}</dd></div>
           <div><dt>Family</dt><dd>{{ x.r.family }}</dd></div>
           <div><dt>License</dt><dd><a [href]="x.r.licenseUrl" target="_blank" rel="noopener noreferrer">{{ x.r.license ?? "Unspecified" }} <mat-icon fontIcon="open_in_new"></mat-icon></a></dd></div>
         </dl></header>
@@ -33,8 +33,8 @@
         <aside class="model-fit surface" id="model-fit" aria-labelledby="fit-heading">
           <p class="eyebrow">YOUR SELECTED VARIANT</p>
           <h2 id="fit-heading">Will it fit your setup?</h2>
-          <p class="muted">{{ s.profile().gpu || "No GPU selected" }} &middot; {{ s.profile().vram ?? "Unknown" }} GiB VRAM &middot; {{ s.profile().ram ?? "Unknown" }} GiB RAM</p>
-          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer <mat-icon fontIcon="arrow_forward"></mat-icon></a>
+          <p class="muted">{{ s.profile().gpu || "No GPU selected" }} &middot; {{ s.profile().vram ?? "Unknown" }} GiB VRAM</p>
+          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></a>
           <atlas-summary [row]="x" [showFavourite]="true" [showDetails]="false" />
           <p class="small muted">Memory fit is an estimate. Runtime support remains unverified.</p>
         </aside>
@@ -42,47 +42,30 @@
         <section class="surface evidence-section" id="model-evidence" aria-labelledby="evidence-heading">
           <p class="eyebrow">KNOW WHAT YOU'RE COMPARING</p>
           <h2 id="evidence-heading">Quality & benchmark evidence</h2>
-          <p class="evidence-notice"><strong>Demo data, not measured performance.</strong> These task values demonstrate the interface. Use your own prompts to evaluate this model.</p>
-
-        <table class="quality-table">
-          <caption>
-            Synthetic task fixtures · not benchmark measurements
-          </caption>
-          <thead>
-            <tr>
-              <th>Task</th>
-              <th>Demo value / 100</th>
-              <th>Conditions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (t of tasks.slice(1); track t) {
-              <tr>
-                <td>{{ t }}</td>
-                <td>{{ quality(x.r.id, t).toFixed(0) }}</td>
-                <td>No measured test; release-level demo only</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-        <p class="small muted">These release-level fixtures are shared across variants. They do not measure the effect of quantization on quality.</p>
-        <a routerLink="/methodology" fragment="popularity">How to read these values <mat-icon fontIcon="arrow_forward"></mat-icon></a>
+          <p class="evidence-notice"><strong>Original-model quality input: {{ x.r.qualityRating.score }} / 100.</strong> {{ x.r.qualityRating.note }} Quantization effects have not been measured.</p>
+          <p>{{ x.r.qualityRating.basis === 'external-curated' ? 'Attributed editorial rating, not a measured benchmark index.' : 'Reference benchmark index.' }} Source checked {{ x.r.qualityRating.asOf | date:'longDate':'UTC' }}.</p>
+          <a [href]="x.r.qualityRating.sourceUrl" target="_blank" rel="noopener noreferrer">Quality source <mat-icon fontIcon="open_in_new"></mat-icon></a>
+          <p>Task tags: {{ x.r.tasks.join(', ') }}. Tags describe intended uses, not measured task scores. <a [href]="x.r.taskSource" target="_blank" rel="noopener noreferrer">Task evidence</a></p>
+          @if (x.r.referenceQuality; as ref) {
+          <table class="quality-table">
+            <caption>Measured original-model results · scale 0–100</caption>
+            <thead><tr><th>Benchmark</th><th>Result / 100</th><th>Conditions</th></tr></thead>
+            <tbody><tr><td>IFEval</td><td>{{ quality(x.r, 'IFEval')?.toFixed(0) }}</td><td>v2 · strict instruction accuracy · 0-shot</td></tr>
+            <tr><td>MMLU-Pro</td><td>{{ quality(x.r, 'MMLU-Pro')?.toFixed(0) }}</td><td>v0.1 · accuracy · 5-shot</td></tr></tbody>
+          </table>
+          <p>Evaluated {{ ref.evaluatedAt | date:'longDate':'UTC' }} · retrieved {{ ref.retrievedAt | date:'longDate':'UTC' }} · {{ ref.precision }}.</p>
+          <p>Evaluation revision: <code>{{ ref.modelRevision }}</code></p>
+          <a [href]="ref.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned evaluation results <mat-icon fontIcon="open_in_new"></mat-icon></a>
+          }
+          <a routerLink="/methodology" fragment="score">Reference index and conditions</a>
         </section>
         @if (rank() && recommendedDetail()) {
           @let rec = recommendedDetail()!;
           <section class="recommendation-reason">
             <h2>Why this model is recommended</h2>
             <p>
-              Rank {{ rank() }} for All tasks with {{ s.profile().vram }} GiB
-              VRAM, {{ s.profile().ram }} GiB RAM and
-              {{ s.profile().context }} tokens. Demo quality
-              {{ rec.q.toFixed(0) }}, hardware fit {{ rec.fit }}, speed
-              component
-              {{
-                rec.speedScore === null ? "unknown" : rec.speedScore.toFixed(0)
-              }}. Score {{ rec.score }}; weighted evidence coverage
-              {{ rec.coverage }}%. Only estimated compatible candidates enter
-              this ranking.
+              Rank {{ rank() }} with {{ s.profile().vram }} GiB VRAM and {{ contextK(s.profile().context) }} context.
+              Score {{ rec.scoreText }} combines original-model quality, full GPU fit, estimated speed and VRAM utilization. All variants are checked.
             </p>
           </section>
         }
@@ -96,8 +79,8 @@
             <a [href]="x.r.modelCardUrl" target="_blank" rel="noopener noreferrer">Original model card <mat-icon fontIcon="open_in_new"></mat-icon></a>
             <a [href]="x.a.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned artifact repository <mat-icon fontIcon="open_in_new"></mat-icon></a>
           </div>
-          <details>
-            <summary>Complete file set & provenance</summary>
+          <mat-expansion-panel class="evidence-panel">
+            <mat-expansion-panel-header><mat-panel-title>Complete file set & provenance</mat-panel-title></mat-expansion-panel-header>
             <dl class="artifact-provenance">
               <div><dt>Repository</dt><dd>{{ x.a.repository }}</dd></div>
               <div><dt>Artifact revision</dt><dd><code>{{ x.a.revision }}</code></dd></div>
@@ -115,7 +98,7 @@
             @if (x.r.missingFields.length || x.a.missingFields.length) {
               <p class="evidence-notice">Missing metadata: {{ x.r.missingFields.concat(x.a.missingFields).join(", ") }}</p>
             }
-          </details>
+          </mat-expansion-panel>
         </section>
         <section class="surface mock-chat" id="model-simulation">
           <p class="eyebrow">A FEEL FOR THE PACE</p>
@@ -125,38 +108,26 @@
             Start. Approximate token count = characters / 4; words are not
             counted as exact tokens.
           </p>
-          <label
-            >Example prompt
-            <select (change)="prompt.set($any($event.target).value)">
+          <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>Example prompt</mat-label><select matNativeControl (change)="prompt.set($any($event.target).value)">
               <option>Explain quantization simply.</option>
               <option>How should I test a local model?</option>
-            </select></label
-          ><label
-            >Your prompt
-            <textarea
+            </select></mat-form-field><mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>Your prompt</mat-label><textarea matInput
               [value]="prompt()"
               (input)="prompt.set($any($event.target).value)"
-            ></textarea>
-          </label>
+            ></textarea></mat-form-field>
           <p>All prompts use the same prepared demonstration response.</p>
           @if (!x.speed) {
-            <label
-              ><input
-                type="checkbox"
-                [checked]="demoRate()"
-                (change)="demoRate.set($any($event.target).checked)"
-              />
-              Use explicit demo speed: 12 approximate tokens/s</label
-            >
+            <p>{{ x.speedMessage }}. The demo rate does not represent performance on your hardware.</p>
+            <mat-checkbox [checked]="demoRate()" (change)="demoRate.set($event.checked)">Use explicit demo speed: 12 approximate tokens/s</mat-checkbox>
           }
           <div class="actions">
-            <button
+            <button mat-stroked-button
               (click)="start()"
               [disabled]="running() || (!x.speed && !demoRate())"
             >
               Start simulation</button
-            ><button (click)="stop()" [disabled]="!running()">Stop</button
-            ><button (click)="resetChat()">Reset</button>
+            ><button mat-stroked-button (click)="stop()" [disabled]="!running()">Stop</button
+            ><button mat-stroked-button (click)="resetChat()">Reset</button>
           </div>
           <p>
             Simulation rate: {{ simulationRate() ?? "not started" }} approximate
@@ -175,71 +146,35 @@
     <section class="intro-grid" aria-labelledby="intro-title">
       <div class="intro-heading">
         <h1 id="intro-title">Which model fits best?</h1>
-        <button type="button" (click)="s.reset()">Reset exploration</button>
+        <button mat-stroked-button type="button" (click)="s.reset()">Reset exploration</button>
       </div>
-      <form class="hardware-form" (submit)="$event.preventDefault()">
-        <label class="gpu-field"
-          >GPU<input
-            aria-label="GPU profile (searchable)"
-            list="gpu-list"
-            [value]="s.profile().gpu"
-            (change)="s.gpu($any($event.target).value)"
-            placeholder="Choose or type your GPU" /><datalist id="gpu-list">
-            @for (g of gpus; track g.name) {
-              <option [value]="g.name"></option>
-            }
-            <option value="Unknown GPU"></option>
-            <option value="CPU-only"></option></datalist
-        ></label>
-        <div class="field-grid">
-          <label
-            >VRAM <span class="unit">GiB</span
-            ><input
-              aria-label="VRAM · GiB (0–192)"
-              type="number"
-              min="0"
-              max="192"
-              [value]="s.profile().vram"
-              (input)="s.number('vram', $any($event.target).value)"
-            /><small>{{ manual("vram") }}</small></label
-          ><label
-            >Memory bandwidth <span class="unit">GB/s</span
-            ><input
-              aria-label="GPU memory bandwidth · GB/s (0–10000)"
-              type="number"
-              min="0"
-              max="10000"
-              [value]="s.profile().bandwidth"
-              (input)="s.number('bandwidth', $any($event.target).value)"
-            /><small> {{ manual("bandwidth") }}</small></label
-          >
+      <form class="hardware-form" aria-labelledby="hardware-heading" (submit)="$event.preventDefault()">
+        <h2 id="hardware-heading">Your hardware</h2>
+        <mat-form-field class="gpu-field" appearance="outline" floatLabel="always" subscriptSizing="dynamic">
+          <mat-label>Graphics card</mat-label>
+          <input matInput aria-label="GPU profile (searchable)" [matAutocomplete]="gpuOptions"
+            [formControl]="gpuInput"
+            placeholder="Search NVIDIA graphics cards" autocomplete="off" />
+          @if (gpuInput.value) {
+            <button mat-icon-button matSuffix type="button" aria-label="Clear GPU selection" (click)="clearGpu()"><mat-icon fontIcon="close"></mat-icon></button>
+          }
+          <mat-autocomplete #gpuOptions="matAutocomplete" class="gpu-options" (optionSelected)="selectGpu($event.option.value)" (closed)="finishGpuSearch()">
+            @for (g of filteredGpus(); track g.name) { <mat-option [value]="g.name">{{ g.name }}</mat-option> }
+            @empty { <mat-option disabled>No matching graphics cards</mat-option> }
+          </mat-autocomplete>
+        </mat-form-field>
+        <div class="field-grid hardware-specs">
+          <div><span>VRAM</span><output>{{ s.profile().vram ?? '—' }} GiB</output></div>
+          <div><span>Memory bandwidth</span><output>{{ s.profile().bandwidth ?? '—' }} GB/s</output></div>
         </div>
-        <div class="field-grid">
-          <label
-            >RAM <span class="unit">GiB</span
-            ><input
-              aria-label="System RAM · GiB (0–1024)"
-              type="number"
-              min="0"
-              max="1024"
-              [value]="s.profile().ram"
-              (input)="s.number('ram', $any($event.target).value)" /></label
-          ><label
-            >CPU<input
-              aria-label="CPU (optional free text)"
-              [value]="s.profile().cpu"
-              (input)="s.patch({ cpu: $any($event.target).value })"
-              placeholder="CPU model or unknown"
-          /></label>
-        </div>
-        <label
-          ><input
-            type="checkbox"
-            [checked]="s.profile().offload"
-            (change)="s.patch({ offload: $any($event.target).checked })"
-          />
-          Consider CPU offloading</label
-        >
+        <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>System RAM · GiB (optional)</mat-label>
+          <input matInput aria-label="System RAM · GiB" type="number" min="0" max="2048" [value]="s.profile().ram" (input)="s.number('ram', $any($event.target).value)" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>Requested context · K tokens</mat-label>
+          <input matInput aria-label="Requested context · K tokens" type="number" min="0.25" max="1024" step="0.25" [value]="s.profile().context / 1024" (input)="s.number('context', $any($event.target).value)" />
+        </mat-form-field>
+        <p class="small muted">RAM is a host-memory planning hint. Models must fit fully in VRAM.</p>
+        <p class="small muted">One NVIDIA GPU · llama.cpp CUDA · one request · F16 KV cache.</p>
       </form>
       <section class="recommendations" aria-label="Model recommendations">
         <div
@@ -248,12 +183,12 @@
           [attr.aria-label]="
             s.entered()
               ? 'All tasks recommendations'
-              : 'Popular models · demo popularity'
+              : 'Popular models · recent HF downloads'
           "
           (keydown.arrowright)="nextRecommendation(1)"
           (keydown.arrowleft)="nextRecommendation(-1)"
         >
-          <button
+          <button mat-icon-button
             class="carousel-arrow carousel-previous"
             [class.unavailable]="activeRecommendation() === 0"
             [disabled]="activeRecommendation() === 0"
@@ -273,11 +208,11 @@
               >
                 <span class="rank-badge"
                   >{{ i + 1 }}<small>/ {{ s.top().length }}</small></span
-                ><atlas-summary [row]="x" />
+                ><atlas-summary [row]="x" [showEvidence]="false" />
               </article>
             }
           </div>
-          <button
+          <button mat-icon-button
             class="carousel-arrow carousel-next"
             [class.unavailable]="s.top().length < 2"
             [disabled]="s.top().length < 2"
@@ -287,13 +222,13 @@
             <mat-icon fontIcon="chevron_right"></mat-icon>
           </button>
         </div>
-        @if (s.api.evaluating()) {
-          <p class="small" role="status">Updating memory estimates…</p>
+        @if (!s.entered()) {
+          <p class="small muted recommendation-tip">Popular starting points, ordered by recent downloads. Select a GPU for personal fit and speed estimates.</p>
         }
+
         @if (s.entered() && s.top().length < 5) {
           <p class="small">
-            Only {{ s.top().length }} assessable candidates fit. Supply VRAM and
-            RAM or adjust context/offloading; unknown data is not a fit.
+            {{ s.top().length }} recommendations meet the constraints. Select a GPU or reduce the requested context. Each model lists the reason if no variant qualifies.
           </p>
         }
       </section>
@@ -306,30 +241,29 @@
           </div>
           <p>{{ s.visible().length }} / {{ s.rows().length }} releases</p>
         </div>
-        <label
-          >Search model or provider<input
+        <mat-form-field class="catalog-search" appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>Search model or provider</mat-label><input matInput
             type="search"
             [value]="s.search()"
             (input)="s.search.set($any($event.target).value)"
             placeholder="Search the catalog"
-        /></label>
+        /></mat-form-field>
         <div class="view-toolbar">
           <div class="actions" aria-label="Task filters">
             @for (t of tasks; track t) {
-              <button [attr.aria-pressed]="s.task() === t" (click)="task(t)">
+              <button mat-stroked-button [attr.aria-pressed]="s.task() === t" (click)="task(t)">
                 {{ t }}
               </button>
             }
           </div>
           <div class="actions" aria-label="Catalog views">
             @for (v of views; track v) {
-              <button
+              <button mat-icon-button
                 [attr.aria-pressed]="s.view() === v"
                 (click)="s.view.set(v)"
                 [attr.aria-label]="v"
                 [attr.title]="v"
               >
-                <mat-icon [fontIcon]="viewIcons[v]"></mat-icon><span class="view-name">{{ v }}</span>
+                <mat-icon [fontIcon]="viewIcons[v]"></mat-icon>
               </button>
             }
           </div>
@@ -342,97 +276,83 @@
             @if (!s.visible().length && !s.api.loading()) {
               <p role="status">
                 No models match your search.
-                <button (click)="s.search.set('')">Clear search</button>
+                <button mat-stroked-button (click)="s.search.set('')">Clear search</button>
               </p>
             }
             @switch (s.view()) {
               @case ("Table") {
-                <div
-                  class="table-scroll"
-                  tabindex="0"
-                  aria-label="Scrollable model table"
-                >
-                  <table class="new-catalog">
-                    <thead>
-                      <tr>
-                        @for (c of columns; track c[0]) {
-                          <th
-                            [attr.aria-sort]="
-                              s.sort() === c[0]
-                                ? s.descending()
-                                  ? 'descending'
-                                  : 'ascending'
-                                : 'none'
-                            "
-                          >
-                            <button (click)="s.order(c[0])">
-                              {{ c[1] }}
-                              @if (s.sort() === c[0]) { <mat-icon [fontIcon]="s.descending() ? 'arrow_downward' : 'arrow_upward'"></mat-icon> }
-                            </button>
-                          </th>
-                        }
-                        <th scope="col" class="catalog-actions">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (x of s.visible(); track x.r.id) {
-                        <tr>
-                          <td>
+                <div class="table-scroll">
+                  <table mat-table matSort [matSortActive]="s.sort()" [matSortDirection]="s.descending() ? 'desc' : 'asc'" matSortStart="desc" [matSortDisableClear]="true" (matSortChange)="sortTable($event)" [fixedLayout]="true" class="new-catalog" [dataSource]="s.visible()" [trackBy]="trackRelease" aria-label="Model catalog">
+<ng-container matColumnDef="name">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="name" sortActionDescription="Sort by Model">Model</th>
+<td mat-cell *matCellDef="let x" data-label="Model">
                             <a [routerLink]="['/models', x.r.id]">{{
                               x.r.name
                             }}</a
-                            ><label
-                              >Variant<select
-                                [ngModel]="x.a.id"
-                                (ngModelChange)="s.variant(x.r.id, $event)"
+                            ><mat-form-field class="variant-field" appearance="outline" floatLabel="always" subscriptSizing="dynamic"><mat-label>Variant</mat-label><mat-select aria-label="Variant"
+                                [value]="x.a.id"
+                                (selectionChange)="s.variant(x.r.id, $event.value)"
                               >
                                 @for (a of s.api.variants(x.r.id); track a.id) {
-                                  <option [value]="a.id">
+                                  <mat-option [value]="a.id">
                                     {{ a.quantization }}
-                                  </option>
+                                  </mat-option>
                                 }
-                              </select></label
-                            ><small>{{ x.status }}</small>
+                              </mat-select></mat-form-field>
                           </td>
-                          <td>
+</ng-container>
+<ng-container matColumnDef="parameters">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="parameters" sortActionDescription="Sort by Parameters">Parameters</th>
+<td mat-cell *matCellDef="let x" data-label="Parameters">
                             {{
                               x.r.totalParameters === null
                                 ? "Unknown"
                                 : (x.r.totalParameters / 1e9).toFixed(1) + "B"
                             }}
                           </td>
-                          <td>
-                            {{ x.r.contextLimit ?? "Unknown"
+</ng-container>
+<ng-container matColumnDef="context">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="context" sortActionDescription="Sort by Max context">Max context</th>
+<td mat-cell *matCellDef="let x" data-label="Max context">
+                            {{ contextK(x.r.contextLimit)
                             }}<small
-                              >Requested: {{ s.profile().context }}</small
+                              >Requested: {{ contextK(s.profile().context) }}</small
                             >
                           </td>
-                          <td>
-                            {{ x.e?.gpuRequiredGiB?.toFixed(2) ?? "Unknown" }} /
-                            {{ x.e?.totalGiB?.toFixed(2) ?? "Unknown"
-                            }}<small
-                              >Available:
-                              {{ s.profile().vram ?? "Unknown" }} GiB</small
-                            >
+</ng-container>
+<ng-container matColumnDef="memory">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="memory" sortActionDescription="Sort by VRAM">VRAM</th>
+<td mat-cell *matCellDef="let x" data-label="VRAM">
+                            {{ x.e?.totalGiB?.toFixed(1) ?? '—' }} GiB
+                            <div class="vram-meter" [class.over-budget]="x.vramPercent !== null && x.vramPercent > 100"
+                              role="progressbar" aria-label="GPU VRAM usage" aria-valuemin="0" aria-valuemax="100"
+                              [attr.aria-valuenow]="x.vramPercent === null ? null : x.fillPercent"
+                              [attr.aria-valuetext]="x.vramPercent === null ? 'Select a GPU' : x.vramPercent + '% of GPU VRAM required'">
+                              <span [style.width.%]="x.fillPercent"></span>
+                            </div>
+                            <small>{{ x.vramPercent === null ? 'Select a GPU' : x.vramPercent + '% of ' + s.profile().vram + ' GiB' }}</small>
                           </td>
-                          <td>
-                            {{
-                              x.speed
-                                ? x.speed.low + "–" + x.speed.high
-                                : "Unknown"
-                            }}<small>Rough estimate</small>
+</ng-container>
+<ng-container matColumnDef="speed">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="speed" sortActionDescription="Sort by Speed tokens/s">Speed tokens/s</th>
+<td mat-cell *matCellDef="let x" data-label="Speed">
+                            {{ x.speedText }}@if (x.speed) { <small>Estimated tokens/s</small> }
                           </td>
-                          <td>
-                            {{ x.score ?? "Unknown"
-                            }}<small
-                              >Demo quality · {{ x.coverage }}% coverage</small
-                            >
+</ng-container>
+<ng-container matColumnDef="score">
+<th mat-header-cell *matHeaderCellDef mat-sort-header="score" [matTooltip]="scoreHint" sortActionDescription="Sort by Score">Score</th>
+<td mat-cell *matCellDef="let x" data-label="Score" tabindex="0" [matTooltip]="scoreHint">
+                            {{ x.scoreText }}
+                            <small>{{ x.r.qualityRating.basis === 'external-curated' ? 'Curated quality' : 'Reference quality' }}: {{ x.r.qualityRating.score.toFixed(0) }} / 100</small>
                           </td>
-                          <td class="catalog-actions"><atlas-favourite-button [row]="x" /></td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
+</ng-container>
+<ng-container matColumnDef="actions">
+<th mat-header-cell *matHeaderCellDef class="catalog-actions" >Actions</th>
+<td mat-cell *matCellDef="let x" class="catalog-actions"><atlas-favourite-button [row]="x" /></td>
+</ng-container>
+<tr mat-header-row *matHeaderRowDef="tableColumns"></tr>
+<tr mat-row *matRowDef="let row; columns: tableColumns"></tr>
+</table>
                 </div>
               }
               @case ("Tiles") {
@@ -441,6 +361,7 @@
                     <article class="model-tile">
                       <atlas-summary
                         [row]="x"
+                        [compact]="true"
                         [showFavourite]="true"
                         [showEvidence]="false"
                       />
@@ -449,10 +370,9 @@
                 </div>
               }
               @case ("Bars") {
-                <p>Score · fixed scale 0–100 · demo quality included</p>
                 <div class="score-bars">
                   @for (x of s.visible(); track x.r.id) {
-                    <button class="score-row" (click)="openPreview(x.a.id)">
+                    <button [matTooltip]="scoreHint" class="score-row" (click)="openPreview(x.a.id)">
                       <span>{{ x.r.name }} · {{ x.a.quantization }}</span
                       ><span class="bar-track">
                         @if (x.score !== null) {
@@ -461,23 +381,23 @@
                             [style.width.%]="x.score"
                           ></span>
                         }</span
-                      ><b>{{ x.score ?? "Unknown" }}</b>
+                      ><b>{{ x.scoreText }}</b>
                     </button>
                   }
                 </div>
               }
               @case ("Plot") {
                 <div class="plot-heading">
-                  <div><h3>Speed & task quality</h3><p>Select a model to inspect its exact variant.</p></div>
-                  <span class="plot-evidence">Estimated speed · Demo quality</span>
+                  <div><h3>Speed & model quality</h3><p>Select a model to inspect its exact variant.</p></div>
+                  <span class="plot-evidence">Estimated speed · Sourced quality rating</span>
                 </div>
                 <div class="plot-scroll">
                   <div
                     class="speed-plot"
-                    aria-label="Speed versus demo quality"
+                    aria-label="Speed versus model quality"
                     role="group"
                   >
-                    <span class="axis-y">Demo task quality <span>/ 100</span></span>
+                    <span class="axis-y">Quality input <span>/ 100</span></span>
                     <div class="plot-area">
                     @for (tick of [0, 50, 100, 150, 200]; track tick) {
                       <span
@@ -498,9 +418,9 @@
                         class="plot-dot"
                         [class.is-selected]="s.preview() === x.a.id"
                         [attr.aria-pressed]="s.preview() === x.a.id"
-                        [class.label-left]="(x.speed!.low + x.speed!.high) / 2 > 100"
+                        [class.label-left]="x.speed!.typical > 100"
                         [style.left.%]="
-                          clamp((x.speed!.low + x.speed!.high) / 2) / 2
+                          clamp(x.speed!.typical) / 2
                         "
                         [style.bottom.%]="x.q"
                         (click)="openPreview(x.a.id)"
@@ -511,23 +431,21 @@
                           ' quality ' +
                           x.q +
                           ' speed ' +
-                          x.speed!.low +
-                          ' to ' +
-                          x.speed!.high
+                          x.speedText
                         "
                       >
                         <span class="point-mark" aria-hidden="true"></span>
-                        <span class="point-label"><strong>{{ x.r.name }}</strong><span>{{ x.a.quantization }} · {{ x.speed!.low }}–{{ x.speed!.high }} tokens/s</span></span>
+                        <span class="point-label"><strong>{{ x.r.name }}</strong><span>{{ x.a.quantization }} · {{ x.speedText }} tokens/s</span></span>
                       </button>
                     }
                     @if (!plotted().length) {
-                      <div class="plot-empty"><strong>No speed estimates to plot</strong><span>Check your GPU, VRAM, RAM and bandwidth settings, or broaden your search.</span></div>
+                      <div class="plot-empty"><strong>No speed estimates to plot</strong><span>Select a GPU; check VRAM and context limits in the Table view.</span></div>
                     }
                     </div>
-                    <span class="axis-x">Estimated speed <span>· tokens/s <mat-icon fontIcon="arrow_forward"></mat-icon></span></span>
+                    <span class="axis-x">Estimated speed <span>· tokens/s <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></span></span>
                   </div>
                 </div>
-                <div class="plot-footer"><span>{{ plotted().length }} plotted · {{ s.visible().length - plotted().length }} omitted (unknown speed)</span><span>Speed midpoint · Linear scale · Values above 200 at boundary</span></div>
+                <div class="plot-footer"><span>{{ plotted().length }} plotted · {{ s.visible().length - plotted().length }} without an estimate (see reasons in Table view)</span><span>Typical estimate · Linear scale · Values above 200 at boundary</span></div>
               }
             }
           </div>
@@ -538,30 +456,30 @@
                 tabindex="-1"
                 aria-label="Selected variant preview"
               >
-                <button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><mat-icon fontIcon="close"></mat-icon></button>
+                <button mat-icon-button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><mat-icon fontIcon="close"></mat-icon></button>
                 @if (s.view() === "Bars") {
                   <div class="preview-heading">
                     <h3>
                       <mark>{{ x.r.name }}</mark>
                     </h3>
-                    <strong>Score {{ x.score ?? "Unknown" }}</strong>
+                    <strong tabindex="0" [matTooltip]="scoreHint">Score {{ x.scoreText }}</strong>
                   </div>
-                  <div class="mini-benchmarks">
-                    <span>Task quality · demo / 100</span>
+                  @if (x.r.referenceQuality) { <div class="mini-benchmarks">
+                    <span>Benchmark results / 100</span>
                     <div class="mini-benchmark-bars">
-                      @for (t of tasks.slice(1); track t) {
+                      @for (t of benchmarks; track t) {
                         <div>
-                          <i [style.height.px]="quality(x.r.id, t)"></i
+                          <i [style.height.px]="quality(x.r, t)"></i
                           ><small>{{ t }}</small>
                         </div>
                       }
                     </div>
-                  </div>
+                  </div> }
                 }
                 <atlas-summary [row]="x" />
                 <p>
-                  Relevant benchmarks: unavailable. Task quality is a demo
-                  fixture, not a measured test result.
+                  Quality inputs refer to the original model. Sources and evidence types are listed in Details.
+                  No quantization quality adjustment is assumed.
                 </p>
               </section>
             }
@@ -569,10 +487,10 @@
         </div>
       </section>
       <div class="favourites-sidebar" [class.is-open]="s.favouritesOpen()">
-        <button class="catalog-favourites-trigger" aria-controls="catalog-favourites"
+        <button mat-stroked-button class="catalog-favourites-trigger" aria-controls="catalog-favourites"
           [attr.aria-expanded]="s.favouritesOpen()" (click)="s.favouritesOpen.set(!s.favouritesOpen())">
           <mat-icon [fontIcon]="s.favouritesOpen() ? 'chevron_right' : 'chevron_left'"></mat-icon>
-          <span>Favourites</span><span class="rail-count">{{ s.favourites().length }}</span>
+          <span class="rail-label"><span>Favourites</span><span class="rail-count">{{ s.favourites().length }}</span></span>
         </button>
         <div class="favourites-slide" [attr.inert]="s.favouritesOpen() ? null : ''" [attr.aria-hidden]="!s.favouritesOpen()">
           <atlas-favourites />

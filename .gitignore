@@ -21,3 +21,7 @@ __pycache__/
 *.log
 .vs/
 .DS_Store
+**/secrets.json
+**/appsettings.Local.json
+**/appsettings.*.local.json
+artifacts/hf-probes/

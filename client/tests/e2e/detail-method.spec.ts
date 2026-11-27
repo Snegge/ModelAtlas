@@ -20,7 +20,7 @@ test("detail sources follow the exact variant and reading pages work on mobile",
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: "test-results/model-mobile.png", fullPage: true });
   await page.goto("/methodology");
-  await page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: /Prototype score/ }).click();
+  await page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: /Score & reference quality/ }).click();
   await expect(page).toHaveURL(/#score$/);
   await expect(page.locator(".score-weights")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

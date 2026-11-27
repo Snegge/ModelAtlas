@@ -1,3 +1,119 @@
+> Historical prototype documentation. The 2026-11-27 catalog, quality, GPU-only estimates and update rules are documented in [CATALOG-QUALITY.md](CATALOG-QUALITY.md), which supersedes earlier counts, synthetic scores and partial-placement behavior below.
+
+## Feature branch pre-push validation — 2026-11-27
+
+52 frontend unit/contract tests, the Angular production build, 27 .NET tests and
+13 Python importer tests pass. The complete Chrome browser run reported success
+for all 47 scenarios, but did not exit after the final scenario; it was interrupted
+during shutdown. The recent targeted five-scenario run exited successfully.
+NuGet vulnerability metadata remained unreachable (NU1900); tests compiled and ran.
+A repository-wide credential-pattern scan passed; actual local secrets, caches,
+model weights and browser artifacts are ignored. Firefox/Safari were not checked.
+
+## WillItRunAI-inspired workspace — 2026-11-27
+
+Visual follow-up: memory runtime uses ochre, reserve purple and free space an
+outlined pale surface, using shared tokens in bars and legends. Directional icons
+use iconPositionEnd in text actions. Sort hover surfaces use the pill radius token.
+The hardware form is a surface card with heading and grouped reference GPU specs.
+Recommendation carousel summaries hide evidence expansion panels; details keep
+their evidence. Discover highlight and feature headings are keyboard-accessible
+links to their exact model detail routes. 52 unit/style tests, the production
+build, all 42 existing browser scenarios and two additional desktop/mobile tests
+passed. Additional checks cover trailing arrow geometry, all five carousel pages
+without expansion panels, memory encodings/borders, and both title links by click
+and Enter. Desktop/mobile screenshots were inspected. Chrome only; no estimates,
+catalog data, dependencies or running services were changed.
+
+Interaction fixes follow-up: recommendations retain automatic model ranking but
+display the same explicitly selected variant as the table/details; chips update
+the card immediately, including an unfit zero-score variant without jumping to a
+different model. Removed the Bars explanatory paragraph and added a shared short
+Material score tooltip to cards, table score/header, bars and previews. Favourite
+hover uses one whole-button surface with no additional circular state layer.
+Sort arrows use muted text and softer padded hover surfaces; carousel arrows use
+outlined white surfaces. Discover feature is no longer sticky so its top aligns
+with the shortlist; Method paragraphs fill the content width. Router fragments use
+a measured sticky-header offset; Discover entry actions focus/scroll to the active
+collection tab after lazy rendering. Tests verify variant synchronization, unfit
+selection, score tooltip display and all detail/Method anchor positions on mobile
+and desktop. 52 unit/style tests and production build pass. Of 42 browser scenarios,
+39 passed in the full run and the three carousel-style checks passed after the
+final CSS correction, alongside three cross-route style checks. Screenshots were
+inspected. Chrome only; existing services were used without starting background
+servers. No estimation formula or catalog data changed.
+
+Discover tabs follow-up: replaced collection toggles with MatTabGroup and lazy
+MatTabContent. All tabs render the same NgTemplateOutlet content definition; only
+the active collection's shortlist/detail view is mounted. Selected state follows
+the existing collection signal, including programmatic resets from the carousel.
+Material owns keyboard focus, Home/End/Enter activation and narrow-header
+pagination. Removed toggle-only and mobile two-column filter styles. Official
+Material tabs documentation was reviewed. Production build and 52 unit/style
+tests pass; Discover navigation/keyboard, layout and accessibility/style flows
+cover 390/768/1440px. Tested with Chrome; no services were started or restarted.
+
+Layout polish follow-up: Model cells have no small/status text; MatSort headers
+include action descriptions, live announcements, padded hover surfaces and fixed
+column shares. Discover collection switches use exclusive Material toggles and
+all shortlist cards share padding, wrapping and metric presentation. Reduced the
+Explorer intro/catalog gap; both carousels use primary-colored arrows. UI renamed
+Suitability score to Score without changing the API or calculation. Method's four
+weights occupy one 45/25/15/15 proportional row. Tests cover stable header bounds
+across all sort columns, filter target sizes, all four collection layouts, no
+overlapping shortlist text, no Model-cell small tags and mobile score-bar geometry.
+51 unit/style tests, all 40 browser scenarios and the production build pass;
+browser evidence covers 390/768/1440 pixels, including accessibility. Desktop and
+mobile screenshots were inspected. The final mobile toggle grid and compact Util
+label passed the three targeted layout scenarios again. Chrome only.
+
+Material application corrections: restored semantic header router links with
+active underlines; shared quantization and carousel styling across routes; true
+icon-only catalog view buttons; symmetrical recommendation padding with the rank
+in normal flow; explicit label/count gap inside Material's rail label projection.
+Catalog now uses MatTable data/column/row definitions and MatSelect variants,
+preserving filtering, ordering, selected artifacts, page scrolling and mobile
+reflow. Successful fit text was removed from rows; non-fitting reasons remain.
+Reviewed official Material button/table/select documentation (linked in the style
+guide). 51 unit/style tests and production build passed; all 34 existing browser
+scenarios passed after the table migration. Three additional scenarios passed at
+390/768/1440px verifying actual cross-route button appearance, card padding,
+toolbar icon centres, rail spacing, Material table/select and keyboard selection.
+Final desktop/mobile screenshots were inspected. Chrome only; no calculation,
+catalog or backend changes were needed.
+
+Material consistency follow-up: routed Explorer, Discover, model details and Method
+now share Material action/navigation buttons, outlined input/select fields,
+checkboxes and expansion panels. Compact variant selects retain native option
+semantics inside Material fields. Plot/bar data markers remain specialized.
+The style contract checks ordinary routed controls for Material directives.
+Shared typography uses local design tokens. Layout corrections preserve hardware
+field gaps, growing Discover selection rows, the 44px favourites rail, 20px icons
+and contained carousel focus/ripple layers. No new dependency or data/ranking
+change was required. Validation: 50 unit/style tests, production build and the
+desktop/tablet/mobile browser suite, including accessibility and visual review.
+
+GPU picker follow-up: separate reactive search text from committed hardware; use
+an outlined Material field/autocomplete with Material suffix clear action and
+local typography. General recommendations and all releases remain visible with
+no GPU, during uncommitted searches, after clearing and after reset. Restored
+hardware now compares field values rather than JSON key order, fixing empty
+recommendations and permanently pending estimates after reload. An outdated API
+catalog produces a restart/retry message instead of a rendering exception.
+Verified with 49 unit/style tests, production build, 3 targeted browser scenarios
+and 23 related regression scenarios. The targeted scenarios include pointer and
+keyboard selection, invalid searches, clearing, persisted selection, reset,
+old-API recovery and desktop/mobile accessibility. Local development services on
+5050/4200 were restarted with the current build; the frontend uses file polling.
+
+- Real public metadata import published 44 releases / 132 variants / 9 families. All previous 29 qualified releases remain; 62 source/release exclusions are documented. No model inference or complete weight download occurred.
+- 27 .NET tests passed, including complete published estimates, score components, tight/failed fit boundaries, RAM isolation, variant ranking and last-good catalog retention.
+- 47 frontend unit/style tests passed; Angular production build passed without warnings.
+- 13 Python tests passed, including exact checkpoint matching, explicit editorial versus benchmark evidence, bounded GGUF parsing, pagination, secret stripping on redirects and atomic update failure handling.
+- 31 Playwright scenarios passed after fixing mobile table overflow and updating the changed control expectations. The five affected catalog/accessibility/layout flows passed again after the final display changes. Tests used isolated API/client ports 5051/4201 and installed Chrome; the bundled Playwright Chromium executable was unavailable.
+- Browser coverage: 390/768/1440 px, keyboard GPU search, automatic specifications, all four task filters, full GPU gating, RAM independence, retry, K contexts, VRAM bars, sticky navigation, page scrolling, shared views, favourites, sources, accessibility and screenshots. Desktop/mobile screenshots were inspected.
+- NuGet vulnerability metadata could not be reached (NU1900); compilation and tests completed. No new packages were added. Speed remains an uncalibrated heuristic and mixed quality sources are not a uniform benchmark ranking. Manual editorial profile review remains necessary; metadata refresh alone does not refresh those ratings.
+
 # Catalog expansion validation — November 6, 2026
 
 The bundled catalog now contains **84 distinct releases / 252 exact GGUF artifacts / 14 families**, up from 38 / 114 / 6. Live public Hub metadata and bounded binary headers validated 46 additions out of 61 candidates. An explicit comparison against the previous committed snapshot confirmed that every existing release and artifact record remains unchanged, including comparison IDs and retrieval dates. Eight artifacts contain complete multi-file sets. No full model weights or inference were run.
@@ -117,6 +233,45 @@ browser console errors across catalog views, details and Discover. Existing
 carousel tests also verify icon centering. The mobile Discover screenshot was
 visually inspected. The four previously recorded exploration test failures were
 not rerun; legacy unmounted components and Firefox/Safari were not browser-tested.
+
+## Uniform catalog tiles — 2026-11-27
+
+Catalog tiles use the summary's compact mode to omit the redundant fit paragraph
+and RAM advice; recommendations, favourites and details retain their existing
+content. Equal grid rows, a two-line description area and bottom-aligned actions
+keep tile heights uniform without a fixed pixel height.
+52 unit/contract tests, the production build and five relevant browser checks pass.
+The new checks cover all catalog tile heights with/without a GPU, short/long text,
+no redundant paragraphs, overflow and detail navigation at 390/768/1440px.
+Screenshots at these widths were inspected in Chrome; Firefox/Safari were not checked.
+
+## Memory palette C — 2026-11-27
+
+Replaced palette B with the proposed blue/cyan/violet/berry/pale gray tokens.
+52 unit/contract tests, the production build and both visual-followup browser
+flows pass. Memory cards were visually checked at 390/768/1440px in Chrome.
+Firefox and Safari were not checked.
+
+## Open hardware form and muted memory palette — 2026-11-27
+
+Intro layout C removes the hardware card surface and outer padding, preserves
+Material fields and grouped GPU specs, and uses a 24px grid gap. Memory palette B
+uses the shared tokens across cards, legends and detail charts; free space remains
+outlined. The guide and browser assertions reflect the selected design.
+52 unit/contract tests, the production build and eight relevant browser checks
+pass at 390/768/1440px. Screenshots cover the selected GPU state at these widths.
+Checks use installed Chrome; Firefox and Safari were not checked.
+
+## Table and link refinements — 2026-11-27
+
+The catalog header cells use the subtle surface token; separate table borders
+allow rounded corners without clipping focus indicators or adding nested scrolling.
+Discover model headings share Explorer's color-only hover, and trailing Material
+button icons have no additional horizontal margins. Memory palettes and intro-grid
+layouts are proposals only, available in `.cache/design-options.html`.
+52 unit/contract tests, the production build and eight relevant browser tests pass
+at 390, 768 and 1440px. The desktop screenshot and proposal sketches were inspected.
+Browser checks use installed Chrome; Firefox/Safari were not checked.
 
 ## Standard fontIcon API — 2026-11-26
 

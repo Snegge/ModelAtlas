@@ -1,3 +1,5 @@
+> Historical prototype documentation. The 2026-11-27 catalog, quality, GPU-only estimates and update rules are documented in [CATALOG-QUALITY.md](CATALOG-QUALITY.md), which supersedes earlier counts, synthetic scores and partial-placement behavior below.
+
 # Catalog expansion — verified snapshot
 
 Research and import completed November 6, 2026. The catalog grew from **38 to 84 distinct releases**, from **114 to 252 concrete GGUF artifacts**, and from **6 to 14 families**. This exceeds the requested doubling; quantizations are not counted as separate models. All original records, pinned revisions and comparison IDs were preserved.

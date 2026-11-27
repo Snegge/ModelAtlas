@@ -1,3 +1,4 @@
+import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { Component, effect, inject } from "@angular/core";
 import { WorkspaceStore } from "../workspace/workspace.store";
@@ -6,12 +7,12 @@ import { WorkspaceStore } from "../workspace/workspace.store";
 @Component({
   selector: "atlas-snackbar",
   standalone: true,
-  imports: [MatIconModule],
+  imports: [MatButtonModule, MatIconModule],
   template: `
     @if (s.message()) {
       <div class="snackbar" role="status" aria-live="polite" aria-atomic="true">
         <span>{{ s.message() }}</span>
-        <button
+        <button mat-icon-button
           type="button"
           aria-label="Dismiss notification"
           (click)="s.message.set('')"

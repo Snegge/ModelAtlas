@@ -11,14 +11,25 @@ for (const width of [390, 768, 1440]) {
   await page.route("**/api/**", async route => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/catalog") await route.fulfill({ json: catalog });
-    else if (path === "/api/catalog/status") await route.fulfill({ json: {} });
+    else if (path === "/api/catalog/status") await route.fulfill({ json: {
+      releaseCount: catalog.releases.length, artifactCount: catalog.artifacts.length,
+      retrievedAt: catalog.retrievedAt, importIssues: catalog.importIssues,
+    } });
     else await route.abort();
   });
   await page.goto("/");
   await page.getByRole("link", { name: "Discover", exact: true }).click();
-  await expect(page.getByRole("link", {name:"Discover",exact:true})).toHaveClass("active");
+  await expect(page.getByRole("link", {name:"Discover",exact:true})).toHaveClass(/\bactive\b/);
   await page.reload();
-  expect(await page.locator(".discover-filters").evaluate(el => el.getBoundingClientRect().top)).toBeGreaterThanOrEqual(900);
+  const firstTab = page.getByRole('tab', {name:'Highlights',exact:true});
+  await expect(firstTab).toHaveAttribute('aria-selected','true');
+  await firstTab.focus();await firstTab.press('End');await page.keyboard.press('Enter');
+  await expect(page.getByRole('tab',{name:'Popular',exact:true})).toHaveAttribute('aria-selected','true');
+  await page.keyboard.press('Home');await page.keyboard.press('Enter');
+  await expect(firstTab).toHaveAttribute('aria-selected','true');
+  await expect(page.getByRole('tabpanel')).toHaveCount(1);
+  await expect(page.locator('.discover-shortlist')).toHaveCount(1);
+  expect(await page.locator(".discover-filters").evaluate(el => el.getBoundingClientRect().top + scrollY)).toBeGreaterThanOrEqual(900);
   await expect(page.locator(".highlight-card")).toHaveCount(1);
   const next = page.getByRole("button", {name:"Next highlight"});
   await expect.poll(() => next.evaluate(button => {
@@ -42,7 +53,7 @@ for (const width of [390, 768, 1440]) {
   await expect(page.locator(".highlight-card [role=status]")).toHaveText("2 of 10");
   await page.emulateMedia({ reducedMotion:"reduce" });
   await page.getByRole("button", {name:"Learn more"}).click();
-  await expect(page.locator("#detail-title")).toBeFocused();
+  await expect(page.getByRole('tab',{name:'Highlights',exact:true})).toBeFocused();
   await page.locator(".discover-shortlist button").nth(3).click();
   await expect(page.locator(".highlight-card.active h2")).toHaveText(HIGHLIGHTS[3].name);
   await expect(page.locator("#detail-title")).toHaveText(HIGHLIGHTS[3].name);
@@ -52,16 +63,17 @@ for (const width of [390, 768, 1440]) {
   await page.getByRole("button", {name:"Dismiss notification"}).click();
   const highlightName = await page.locator(".highlight-card h2").textContent();
   for (const tab of ["New Releases", "Most discussed", "Popular"]) {
-    await page.getByRole("button", {name:tab,exact:true}).click();
+    await page.getByRole("tab", {name:tab,exact:true}).click();
     await expect(page.locator(".discover-shortlist button")).toHaveCount(10);
-    const ranked = [...DISCOVER_METADATA.models].sort((a,b) => tab === "New Releases" ? b.createdAt.localeCompare(a.createdAt) : tab === "Popular" ? b.downloads-a.downloads : b.discussions-a.discussions);
+    const ranked = catalog.releases.map((r:{id:string;releaseCreatedAt:string;downloadsLastMonth:number})=>({id:r.id,createdAt:r.releaseCreatedAt,downloads:r.downloadsLastMonth,discussions:DISCOVER_METADATA.models.find(m=>m.id===r.id)?.discussions ?? 0})).sort((a:{createdAt:string;downloads:number;discussions:number},b:{createdAt:string;downloads:number;discussions:number}) => tab === "New Releases" ? b.createdAt.localeCompare(a.createdAt) : tab === "Popular" ? b.downloads-a.downloads : b.discussions-a.discussions);
     const expected = catalog.releases.find((r: {id:string}) => r.id === ranked[0].id);
     await expect(page.locator(".discover-shortlist button").first()).toContainText(expected.name);
     await page.locator(".discover-shortlist button").nth(1).click();
     await expect(page.locator(".highlight-card h2")).toHaveText(highlightName!);
     await expect(page.locator(".discover-feature")).toContainText(tab === "Popular" ? "downloads / 30 days" : tab === "New Releases" ? "Repository created" : "community threads");
   }
-  await page.getByRole("button", {name:"Highlights",exact:true}).click();
+  await page.getByRole('tab',{name:'Popular',exact:true}).press('Home');
+  await page.keyboard.press('Enter');
   await expect(page.locator("#detail-title")).toHaveText(highlightName!);
   await page.screenshot({path: "test-results/discover-details-"+width+".png",fullPage:true});
   await page.evaluate(() => scrollTo(0,0));
@@ -71,6 +83,7 @@ for (const width of [390, 768, 1440]) {
   await page.screenshot({path:"test-results/model-"+width+".png"});
   await page.goto("/methodology");
   await expect(page.locator(".method-page")).toBeVisible();
+  await expect(page.locator('.method-page')).toContainText(`Excluded candidates (${catalog.importIssues.length})`);
   await page.screenshot({path:"test-results/method-"+width+".png"});
  });
 }

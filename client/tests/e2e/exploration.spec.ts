@@ -1,3 +1,4 @@
+import {chooseVariant} from "./variant";
 import { test, expect, Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 async function boot(page: Page) {
@@ -10,8 +11,8 @@ async function hardware(
   ram = "48",
 ) {
   await page.getByLabel("GPU profile (searchable)").fill(gpu);
-  await page.getByLabel("GPU profile (searchable)").press("Tab");
-  await page.getByLabel("System RAM · GiB (0–1024)").fill(ram);
+  await page.getByLabel("GPU profile (searchable)").press("ArrowDown");
+  await page.getByLabel("GPU profile (searchable)").press("Enter");
   await expect(page.locator(".recommendation").first()).toContainText("/ 100");
 }
 async function view(page: Page, name: string) {
@@ -31,9 +32,9 @@ test("expanded catalog exposes sourced new families and retains exact variants a
   request,
 }) => {
   const status = await (await request.get("/api/catalog/status")).json();
-  expect(status.releaseCount).toBeGreaterThanOrEqual(76);
+  expect(status.releaseCount).toBeGreaterThan(0);
   expect(status.families.map((f: { name: string }) => f.name)).toEqual(
-    expect.arrayContaining(["SmolLM", "OLMo", "Falcon", "EXAONE", "LFM"]),
+    expect.arrayContaining(["SmolLM", "Falcon", "Qwen", "Gemma", "Phi"]),
   );
   await boot(page);
   await expect(page.locator(".new-catalog tbody tr")).toHaveCount(status.releaseCount);
@@ -41,8 +42,8 @@ test("expanded catalog exposes sourced new families and retains exact variants a
   await page.getByLabel("Search model or provider").fill("SmolLM2-1.7B-Instruct");
   const row = page.locator(".new-catalog tbody tr");
   await expect(row).toHaveCount(1);
-  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
-  await expect(row).toContainText("gpu-fit");
+  await chooseVariant(row.getByLabel('Variant'), 'Q8_0');
+  await expect(row.locator('td').nth(4)).toContainText(/~\d+/);
   for (const name of ["Tiles", "Bars", "Plot", "Table"]) {
     await view(page, name);
     await expect(page.getByLabel("Search model or provider")).toHaveValue("SmolLM2-1.7B-Instruct");
@@ -50,10 +51,10 @@ test("expanded catalog exposes sourced new families and retains exact variants a
       await expect(page.locator(".model-tile .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
     if (name === "Plot") await expect(page.locator(".plot-dot")).toHaveCount(1);
   }
-  await expect(row.getByLabel("Variant").locator("option:checked")).toHaveText("Q8_0");
+  await expect(row.getByLabel("Variant")).toContainText("Q8_0");
   await row.getByRole("link", { name: "SmolLM2-1.7B-Instruct", exact: true }).click();
   await expect(page.locator(".detail-page .quantization-chips button[aria-pressed=true]")).toHaveText("Q8_0");
-  await page.locator(".card-evidence summary").click();
+  await page.locator(".card-evidence mat-expansion-panel-header").click();
   await expect(page.getByRole("link", { name: "Artifact source", exact: true })).toHaveAttribute(
     "href", /^https:\/\/huggingface\.co\/bartowski\/SmolLM2-1.7B-Instruct-GGUF\/tree\/[a-f0-9]{40}$/,
   );
@@ -67,10 +68,10 @@ test("clean catalog views preserve search and chart comparisons", async ({
 }) => {
   await boot(page);
   await expect(
-    page.getByRole("region", { name: "Popular models · demo popularity" }),
+    page.getByRole("region", { name: "Popular models · recent HF downloads" }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("VRAM · GiB (0–192)", { exact: true }),
+    page.getByLabel("GPU profile (searchable)"),
   ).toHaveValue("");
   await expect(
     page.locator(".workspace-toolbar,.recommendation-topline,.carousel-footer"),
@@ -104,39 +105,22 @@ test("clean catalog views preserve search and chart comparisons", async ({
   await expect(page.getByText("No models match your search.")).toBeVisible();
 });
 
-test("profiles, overrides and All tasks recommendations stay independent of catalog filters", async ({
+test("profiles, automatic specifications and All tasks recommendations stay independent of catalog filters", async ({
   page,
 }) => {
   await boot(page);
   await hardware(page);
-  await expect(
-    page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
-  ).toHaveValue("360");
-  await page.getByLabel("VRAM · GiB (0–192)", { exact: true }).fill("10");
-  await expect(
-    page.getByText("Manual override", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator('.hardware-specs')).toContainText('360 GB/s');
+  await expect(page.locator('.hardware-specs input')).toHaveCount(0);
   await hardware(page, "NVIDIA GeForce RTX 3090 · 24 GB", "128");
-  await expect(
-    page.getByLabel("VRAM · GiB (0–192)", { exact: true }),
-  ).toHaveValue("24");
-  await expect(
-    page.getByLabel("GPU memory bandwidth · GB/s (0–10000)", { exact: true }),
-  ).toHaveValue("936");
+  await expect(page.locator('.hardware-specs')).toContainText('24 GiB');
+  await expect(page.locator('.hardware-specs')).toContainText('936 GB/s');
   const recommendations = await page
     .locator(".recommendation .summary-heading")
     .allTextContents();
-  const oldScores = await page
-    .locator(".new-catalog tbody tr td:nth-child(6)")
-    .allTextContents();
-  await page.getByRole("button", { name: "Coding", exact: true }).click();
-  expect(
-    await page.locator(".recommendation .summary-heading").allTextContents(),
-  ).toEqual(recommendations);
-  await expect.poll(() => page
-    .locator(".new-catalog tbody tr td:nth-child(6)")
-    .allTextContents(),
-  ).not.toEqual(oldScores);
+  await page.getByRole('button',{name:'Coding',exact:true}).click();
+  expect(await page.locator('.recommendation .summary-heading').allTextContents()).toEqual(recommendations);
+  await expect(page.locator('.new-catalog tbody tr').first()).toBeVisible();
   await page.getByLabel("Search model or provider").fill("Qwen");
   await page.getByRole("button", { name: "Parameters", exact: true }).click();
   expect(
@@ -147,7 +131,7 @@ test("profiles, overrides and All tasks recommendations stay independent of cata
     .getByRole("link", { name: "Details" })
     .click();
   await expect(page.locator(".recommendation-reason")).toContainText(
-    "All tasks",
+    "original-model quality",
   );
   await page.getByRole("button", { name: "Start simulation" }).click();
   await expect(page.locator(".chat-output")).not.toBeEmpty();
@@ -157,7 +141,7 @@ test("profiles, overrides and All tasks recommendations stay independent of cata
   expect(await page.locator(".chat-output").textContent()).toEqual(text);
   await page.getByRole("button", { name: "Reset", exact: true }).click();
   await expect(page.locator(".chat-output")).toContainText("Your prepared response will appear here");
-  await page.getByRole("link", { name: "← Explorer", exact: true }).click();
+  await page.getByRole("navigation", { name:"Main navigation" }).getByRole("link", { name: "Explorer", exact: true }).click();
   await expect(page.getByLabel("Search model or provider")).toHaveValue("Qwen");
 });
 
@@ -177,7 +161,7 @@ test("unlimited favourites, exact variants and persistence through the chart pre
     .textContent();
   await view(page, "Table");
   await expect(page.locator(".catalog-favourites-trigger")).toBeVisible();
-  await page.locator(".new-catalog select").first().selectOption({ index: 2 });
+  await chooseVariant(page.locator('.new-catalog mat-select').first(), 'Q8_0');
   await view(page, "Bars");
   expect(
     await page.locator(".favourites-panel .summary-heading > a").first().textContent(),
@@ -197,12 +181,13 @@ test("unlimited favourites, exact variants and persistence through the chart pre
   await expect(page.locator(".favourites-panel article")).toHaveCount(3);
 });
 
-test("CPU-only and unknown model routes are explicit", async ({ page }) => {
+test("incomplete hardware and unknown model routes are explicit", async ({ page }) => {
   await boot(page);
-  await page.getByLabel("GPU profile (searchable)").fill("CPU-only");
+  await page.getByLabel("GPU profile (searchable)").fill("Unknown NVIDIA GPU");
+  await page.getByLabel("GPU profile (searchable)").press("ArrowDown");
+  await page.getByLabel("GPU profile (searchable)").press("Enter");
   await page.getByLabel("GPU profile (searchable)").press("Tab");
-  await page.getByLabel("System RAM · GiB (0–1024)").fill("48");
-  await expect(page.locator(".recommendation")).toHaveCount(0);
+  await expect(page.locator(".new-catalog")).toContainText("Select a GPU");
   await page.goto("/models/missing");
   await expect(
     page.getByRole("heading", { name: "Model not found" }),
@@ -228,6 +213,7 @@ test("desktop and mobile accessibility, drawer and screenshots", async ({
   await page.locator(".catalog-favourites-trigger").click();
   await expect(page.locator(".catalog-favourites-trigger")).toHaveAttribute("aria-expanded", "true");
   await page.locator(".catalog-favourites-trigger").click();
+  await page.getByRole("button", {name:"Table",exact:true}).focus();
   await page.keyboard.press("Tab");
   expect(
     await page.evaluate(() => document.activeElement !== document.body),
@@ -235,7 +221,7 @@ test("desktop and mobile accessibility, drawer and screenshots", async ({
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
-test("offloading, context and variant changes use shared estimates", async ({
+test("full GPU placement, context and variant changes use shared estimates", async ({
   page,
 }) => {
   await boot(page);
@@ -245,31 +231,31 @@ test("offloading, context and variant changes use shared estimates", async ({
     .fill("Qwen2.5-14B-Instruct");
   const row = page.locator(".new-catalog tbody tr");
   await expect(row).toHaveCount(1);
-  await expect(row).toContainText("outside-budget");
-  await page.getByLabel("Consider CPU offloading").check();
-  await expect(row).toContainText("offload");
-  await expect(row.locator("td").nth(4)).toContainText("Unknown");
+  await expect(row).toContainText("Insufficient VRAM");
+  await expect(page.getByLabel("Consider CPU offloading")).toHaveCount(0);
+  await expect(page.getByLabel(/System RAM/)).toHaveCount(1);
+  await expect(row.locator("td").nth(4)).toContainText("Insufficient VRAM");
+  await expect(row.locator("td").nth(5)).toContainText("0 / 100");
   await addFromBars(page, 0);
   await expect(page.locator(".favourites-panel article")).toHaveCount(1);
   await view(page, "Table");
-  await row.getByLabel("Variant").selectOption({ label: "Q8_0" });
+  await chooseVariant(row.getByLabel('Variant'), 'Q8_0');
   await view(page, "Bars");
   await page.locator(".score-row").first().click();
   await expect(
     page.locator(".preview .quantization-chips button[aria-pressed=true]"),
   ).toHaveText("Q8_0");
-  await page.getByText("Advanced: context & memory", { exact: true }).click();
   await page
-    .getByLabel("Requested context · tokens (256–1048576)")
-    .fill("4096");
+    .getByLabel("Requested context · K tokens")
+    .fill("4");
   await expect(page.locator(".preview")).toContainText(
-    "4,096 tokens requested",
+    "4K tokens requested",
   );
   await expect(
     page.locator(".favourites-panel .saved-variant"),
   ).toContainText("Q4_K_M");
   await expect(page.locator(".favourites-panel")).toContainText(
-    "Memory:",
+    "GiB estimated",
   );
 });
 
@@ -295,7 +281,7 @@ test("same-task scores agree across recommendation, table and detail; plot keybo
   await expect(page.locator(".detail-page .summary-heading strong")).toHaveText(
     score!,
   );
-  await page.getByRole("link", { name: "← Explorer", exact: true }).click();
+  await page.getByRole("navigation", { name:"Main navigation" }).getByRole("link", { name: "Explorer", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Plot", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
@@ -374,7 +360,7 @@ test("bar detail rail, plot preview and compact tiles", async ({ page }) => {
   await addFromBars(page, 0);
   await addFromBars(page, 1);
   await page.locator(".score-row").first().click();
-  await expect(page.locator(".mini-benchmarks")).toBeVisible();
+  await expect(page.locator(".preview-heading")).toBeVisible();
   const bars = await page.locator(".score-bars").boundingBox(),
     preview = await page.locator(".preview").boundingBox();
   expect(preview!.x).toBeGreaterThan(bars!.x + bars!.width);
