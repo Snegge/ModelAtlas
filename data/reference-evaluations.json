@@ -1,0 +1,611 @@
+[
+  {
+    "releaseIdentifier": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+    "revision": "b1c0b44b4369b597ad119a196caf79a9c40e141e",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.5011990407673861,
+        0.4748171542553192
+      ],
+      "score": 48.80080975113527,
+      "modelRevision": "07a264a567ba0863a4ab34fdb3c2b8a54e0bb494",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/deepseek-ai/DeepSeek-R1-Distill-Llama-70B/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-21T09:54:30.221466+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.552859+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+    "revision": "6a6f4aa4197940add57724a7707d069478df56b1",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.44964028776978415,
+        0.20894281914893617
+      ],
+      "score": 32.92915534593602,
+      "modelRevision": "2f96d315ae1d52352452b3c13d12cdd781d762f0",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/deepseek-ai/DeepSeek-R1-Distill-Llama-8B/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-20T21:05:18.446501+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.553504+00:00",
+      "harnessRevision": "a781a6b",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    "revision": "ad9f0ae0864d7fbcd1cd905e3c6c5b069cc8b562",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.4172661870503597,
+        0.11868351063829788
+      ],
+      "score": 26.797484884432883,
+      "modelRevision": "80da49efd7aed5a338dfa7f23f75a9311f0dec20",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-20T22:28:13.918983+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.554489+00:00",
+      "harnessRevision": "a781a6b",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    "revision": "711ad2ea6aa40cfca18895e8aca02ab92df1a746",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.49160671462829736,
+        0.46866688829787234
+      ],
+      "score": 48.01368014630849,
+      "modelRevision": "4569fd730224ec487752bd4954399c6e18bf3aa6",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-21T09:54:30.223519+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.559263+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    "revision": "916b56a44061fd5cd7d6a8fb632557ed4f724f60",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.4748201438848921,
+        0.2321309840425532
+      ],
+      "score": 35.34755639637226,
+      "modelRevision": "008b8c2e0b59dac9b7619d58a5ad609f43a5b6b1",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-20T22:24:23.161731+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.568861+00:00",
+      "harnessRevision": "a781a6b",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "tiiuae/Falcon3-1B-Instruct",
+    "revision": "28ba2251970a01dd1edc7ba7dad2eb71216ccfdf",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6067146282973621,
+        0.18384308510638298
+      ],
+      "score": 39.52788567018726,
+      "modelRevision": "27dd70ccb22fd3cc71c5adbc95eb670455afff3d",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/tiiuae/Falcon3-1B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-12-16T10:20:51.693675+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.581191+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "tiiuae/Falcon3-7B-Instruct",
+    "revision": "1e57a0ecd176c7c139f289c60a74e57f887c3dfb",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7997601918465228,
+        0.4087433510638298
+      ],
+      "score": 60.42517714551763,
+      "modelRevision": "7aae4f3953f3dbfaa81aeecbb404a6bbba0e0c06",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/tiiuae/Falcon3-7B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-12-16T12:52:08.236732+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.600610+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "google/gemma-2-27b-it",
+    "revision": "aaf20e6b9f4c0fcf043f6fb2a2068419086d77b0",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.8321342925659473,
+        0.4451462765957447
+      ],
+      "score": 63.8640284580846,
+      "modelRevision": "f6c533e5eb013c7e31fc74ef042ac4f3fb5cf40b",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/google/gemma-2-27b-it/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-08-26T10:48:48.252514+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.701303+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "google/gemma-2-2b-it",
+    "revision": "299a8560bedf22ed1c72a8a11e7dce4a7f9f51f8",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6235011990407674,
+        0.25498670212765956
+      ],
+      "score": 43.924395058421354,
+      "modelRevision": "2b6ac3ff954ad896c115bbfa1b571cd93ea2c20f",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/google/gemma-2-2b-it/results_2024-07-29T16-25-50.870458.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-07-29T15:36:55.151300+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.705952+00:00",
+      "harnessRevision": "121ee91",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "google/gemma-2-9b-it",
+    "revision": "11c9b309abf73637e4b6f9a3fa1e92e615547819",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7865707434052758,
+        0.3875498670212766
+      ],
+      "score": 58.70603052132761,
+      "modelRevision": "1937c70277fcc5f7fb0fc772fc5bc69378996e71",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/google/gemma-2-9b-it/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-08-09T12:37:27.601180+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.710516+00:00",
+      "harnessRevision": "782aafc0",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "meta-llama/Llama-3.2-1B-Instruct",
+    "revision": "9213176726f574b556790deb65791e0c5aa438b6",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6294964028776978,
+        0.16821808510638298
+      ],
+      "score": 39.88572439920404,
+      "modelRevision": "d0a2081ed47e20ce524e8bc5d132f3fad2f69ff0",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/meta-llama/Llama-3.2-1B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-23T09:28:43.588085+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.600947+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "meta-llama/Llama-3.2-3B-Instruct",
+    "revision": "0cb88a4f764b7a12671c53f0838cd831a0843b95",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7817745803357314,
+        0.3194813829787234
+      ],
+      "score": 55.06279816572275,
+      "modelRevision": "392a143b624368100f77a3eafaa4a2468ba50a72",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/meta-llama/Llama-3.2-3B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-27T08:13:50.297375+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.607265+00:00",
+      "harnessRevision": "9694c56",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "meta-llama/Llama-3.1-70B-Instruct",
+    "revision": "1605565b47bb9346c5515c34102e054115b4f98b",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.8908872901678657,
+        0.5309175531914894
+      ],
+      "score": 71.09024216796776,
+      "modelRevision": "1d54af340dc8906a2d21146191a9c184c35e47bd",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/meta-llama/Llama-3.1-70B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-08-15T17:35:50.081185+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.617147+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "mistralai/Ministral-8B-Instruct-2410",
+    "revision": "2f494a194c5b980dfb9772cb92d26cbb671fce5a",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.645083932853717,
+        0.3291223404255319
+      ],
+      "score": 48.710313663962445,
+      "modelRevision": "199e57c1d66379760f6413f79d27008d1d1dbd6e",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/mistralai/Ministral-8B-Instruct-2410/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-12-02T04:24:01.731481+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.624152+00:00",
+      "harnessRevision": "49a8c92",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "mistralai/Mistral-Nemo-Instruct-2407",
+    "revision": "04d8a90549d23fc6bd7f642064003592df51e9b3",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6882494004796164,
+        0.3517287234042553
+      ],
+      "score": 51.99890619419358,
+      "modelRevision": "e17a136e1dcba9c63ad771f2c85c1c312c563e6b",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/mistralai/Mistral-Nemo-Instruct-2407/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-02T17:23:12.823640+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.627422+00:00",
+      "harnessRevision": "121ee91",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "microsoft/Phi-3.5-mini-instruct",
+    "revision": "2fe192450127e6a83f7441aef6e3ca586c338b77",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6354916067146283,
+        0.39619348404255317
+      ],
+      "score": 51.584254537859074,
+      "modelRevision": "64963004ad95869fa73a30279371c8778509ac84",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/microsoft/Phi-3.5-mini-instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-08-21T12:03:47.931223+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.632954+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "microsoft/Phi-4-mini-instruct",
+    "revision": "cfbefacb99257ffa30c83adab238a50856ac3083",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7805755395683454,
+        0.39320146276595747
+      ],
+      "score": 58.688850116715145,
+      "modelRevision": "f984c153f9e5738b59f28190d593bd9ad40745bb",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/microsoft/Phi-4-mini-instruct/results_2025-02-28T12-41-07.003145.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-02-28T12:08:23.100480+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.715610+00:00",
+      "harnessRevision": "79492751",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "microsoft/phi-4",
+    "revision": "2db69c1c3e91a05d2c64a3185acfbaf36f744e25",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7218225419664268,
+        0.5378158244680851
+      ],
+      "score": 62.981918321725594,
+      "modelRevision": "381727a5ee103da6c1b14ecd3d39cd09832cbcf8",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/microsoft/phi-4/results_2025-01-08T21-15-35.075640.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2025-01-08T20:36:49.180257+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.723216+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.36810551558752996,
+        0.17195811170212766
+      ],
+      "score": 27.00318136448288,
+      "modelRevision": "7ae557604adf67be50417f59c2c2f167def9a775",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-0.5B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-10-16T09:48:33.333981+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.638266+00:00",
+      "harnessRevision": "9694c56",
+      "precision": "torch.float16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "exact-revision"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-1.5B-Instruct",
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.4940047961630695,
+        0.27992021276595747
+      ],
+      "score": 38.69625044645135,
+      "modelRevision": "5fee7c4ed634dc66c6e318c8ac2897b8b9154536",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-1.5B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-19T15:55:49.422005+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.639728+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-14B-Instruct",
+    "revision": "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.8441247002398081,
+        0.4904421542553192
+      ],
+      "score": 66.72834272475636,
+      "modelRevision": "f55224c616ca27d4bcf28969a156de12c98981cf",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-14B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-19T07:40:46.103982+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.645609+00:00",
+      "harnessRevision": "9694c56",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-32B-Instruct",
+    "revision": "5ede1c97bbab6ce5cda5812749b4c0bdf79b18dd",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.8633093525179856,
+        0.566655585106383
+      ],
+      "score": 71.49824688121844,
+      "modelRevision": "70e8dfb9ad18a7d499f765fe206ff065ed8ca197",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-32B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-19T09:10:36.366981+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.646985+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-3B-Instruct",
+    "revision": "aa8e72537993ba99e69dfaafa59ed015b17504d1",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.6942446043165468,
+        0.3254654255319149
+      ],
+      "score": 50.98550149242308,
+      "modelRevision": "82f42baa094a9600e39ccd80d34058aeeb3abbc1",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-3B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-19T09:10:30.506160+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.653089+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-72B-Instruct",
+    "revision": "495f39366efef23836d0cfae4fbe635880d2be31",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.8884892086330936,
+        0.5625831117021277
+      ],
+      "score": 72.55361601676107,
+      "modelRevision": "d3d951150c1e5848237cd6a7ad11df4836aee842",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-72B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-10-16T23:22:52.496900+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.654702+00:00",
+      "harnessRevision": "9694c56",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-7B-Instruct",
+    "revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7961630695443646,
+        0.4286901595744681
+      ],
+      "score": 61.24266145594164,
+      "modelRevision": "acbd96531cda22292a3ceaa67e984955d3965282",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-7B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-09-19T15:38:34.757936+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.659747+00:00",
+      "harnessRevision": "d4631ea6",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "Qwen/Qwen2.5-Coder-14B-Instruct",
+    "revision": "aedcc2d42b622764e023cf882b6652e646b95671",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.7290167865707434,
+        0.3939494680851064
+      ],
+      "score": 56.14831273279249,
+      "modelRevision": "1a62978099f9b19f72fdd191988ff958abb18561",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/Qwen/Qwen2.5-Coder-14B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-11-12T18:44:34.069708+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.663232+00:00",
+      "harnessRevision": "42e4d7c",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+    "revision": "31b70e2e869a7173562077fd711b654946d38674",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.5911270983213429,
+        0.2053690159574468
+      ],
+      "score": 39.82480571393949,
+      "modelRevision": "1dfd32118ef11b4998e591ed60f2a0e978e15411",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/HuggingFaceTB/SmolLM2-1.7B-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-12-18T01:47:39.007745+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.685472+00:00",
+      "harnessRevision": "a781a6b",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.35851318944844124,
+        0.11145279255319149
+      ],
+      "score": 23.49829910008164,
+      "modelRevision": "5a33ba103645800d7b3790c4448546c1b73efc71",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/HuggingFaceTB/SmolLM2-135M-Instruct/results_2024-11-06T15-50-15.805723.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-11-06T15:36:56.339083+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.692340+00:00",
+      "harnessRevision": "a791d293",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  },
+  {
+    "releaseIdentifier": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+    "referenceQuality": {
+      "suite": "hf-leaderboard-ifeval2-mmlupro0.1/v1",
+      "values": [
+        0.4448441247002398,
+        0.11170212765957446
+      ],
+      "score": 27.827312617990714,
+      "modelRevision": "4873f67095301d304753fae05bc09ec766634e50",
+      "sourceUrl": "https://huggingface.co/datasets/open-llm-leaderboard/results/resolve/aa81ecc38fdc5708254b833923368970efdf5ef5/HuggingFaceTB/SmolLM2-360M-Instruct/results_2025-02-13T18-27-04.338360.json",
+      "sourceRevision": "aa81ecc38fdc5708254b833923368970efdf5ef5",
+      "evaluatedAt": "2024-11-19T20:14:13.365675+00:00",
+      "retrievedAt": "2026-11-27T12:43:23.696965+00:00",
+      "harnessRevision": "98a1a4b",
+      "precision": "torch.bfloat16",
+      "conditionsHash": "92ce71d01c6101ccbe76ef7f6edcfb6eb0c4c4991f6ea2d96db9be8d0ed8d70c",
+      "identityVerification": "identical-source-weight-hashes; evaluation-template-pinned-separately"
+    }
+  }
+]

@@ -13,7 +13,8 @@ import {
   Profile,
   Task,
   evaluate,
-  fixture,
+  compareRecommendations,
+  recommendedVariant,
   readWorkspace,
 } from "./ranking";
 @Injectable({ providedIn: "root" })
@@ -45,9 +46,7 @@ export class WorkspaceStore {
     return (
       !!p.gpu ||
       p.vram !== null ||
-      p.bandwidth !== null ||
-      p.ram !== null ||
-      !!p.cpu
+      p.bandwidth !== null
     );
   });
   readonly all = computed(() =>
@@ -55,9 +54,10 @@ export class WorkspaceStore {
       evaluate(
         this.api.release(a.releaseId)!,
         a,
-        this.api.current() ? (this.api.estimate(a.id)?.scenario ?? null) : null,
+        this.api.current() && !this.api.evaluating() && !this.api.error() ? (this.api.estimate(a.id)?.scenario ?? null) : null,
         this.profile(),
         this.task(),
+        this.api.evaluating() ? "pending" : this.api.error() ? "failed" : this.api.current() ? "ready" : "pending",
       ),
     ),
   );
@@ -65,29 +65,27 @@ export class WorkspaceStore {
     (this.api.catalog()?.releases ?? []).map(
       (r) =>
         this.all().find((x) => x.a.id === this.selected()[r.id]) ??
-        this.all().find((x) => x.r.id === r.id)!,
+        recommendedVariant(this.all().filter((x) => x.r.id === r.id))!,
     ),
   );
   readonly top = computed(() =>
-    this.rows()
-      .map((x) => evaluate(x.r, x.a, x.e, this.profile(), "All tasks"))
-      .filter((x) => !this.entered() || x.eligible)
-      .sort((a, b) =>
-        this.entered()
-          ? (b.score ?? -1) - (a.score ?? -1) || a.r.id.localeCompare(b.r.id)
-          : fixture(b.r.id).popularity - fixture(a.r.id).popularity ||
-            a.r.id.localeCompare(b.r.id),
-      )
-      .slice(0, 5),
+    (this.api.catalog()?.releases ?? [])
+      .map(r => recommendedVariant(this.all().filter(x => x.r.id === r.id)))
+      .filter(x => !!x && (!this.entered() || x.eligible))
+      .sort((a,b) => this.entered() ? compareRecommendations(a,b) :
+        (b.r.downloadsLastMonth ?? 0)-(a.r.downloadsLastMonth ?? 0) || a.r.id.localeCompare(b.r.id))
+      .slice(0,5)
+      .map(x => this.rows().find(row => row.r.id === x.r.id)!),
   );
   readonly visible = computed(() =>
     this.rows()
       .filter((x) =>
         (x.r.name + " " + x.r.publisher)
           .toLowerCase()
-          .includes(this.search().toLowerCase()),
+          .includes(this.search().toLowerCase()) && (this.task() === 'All tasks' || x.r.tasks.includes(this.task())),
       )
       .sort((a, b) => {
+        if (this.sort() === "score" && this.entered()) return compareRecommendations(a,b) * (this.descending() ? 1 : -1);
         const value = (x: typeof a): number | string | null =>
           this.sort() === "name"
             ? x.r.name
@@ -98,10 +96,10 @@ export class WorkspaceStore {
                 : this.sort() === "memory"
                   ? (x.e?.totalGiB ?? null)
                   : this.sort() === "speed"
-                    ? (x.speed?.low ?? null)
+                    ? (x.speed?.typical ?? null)
                     : this.entered()
                       ? x.score
-                      : fixture(x.r.id).popularity;
+                      : x.r.downloadsLastMonth;
         const av = value(a),
           bv = value(b);
         if (av === null) return bv === null ? a.r.id.localeCompare(b.r.id) : 1;
@@ -130,9 +128,10 @@ export class WorkspaceStore {
       untracked(() =>
         this.api.setHardware({
           gpuGiB: p.vram ?? 0,
-          ramGiB: Math.max(1, p.ram ?? 2),
+          bandwidthGBps: p.bandwidth && p.bandwidth > 0 ? p.bandwidth : null,
+          minimumTokensPerSecond: 0,
+          ramGiB: p.ram,
           contextTokens: p.context,
-          allowOffload: p.offload,
           cachePrecision: "f16",
           concurrency: 1,
         }),
@@ -157,24 +156,17 @@ export class WorkspaceStore {
   patch(p: Partial<Profile>) {
     this.profile.update((v) => ({ ...v, ...p }));
   }
-  gpu(name: string) {
+  gpu(name: string | null) {
     const g = GPUS.find((x) => x.name === name);
     this.patch({
-      gpu: name,
-      vram: g?.vram ?? (name === "CPU-only" ? 0 : null),
+      gpu: g?.name ?? '',
+      vram: g?.vram ?? null,
       bandwidth: g?.bandwidth ?? null,
     });
   }
-  number(key: "vram" | "ram" | "bandwidth" | "context", value: string) {
-    const n = value === "" ? null : Number(value);
-    const max =
-      key === "vram"
-        ? 192
-        : key === "ram"
-          ? 1024
-          : key === "bandwidth"
-            ? 10000
-            : 1048576;
+  number(key: "ram" | "context", value: string) {
+    const n = value === "" ? null : Number(value) * (key === 'context' ? 1024 : 1);
+    const max = key === 'ram' ? 2048 : 1048576;
     if (
       (n === null && key !== "context") ||
       (n !== null &&

@@ -4,6 +4,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <UserSecretsId>ModelAtlas-HuggingFace-local</UserSecretsId>
   </PropertyGroup>
   <ItemGroup><Content Include="../../data/catalog.json" Link="Data/catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><InternalsVisibleTo Include="ModelAtlas.Tests" /></ItemGroup>
 </Project>

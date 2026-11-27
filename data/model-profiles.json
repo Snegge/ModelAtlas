@@ -1,0 +1,256 @@
+{
+  "description": "Reviewed supplemental quality inputs and use-case tags. Do not infer identity from page titles. Refresh manually against the linked original checkpoint; retrieval date is not evaluation date.",
+  "profiles": [
+    {
+      "model": "Qwen/Qwen3-0.6B",
+      "score": 30,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-0.6b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-0.6b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-1.7B",
+      "score": 51,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-1.7b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-1.7b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-4B-Instruct-2507",
+      "score": 71,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-4b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-4b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-8B",
+      "score": 79,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-8b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-8b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-14B",
+      "score": 80,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-14b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-14b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-32B",
+      "score": 82,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-32b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-32b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+      "score": 83,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-3-30b-a3b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-3-30b-a3b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "HuggingFaceTB/SmolLM3-3B",
+      "score": 40,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/smollm3-3b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/smollm3-3b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "microsoft/Phi-4-mini-instruct",
+      "score": 49,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/phi-4-mini-4b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/phi-4-mini-4b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "microsoft/Phi-4-reasoning-plus",
+      "score": 79,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/phi-4-reasoning-plus-14b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Reasoning"
+      ],
+      "taskSource": "https://willitrunai.com/models/phi-4-reasoning-plus-14b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "mistralai/Ministral-3-8B-Instruct-2512",
+      "score": 70,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/ministral-3-8b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat"
+      ],
+      "taskSource": "https://willitrunai.com/models/ministral-3-8b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "mistralai/Ministral-3-14B-Instruct-2512",
+      "score": 78,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/ministral-3-14b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat"
+      ],
+      "taskSource": "https://willitrunai.com/models/ministral-3-14b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "ibm-granite/granite-4.2-3b",
+      "score": 60,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/granite-4.2-3b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat"
+      ],
+      "taskSource": "https://willitrunai.com/models/granite-4.2-3b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "ibm-granite/granite-4.2-8b",
+      "score": 68,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/granite-4.2-8b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Chat",
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/granite-4.2-8b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+      "score": 34,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-2.5-coder-0.5b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-2.5-coder-0.5b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen2.5-Coder-3B-Instruct",
+      "score": 40,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-2.5-coder-3b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-2.5-coder-3b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+      "score": 45,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-2.5-coder-7b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-2.5-coder-7b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen2.5-Coder-14B-Instruct",
+      "score": 35,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-2.5-coder-14b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-2.5-coder-14b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "score": 58,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/qwen-2.5-coder-32b",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding"
+      ],
+      "taskSource": "https://willitrunai.com/models/qwen-2.5-coder-32b",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    },
+    {
+      "model": "mistralai/Devstral-Small-2507",
+      "score": 56,
+      "basis": "external-curated",
+      "sourceUrl": "https://willitrunai.com/models/devstral-small-2507",
+      "asOf": "2026-11-27T00:00:00Z",
+      "tasks": [
+        "Coding",
+        "Reasoning",
+        "Agentic"
+      ],
+      "taskSource": "https://huggingface.co/mistralai/Devstral-Small-2507",
+      "note": "WillItRunAI editorial quality input, not a standardized benchmark result. Matched to its linked Hugging Face checkpoint."
+    }
+  ]
+}

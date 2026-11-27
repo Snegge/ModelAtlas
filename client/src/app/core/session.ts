@@ -14,18 +14,16 @@ export function validHardware(v: unknown): v is Hardware {
     Number.isFinite(h.gpuGiB) &&
     h.gpuGiB >= 0 &&
     h.gpuGiB <= 192 &&
-    Number.isFinite(h.ramGiB) &&
-    h.ramGiB >= 1 &&
-    h.ramGiB <= 1024 &&
+    (h.ramGiB == null || (Number.isFinite(h.ramGiB) && h.ramGiB >= 0 && h.ramGiB <= 2048)) &&
     Number.isInteger(h.contextTokens) &&
     h.contextTokens >= 256 &&
     h.contextTokens <= 1048576 &&
     ["Q4_K_M", "Q5_K_M", "Q8_0", "smallest"].includes(h.quantization) &&
-    typeof h.allowOffload === "boolean" &&
-    ["f16", "f32"].includes(h.cachePrecision) &&
+    h.cachePrecision === "f16" &&
     Number.isInteger(h.concurrency) &&
-    h.concurrency >= 1 &&
-    h.concurrency <= 8
+    h.concurrency === 1 &&
+    (h.bandwidthGBps === null || (Number.isFinite(h.bandwidthGBps) && h.bandwidthGBps! > 0 && h.bandwidthGBps! <= 10000)) &&
+    Number.isFinite(h.minimumTokensPerSecond) && h.minimumTokensPerSecond >= 0 && h.minimumTokensPerSecond <= 1000
   );
 }
 export function defaultSession(): Session {
@@ -37,14 +35,18 @@ export function defaultSession(): Session {
     focused: null,
   };
 }
+export function sameHardware(a: Hardware | null, b: Hardware | null): boolean {
+  return a === b || !!a && !!b && (Object.keys(DEFAULTS) as (keyof Hardware)[])
+    .every(key => (a[key] ?? null) === (b[key] ?? null));
+}
 export function readSession(raw: string | null): Session {
   if (!raw) return defaultSession();
   try {
     const s = JSON.parse(raw);
     const d = defaultSession();
     return {
-      hardware: validHardware(s.hardware) ? s.hardware : d.hardware,
-      baseline: validHardware(s.baseline) ? s.baseline : null,
+      hardware: validHardware(s.hardware) ? cleanHardware(s.hardware) : d.hardware,
+      baseline: validHardware(s.baseline) ? cleanHardware(s.baseline) : null,
       filters: {
         search: typeof s.filters?.search === "string" ? s.filters.search : "",
         family: typeof s.filters?.family === "string" ? s.filters.family : "",
@@ -104,3 +106,5 @@ export function csvCell(value: unknown): string {
 export function csvRows(headers: string[], rows: unknown[][]): string {
   return [headers, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
 }
+
+function cleanHardware(h: Hardware): Hardware { return {gpuGiB:h.gpuGiB, bandwidthGBps:h.bandwidthGBps, minimumTokensPerSecond:h.minimumTokensPerSecond, contextTokens:h.contextTokens, quantization:h.quantization, cachePrecision:"f16", concurrency:1, ramGiB:h.ramGiB ?? null}; }

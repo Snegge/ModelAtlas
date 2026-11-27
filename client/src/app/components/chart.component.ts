@@ -70,8 +70,7 @@ echarts.use([
               </p>
               <p>
                 Shaded region meets GPU-memory and documented-context
-                constraints. Offloading may make points beyond the GPU boundary
-                possible.
+                constraints. All weights and cache must fit on the selected GPU.
               </p>
               <p>
                 Documented context is a model limit, not a guarantee of
@@ -128,7 +127,7 @@ echarts.use([
       </div>
       <div class="chart-axis-label">
         <span>Context · tokens · log₂</span
-        ><span>Full GPU residency · GiB <mat-icon fontIcon="arrow_forward"></mat-icon></span>
+        ><span>Full GPU residency · GiB <mat-icon iconPositionEnd fontIcon="arrow_forward"></mat-icon></span>
       </div>
       <p id="chart-keyboard-help" class="sr-only">
         Use arrow keys to inspect points, Enter to select, and Escape to close
@@ -157,7 +156,6 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
   readonly zoom = signal(false);
   readonly statuses: Status[] = [
     "gpu-fit",
-    "offload",
     "outside-budget",
     "unknown",
   ];
@@ -255,13 +253,11 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     const captionSize = parseFloat(token("--text-caption")) * parseFloat(theme.fontSize);
     const colors: Record<Status, string> = {
       "gpu-fit": token("--success"),
-      offload: token("--warning"),
       "outside-budget": token("--neutral"),
       unknown: token("--unknown"),
     };
     const symbols: Record<Status, string> = {
       "gpu-fit": "circle",
-      offload: "diamond",
       "outside-budget": "triangle",
       unknown: "rect",
     };

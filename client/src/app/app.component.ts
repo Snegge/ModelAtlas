@@ -1,4 +1,5 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
+import { ViewportScroller } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from "@angular/router";
 import { SnackbarComponent } from "./components/snackbar.component";
 @Component({
@@ -36,4 +37,8 @@ import { SnackbarComponent } from "./components/snackbar.component";
     </footer>
   `,
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor() {
+    inject(ViewportScroller).setOffset(() => [0, (document.querySelector('.app-header')?.getBoundingClientRect().height ?? 96) + 16]);
+  }
+}

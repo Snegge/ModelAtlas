@@ -22,6 +22,7 @@ import {
   restoreBaseline,
   toggleComparison,
   validHardware,
+  sameHardware,
 } from "./session";
 
 @Injectable({ providedIn: "root" })
@@ -49,10 +50,8 @@ export class AtlasStore {
   readonly current = computed(
     () =>
       !!this.evaluation() &&
-      JSON.stringify(this.evaluation()!.settings) ===
-        JSON.stringify(this.hardware()) &&
-      JSON.stringify(this.evaluation()!.baseline) ===
-        JSON.stringify(this.baseline()),
+      sameHardware(this.evaluation()!.settings, this.hardware()) &&
+      sameHardware(this.evaluation()!.baseline, this.baseline()),
   );
   readonly points = computed(() => this.evaluation()?.releases ?? []);
   readonly families = computed(() =>
@@ -117,7 +116,10 @@ export class AtlasStore {
     toObservable(this.request)
       .pipe(
         tap((r) => {
-          if (r.loaded) this.evaluating.set(true);
+          if (r.loaded) {
+            this.evaluating.set(true);
+            this.error.set("");
+          }
         }),
         switchMap((r) =>
           !r.loaded
@@ -185,6 +187,11 @@ export class AtlasStore {
       coverage: this.http.get<Coverage>("/api/catalog/status"),
     }).subscribe({
       next: ({ catalog, coverage }) => {
+        if (!Array.isArray(catalog.releases) || catalog.releases.some(r => !r.qualityRating || !Array.isArray(r.tasks))) {
+          this.loading.set(false);
+          this.error.set('The catalog API is out of date. Restart the ModelAtlas backend and retry.');
+          return;
+        }
         this.catalog.set(catalog);
         this.coverage.set(coverage);
         this.comparisons.update((ids) =>
@@ -352,6 +359,17 @@ export class AtlasStore {
       "documented_context_tokens",
       "context_metadata_source",
       "license",
+      "original_model_quality_input",
+      "hardware_suitability_score",
+      "meets_hardware_and_speed_constraints",
+      "evaluation_date",
+      "quality_source",
+      "reference_evaluation_source",
+      "quality_basis",
+      "quality_source_checked_at",
+      "estimated_tokens_per_second_typical",
+      "estimated_tokens_per_second_low",
+      "estimated_tokens_per_second_high",
       "estimate_label",
       "estimated_weights_GiB",
       "estimated_KV_cache_GiB",
@@ -359,20 +377,22 @@ export class AtlasStore {
       "estimated_safety_GiB",
       "estimated_total_GiB",
       "estimated_GPU_residency_GiB",
-      "estimated_RAM_requirement_GiB",
       "GPU_budget_GiB",
-      "RAM_budget_GiB",
+      "GPU_bandwidth_GB_per_second",
+      "system_RAM_GiB",
+      "RAM_planning_hint",
+      "minimum_generation_tokens_per_second",
       "requested_context_tokens",
       "cache_precision",
       "concurrency",
-      "offloading_allowed",
       "quantization_preference",
       "baseline_GPU_GiB",
-      "baseline_RAM_GiB",
+      "baseline_GPU_bandwidth_GB_per_second",
+      "baseline_system_RAM_GiB",
+      "baseline_minimum_generation_tokens_per_second",
       "baseline_context_tokens",
       "baseline_cache_precision",
       "baseline_concurrency",
-      "baseline_offloading",
       "baseline_quantization",
       "same_artifact_baseline_total_GiB",
       "same_artifact_baseline_label",
@@ -401,6 +421,17 @@ export class AtlasStore {
         r.contextLimit,
         r.contextSource,
         r.license,
+        r.qualityRating.score,
+        e.suitabilityScore,
+        e.eligible,
+        r.referenceQuality?.evaluatedAt,
+        r.qualityRating.sourceUrl,
+        r.referenceQuality?.sourceUrl,
+        r.qualityRating.basis,
+        r.qualityRating.asOf,
+        e.speed?.typical,
+        e.speed?.low,
+        e.speed?.high,
         STATUS_LABEL[e.status],
         e.weightsGiB,
         e.cacheGiB,
@@ -408,20 +439,22 @@ export class AtlasStore {
         e.safetyGiB,
         e.totalGiB,
         e.gpuRequiredGiB,
-        e.systemRequiredGiB,
         h.gpuGiB,
+        h.bandwidthGBps,
         h.ramGiB,
+        e.ramAdvice,
+        h.minimumTokensPerSecond,
         h.contextTokens,
         h.cachePrecision,
         h.concurrency,
-        h.allowOffload,
         h.quantization,
         b?.gpuGiB,
+        b?.bandwidthGBps,
         b?.ramGiB,
+        b?.minimumTokensPerSecond,
         b?.contextTokens,
         b?.cachePrecision,
         b?.concurrency,
-        b?.allowOffload,
         b?.quantization,
         exact?.totalGiB,
         exact ? STATUS_LABEL[exact.status] : "",

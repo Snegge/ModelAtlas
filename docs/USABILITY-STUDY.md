@@ -20,7 +20,7 @@ Use verified artifacts available in the bundled snapshot; check target answers t
 1. Find two estimated full-GPU candidates for a 12 GiB GPU, 32 GiB RAM and 8,192-token context, then identify their exact artifacts and source cards.
 2. Explain what changes when requested context increases to 32,768 tokens while hardware stays fixed. Identify a release that changes feasibility, if one exists for the preselected setup.
 3. Investigate one release using Q4_K_M and Q8_0. Explain the distinction between changing artifacts and evaluating the same artifact under two contexts.
-4. Reduce the GPU budget to 6 GiB, permit offloading, and identify the separate GPU/RAM implications.
+4. Reduce the GPU budget to 6 GiB, vary the minimum generation speed, and identify why some variants no longer qualify.
 5. Inspect the Qwen3-30B-A3B MoE release. Explain why Unknown differs from Outside constraints.
 6. Recover after an empty search, restore the previous settings and export the visible configuration.
 
@@ -29,7 +29,7 @@ Use matched but different candidates/settings in the second condition to limit m
 ## Measures
 
 - Task correctness, completion time and number of recovery errors.
-- Understanding of context limit versus runtime support, dedicated VRAM versus system RAM, and release versus exact artifact.
+- Understanding of context limit versus runtime support, full GPU residency versus exceeding the VRAM budget, and release versus exact artifact.
 - Number of wrong “guaranteed execution” claims despite estimate wording.
 - Recall of baseline values and errors when comparing changed quantizations.
 - A short single-ease-question rating after each task, plus final preference and explanation.
@@ -43,4 +43,4 @@ Obtain voluntary consent, allow withdrawal, and record anonymized participant ID
 
 ## Success indicators and iteration
 
-The design should reduce incorrect memory/context interpretations and make baseline recovery reliable, without substantially increasing completion time. Look for missed fallback-quantization labels, ambiguity about offloading, overlapping points, small labels and difficulty finding retained selections. Prioritize observed issues in a second design iteration. No user-study results are claimed by this implementation.
+The design should reduce incorrect memory/context interpretations and make baseline recovery reliable, without substantially increasing completion time. Look for missed fallback-quantization labels, ambiguity about minimum-speed eligibility, overlapping points, small labels and difficulty finding retained selections. Prioritize observed issues in a second design iteration. No user-study results are claimed by this implementation.

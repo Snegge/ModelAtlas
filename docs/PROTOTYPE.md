@@ -1,3 +1,5 @@
+> Historical prototype documentation. The 2026-11-27 catalog, quality, GPU-only estimates and update rules are documented in [CATALOG-QUALITY.md](CATALOG-QUALITY.md), which supersedes earlier counts, synthetic scores and partial-placement behavior below.
+
 # ModelAtlas selection workspace
 
 ## Start

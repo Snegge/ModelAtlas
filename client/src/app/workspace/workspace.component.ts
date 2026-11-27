@@ -1,4 +1,15 @@
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatSortModule, Sort } from "@angular/material/sort";
+import { LiveAnnouncer } from "@angular/cdk/a11y";
+import { MatTableModule } from "@angular/material/table";
+import { MatSelectModule } from "@angular/material/select";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatExpansionModule } from "@angular/material/expansion";
 import { MatIconModule } from "@angular/material/icon";
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
 import { DatePipe } from "@angular/common";
 import { FavouritesComponent } from "./favourites.component";
 import { FavouriteButtonComponent } from "./favourite-button.component";
@@ -11,18 +22,24 @@ import {
   effect,
 } from "@angular/core";
 import { A11yModule } from "@angular/cdk/a11y";
-import { FormsModule } from "@angular/forms";
+import { FormsModule, ReactiveFormsModule, FormControl } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { WorkspaceStore } from "./workspace.store";
 import { SummaryComponent } from "./summary.component";
-import { GPUS, TASKS, Task, quality } from "./ranking";
+import { GPUS, TASKS, Task, quality, contextK, SCORE_HINT } from "./ranking";
 @Component({
   standalone: true,
-  imports: [MatIconModule, DatePipe, FavouritesComponent, FavouriteButtonComponent, RouterLink, SummaryComponent, A11yModule, FormsModule],
+  imports: [MatTooltipModule, MatSortModule, MatTableModule, MatSelectModule, MatCheckboxModule, MatExpansionModule, MatAutocompleteModule, MatInputModule, MatFormFieldModule, MatButtonModule, ReactiveFormsModule, MatIconModule, DatePipe, FavouritesComponent, FavouriteButtonComponent, RouterLink, SummaryComponent, A11yModule, FormsModule],
   templateUrl: "./workspace.component.html",
 })
 export class WorkspaceComponent implements OnDestroy {
+  private readonly announcer = inject(LiveAnnouncer);
+  sortTable(sort: Sort) {
+    this.s.sort.set(sort.active);
+    this.s.descending.set(sort.direction === "desc");
+    this.announcer.announce(`Sorted by ${sort.active}, ${sort.direction === "desc" ? "descending" : "ascending"}.`);
+  }
   readonly s = inject(WorkspaceStore);
   readonly route = inject(ActivatedRoute);
   readonly params = toSignal(this.route.paramMap);
@@ -38,9 +55,17 @@ export class WorkspaceComponent implements OnDestroy {
       ? this.s.top().findIndex((x) => x.r.id === this.id()) + 1
       : 0,
   );
+  readonly scoreHint = SCORE_HINT;
   readonly tasks = TASKS;
   readonly quality = quality;
-  readonly gpus = GPUS;
+  readonly contextK = contextK;
+  readonly benchmarks = ['IFEval', 'MMLU-Pro'];
+  readonly gpuInput = new FormControl(this.s.profile().gpu, {nonNullable:true});
+  private readonly gpuQuery = toSignal(this.gpuInput.valueChanges, {initialValue:this.gpuInput.value});
+  readonly filteredGpus = computed(() => {
+    const query = this.gpuQuery() === this.s.profile().gpu ? '' : this.gpuQuery().trim().toLowerCase();
+    return GPUS.filter(g => g.name.toLowerCase().includes(query));
+  });
   readonly recommendationIndex = signal(0);
   readonly activeRecommendation = computed(() =>
     Math.min(this.recommendationIndex(), Math.max(0, this.s.top().length - 1)),
@@ -65,10 +90,12 @@ export class WorkspaceComponent implements OnDestroy {
     ["name", "Model"],
     ["parameters", "Parameters"],
     ["context", "Max context"],
-    ["memory", "Estimated GPU / total GiB"],
+    ["memory", "VRAM"],
     ["speed", "Speed tokens/s"],
     ["score", "Score"],
   ];
+  readonly tableColumns = [...this.columns.map(c => c[0]), "actions"];
+  readonly trackRelease = (_: number, row: {r:{id:string}}) => row.r.id;
   readonly plotted = computed(() =>
     this.s.visible().filter((x) => x.speed !== null),
   );
@@ -91,6 +118,7 @@ export class WorkspaceComponent implements OnDestroy {
     return Math.min(200, v);
   }
   constructor() {
+    effect(() => this.gpuInput.setValue(this.s.profile().gpu));
     effect(() => {
       this.id();
       this.resetChat();
@@ -99,19 +127,23 @@ export class WorkspaceComponent implements OnDestroy {
   task(v: string) {
     this.s.task.set(v as Task);
   }
-  manual(key: "vram" | "bandwidth") {
-    const g = GPUS.find((g) => g.name === this.s.profile().gpu);
-    return g && this.s.profile()[key] !== g[key]
-      ? "Manual override"
-      : g
-        ? "From GPU profile"
-        : "Manual / unknown";
+  selectGpu(name: string) {
+    this.s.gpu(name);
+    this.gpuInput.setValue(this.s.profile().gpu);
+  }
+  finishGpuSearch() {
+    if (!this.gpuInput.value.trim()) this.s.gpu(null);
+    this.gpuInput.setValue(this.s.profile().gpu);
+  }
+  clearGpu() {
+    this.s.gpu(null);
+    this.gpuInput.setValue('');
   }
   start() {
     this.stop();
     const x = this.detail();
     const rate = x?.speed
-      ? (x.speed.low + x.speed.high) / 2
+      ? x.speed.typical
       : this.demoRate()
         ? 12
         : null;

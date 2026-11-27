@@ -7,8 +7,20 @@ import {
   restoreBaseline,
   toggleComparison,
   csvRows,
+  sameHardware,
 } from "../src/app/core/session";
 describe("Exploration persistence and reversibility", () => {
+  it("matches restored/API hardware by values instead of JSON property order", () => {
+    const restored=readSession(JSON.stringify({hardware:DEFAULTS})).hardware;
+    expect(JSON.stringify(restored)).not.toBe(JSON.stringify(DEFAULTS));
+    expect(sameHardware(restored,DEFAULTS)).toBe(true);
+    expect(sameHardware({...restored,ramGiB:undefined},DEFAULTS)).toBe(true);
+    for (const change of [{gpuGiB:24},{bandwidthGBps:936},{ramGiB:32},{contextTokens:4096},{minimumTokensPerSecond:10},{quantization:'Q8_0'}]) {
+      expect(sameHardware({...restored,...change},DEFAULTS)).toBe(false);
+    }
+    expect(sameHardware(null,null)).toBe(true);
+    expect(sameHardware(null,DEFAULTS)).toBe(false);
+  });
   it("pins a copy and restores without mutating the baseline", () => {
     const h = { ...DEFAULTS };
     const baseline = pinBaseline(h);

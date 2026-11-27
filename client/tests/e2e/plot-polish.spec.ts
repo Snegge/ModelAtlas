@@ -7,8 +7,8 @@ test("plot states, point selection and compact preview close", async ({ page }) 
   await page.getByRole("button", { name: "Plot", exact: true }).click();
   await expect(page.locator(".plot-empty")).toBeVisible();
   await page.getByLabel("GPU profile (searchable)").fill("NVIDIA GeForce RTX 3060 · 12 GB");
-  await page.getByLabel("GPU profile (searchable)").press("Tab");
-  await page.getByLabel("System RAM · GiB (0–1024)").fill("48");
+  await page.getByLabel("GPU profile (searchable)").press("ArrowDown");
+  await page.getByLabel("GPU profile (searchable)").press("Enter");
   await page.getByLabel("Search model or provider").fill("SmolLM2-1.7B-Instruct");
   const point = page.locator(".plot-dot");
   await expect(point).toHaveCount(1);
