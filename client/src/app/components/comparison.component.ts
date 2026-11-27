@@ -1,10 +1,11 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, computed, inject } from "@angular/core";
 import { AtlasStore } from "../core/atlas.store";
 import { MemoryComponent } from "./memory.component";
 @Component({
   selector: "atlas-comparison",
   standalone: true,
-  imports: [MemoryComponent],
+  imports: [MatIconModule, MemoryComponent],
   template: `
     <section
       id="artifact-comparison"
@@ -59,7 +60,7 @@ import { MemoryComponent } from "./memory.component";
                     ' from comparison'
                   "
                 >
-                  ×
+                  <mat-icon fontIcon="close"></mat-icon>
                 </button>
               </div>
               <span class="quant-tag">{{ a.quantization }}</span
@@ -132,7 +133,7 @@ import { MemoryComponent } from "./memory.component";
                   [href]="a.sourceUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  >Artifact source ↗</a
+                  >Artifact source <mat-icon fontIcon="open_in_new"></mat-icon></a
                 >
               </details>
             </article>

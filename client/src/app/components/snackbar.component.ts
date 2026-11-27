@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, effect, inject } from "@angular/core";
 import { WorkspaceStore } from "../workspace/workspace.store";
 
@@ -5,6 +6,7 @@ import { WorkspaceStore } from "../workspace/workspace.store";
 @Component({
   selector: "atlas-snackbar",
   standalone: true,
+  imports: [MatIconModule],
   template: `
     @if (s.message()) {
       <div class="snackbar" role="status" aria-live="polite" aria-atomic="true">
@@ -14,7 +16,7 @@ import { WorkspaceStore } from "../workspace/workspace.store";
           aria-label="Dismiss notification"
           (click)="s.message.set('')"
         >
-          ×
+          <mat-icon fontIcon="close"></mat-icon>
         </button>
       </div>
     }

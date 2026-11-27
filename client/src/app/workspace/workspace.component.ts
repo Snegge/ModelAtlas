@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { DatePipe } from "@angular/common";
 import { FavouritesComponent } from "./favourites.component";
 import { FavouriteButtonComponent } from "./favourite-button.component";
@@ -18,7 +19,7 @@ import { SummaryComponent } from "./summary.component";
 import { GPUS, TASKS, Task, quality } from "./ranking";
 @Component({
   standalone: true,
-  imports: [DatePipe, FavouritesComponent, FavouriteButtonComponent, RouterLink, SummaryComponent, A11yModule, FormsModule],
+  imports: [MatIconModule, DatePipe, FavouritesComponent, FavouriteButtonComponent, RouterLink, SummaryComponent, A11yModule, FormsModule],
   templateUrl: "./workspace.component.html",
 })
 export class WorkspaceComponent implements OnDestroy {
@@ -45,10 +46,10 @@ export class WorkspaceComponent implements OnDestroy {
     Math.min(this.recommendationIndex(), Math.max(0, this.s.top().length - 1)),
   );
   readonly viewIcons: Record<string, string> = {
-    Table: "☷",
-    Tiles: "▦",
-    Bars: "▤",
-    Plot: "⤢",
+    Table: "view_list",
+    Tiles: "view_module",
+    Bars: "bar_chart",
+    Plot: "scatter_plot",
   };
   nextRecommendation(direction: number) {
     const count = this.s.top().length;

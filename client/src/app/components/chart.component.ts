@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import {
   AfterViewInit,
   Component,
@@ -35,6 +36,7 @@ echarts.use([
 @Component({
   selector: "atlas-chart",
   standalone: true,
+  imports: [MatIconModule],
   template: `
     <section
       class="chart-panel"
@@ -48,7 +50,7 @@ echarts.use([
         </div>
         <div class="chart-actions">
           <details class="chart-info">
-            <summary>Chart info</summary>
+            <summary><mat-icon fontIcon="info"></mat-icon> Chart info</summary>
             <div class="chart-info-content">
               <p>
                 <b>{{ plotted() }}</b> of {{ s.visible().length }} matching
@@ -126,7 +128,7 @@ echarts.use([
       </div>
       <div class="chart-axis-label">
         <span>Context · tokens · log₂</span
-        ><span>Full GPU residency · GiB →</span>
+        ><span>Full GPU residency · GiB <mat-icon fontIcon="arrow_forward"></mat-icon></span>
       </div>
       <p id="chart-keyboard-help" class="sr-only">
         Use arrow keys to inspect points, Enter to select, and Escape to close
@@ -248,11 +250,14 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
           10,
       ) * 10;
     const { min: minY, max: maxY } = this.contextExtent();
+    const theme = getComputedStyle(document.documentElement);
+    const token = (token: string) => theme.getPropertyValue(token).trim();
+    const captionSize = parseFloat(token("--text-caption")) * parseFloat(theme.fontSize);
     const colors: Record<Status, string> = {
-      "gpu-fit": "#26745a",
-      offload: "#b47b18",
-      "outside-budget": "#849096",
-      unknown: "#846aa7",
+      "gpu-fit": token("--success"),
+      offload: token("--warning"),
+      "outside-budget": token("--neutral"),
+      unknown: token("--unknown"),
     };
     const symbols: Record<Status, string> = {
       "gpu-fit": "circle",
@@ -302,23 +307,23 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
             opacity: this.s.focusedRelease()?.id === p.releaseId ? 1 : 0.78,
             borderColor:
               this.s.focusedRelease()?.id === p.releaseId
-                ? "#102c25"
+                ? token("--ink")
                 : this.s
                       .comparisons()
                       .some(
                         (id) => this.s.artifact(id)?.releaseId === p.releaseId,
                       )
-                  ? "#0e4951"
-                  : "#fafbf7",
+                  ? token("--primary-hover")
+                  : token("--paper"),
             borderWidth: this.s.focusedRelease()?.id === p.releaseId ? 3 : 1,
           },
           label: {
             show: this.s.focusedRelease()?.id === p.releaseId,
             formatter: this.s.release(p.releaseId)!.name,
             position: "top",
-            color: "#173e35",
-            fontSize: 11,
-            backgroundColor: "#fafbf7",
+            color: token("--ink"),
+            fontSize: captionSize,
+            backgroundColor: token("--paper"),
             padding: 3,
           },
         })),
@@ -328,7 +333,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
             markLine: {
               silent: true,
               symbol: "none",
-              lineStyle: { color: "#294e42", type: "dashed", width: 1.5 },
+              lineStyle: { color: token("--chart-reference"), type: "dashed", width: 1.5 },
               label: { show: false },
               data: [
                 {
@@ -338,7 +343,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
                   ? [
                       {
                         yAxis: h.contextTokens,
-                        lineStyle: { color: "#7a6a47", type: "dotted" },
+                        lineStyle: { color: token("--warning"), type: "dotted" },
                       },
                     ]
                   : []),
@@ -346,7 +351,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
             },
             markArea: {
               silent: true,
-              itemStyle: { color: "rgba(99,156,101,.09)" },
+              itemStyle: { color: token("--selection-halo") },
               data:
                 h.contextTokens <= maxY
                   ? [
@@ -377,7 +382,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
         clip: false,
         itemStyle: {
           color: "transparent",
-          borderColor: "#294c85",
+          borderColor: token("--chart-reference"),
           borderWidth: 2,
         },
         data: [
@@ -399,7 +404,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
           silent: true,
           symbol: "none",
           label: { show: false },
-          lineStyle: { color: "#294c85", type: "solid", width: 2 },
+          lineStyle: { color: token("--chart-reference"), type: "solid", width: 2 },
           data: [
             [
               { coord: [exact.baseline.totalGiB, release.contextLimit] },
@@ -411,6 +416,7 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     }
     this.chart.setOption(
       {
+        textStyle: { fontFamily: token("--font-sans") },
         animation: !matchMedia("(prefers-reduced-motion: reduce)").matches,
         animationDurationUpdate: 180,
         grid: { left: 58, right: 48, top: 56, bottom: this.zoom() ? 72 : 44 },
@@ -421,12 +427,12 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
           max: maxX,
           name: "",
           axisLabel: {
-            color: "#61726b",
-            fontSize: 11,
+            color: token("--muted"),
+            fontSize: captionSize,
             formatter: (v: number) =>
               v.toLocaleString("en-US", { maximumFractionDigits: 1 }),
           },
-          splitLine: { lineStyle: { color: "#e3e8df" } },
+          splitLine: { lineStyle: { color: token("--line") } },
         },
         yAxis: {
           type: "log",
@@ -434,11 +440,11 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
           min: minY,
           max: maxY,
           axisLabel: {
-            color: "#61726b",
-            fontSize: 11,
+            color: token("--muted"),
+            fontSize: captionSize,
             formatter: (v: number) => (v >= 1024 ? `${v / 1024}k` : String(v)),
           },
-          splitLine: { lineStyle: { color: "#e3e8df" } },
+          splitLine: { lineStyle: { color: token("--line") } },
         },
         tooltip: {
           trigger: "item",

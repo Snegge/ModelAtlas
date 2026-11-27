@@ -22,7 +22,7 @@ for (const width of [390, 768, 1440]) {
   await expect(page.locator(".highlight-card")).toHaveCount(1);
   const next = page.getByRole("button", {name:"Next highlight"});
   await expect.poll(() => next.evaluate(button => {
-      const b = button.getBoundingClientRect(), icon = button.querySelector("svg")!.getBoundingClientRect();
+      const b = button.getBoundingClientRect(), icon = button.querySelector("mat-icon")!.getBoundingClientRect();
       return Math.max(Math.abs(b.y + b.height / 2 - icon.y - icon.height / 2), Math.abs(b.x + b.width / 2 - icon.x - icon.width / 2));
     })).toBeLessThan(1);
   const seen = new Set<string>();

@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, inject } from "@angular/core";
 import { AtlasStore } from "./core/atlas.store";
 import { HardwareComponent } from "./components/hardware.component";
@@ -8,7 +9,7 @@ import { ComparisonComponent } from "./components/comparison.component";
 @Component({
   selector: "atlas-explorer",
   standalone: true,
-  imports: [
+  imports: [MatIconModule,
     HardwareComponent,
     ChartComponent,
     CatalogComponent,
@@ -49,7 +50,7 @@ import { ComparisonComponent } from "./components/comparison.component";
           aria-label="Dismiss notification"
           (click)="s.notice.set('')"
         >
-          ×
+          <mat-icon fontIcon="close"></mat-icon>
         </button>
       </div>
     }

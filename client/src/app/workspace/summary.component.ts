@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { FavouriteButtonComponent } from "./favourite-button.component";
 import { Component, input, inject, output } from "@angular/core";
 import { RouterLink } from "@angular/router";
@@ -7,7 +8,7 @@ import { Row } from "./ranking";
 @Component({
   selector: "atlas-summary",
   standalone: true,
-  imports: [FavouriteButtonComponent, RouterLink, MemoryComponent],
+  imports: [MatIconModule, FavouriteButtonComponent, RouterLink, MemoryComponent],
   template: `
     @let x = row();
     <div class="summary-heading">
@@ -84,7 +85,7 @@ import { Row } from "./ranking";
           }
           @if (showDetails()) {
             <a class="details-link" [routerLink]="['/models', x.r.id]" (click)="s.variant(x.r.id, x.a.id)"
-              >Details →</a
+              >Details <mat-icon fontIcon="arrow_forward"></mat-icon></a
             >
           }
         </div>

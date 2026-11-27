@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { CdkAccordionModule } from "@angular/cdk/accordion";
@@ -5,7 +6,7 @@ import { AtlasStore } from "../core/atlas.store";
 @Component({
   selector: "atlas-hardware",
   standalone: true,
-  imports: [FormsModule, CdkAccordionModule],
+  imports: [MatIconModule, FormsModule, CdkAccordionModule],
   template: `
     <aside class="hardware-panel" aria-labelledby="hardware-heading">
       <div class="section-kicker">01 / CONFIGURE</div>
@@ -197,7 +198,7 @@ import { AtlasStore } from "../core/atlas.store";
             aria-controls="advanced-settings"
           >
             Advanced inference settings
-            <span>{{ advanced.expanded ? "−" : "+" }}</span>
+            <mat-icon [fontIcon]="advanced.expanded ? 'remove' : 'add'"></mat-icon>
           </button>
           @if (advanced.expanded) {
             <div id="advanced-settings" class="advanced-fields">

@@ -21,7 +21,7 @@
           <div><dt>Parameters</dt><dd>{{ x.r.totalParameters === null ? "Unknown" : (x.r.totalParameters / 1e9).toFixed(1) + "B" }}</dd></div>
           <div><dt>Maximum context</dt><dd>{{ x.r.contextLimit?.toLocaleString() ?? "Unknown" }} <small>tokens</small></dd></div>
           <div><dt>Family</dt><dd>{{ x.r.family }}</dd></div>
-          <div><dt>License</dt><dd><a [href]="x.r.licenseUrl" target="_blank" rel="noopener noreferrer">{{ x.r.license ?? "Unspecified" }} &nearr;</a></dd></div>
+          <div><dt>License</dt><dd><a [href]="x.r.licenseUrl" target="_blank" rel="noopener noreferrer">{{ x.r.license ?? "Unspecified" }} <mat-icon fontIcon="open_in_new"></mat-icon></a></dd></div>
         </dl></header>
         <nav class="page-sections" aria-label="Model sections">
           <a [routerLink]="[]" fragment="model-fit">Hardware fit</a>
@@ -34,7 +34,7 @@
           <p class="eyebrow">YOUR SELECTED VARIANT</p>
           <h2 id="fit-heading">Will it fit your setup?</h2>
           <p class="muted">{{ s.profile().gpu || "No GPU selected" }} &middot; {{ s.profile().vram ?? "Unknown" }} GiB VRAM &middot; {{ s.profile().ram ?? "Unknown" }} GiB RAM</p>
-          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer &rarr;</a>
+          <a class="hardware-edit" routerLink="/">Adjust hardware in Explorer <mat-icon fontIcon="arrow_forward"></mat-icon></a>
           <atlas-summary [row]="x" [showFavourite]="true" [showDetails]="false" />
           <p class="small muted">Memory fit is an estimate. Runtime support remains unverified.</p>
         </aside>
@@ -66,7 +66,7 @@
           </tbody>
         </table>
         <p class="small muted">These release-level fixtures are shared across variants. They do not measure the effect of quantization on quality.</p>
-        <a routerLink="/methodology" fragment="popularity">How to read these values &rarr;</a>
+        <a routerLink="/methodology" fragment="popularity">How to read these values <mat-icon fontIcon="arrow_forward"></mat-icon></a>
         </section>
         @if (rank() && recommendedDetail()) {
           @let rec = recommendedDetail()!;
@@ -93,8 +93,8 @@
           <p><strong>{{ x.a.quantization }} &middot; {{ x.a.format }}</strong> &middot; {{ (x.a.sizeBytes / 1073741824).toFixed(2) }} GiB across {{ x.a.files.length }} file(s)</p>
           <p class="muted">Use the complete file set for this variant. File size is not the total memory needed to run it.</p>
           <div class="source-actions">
-            <a [href]="x.r.modelCardUrl" target="_blank" rel="noopener noreferrer">Original model card &nearr;</a>
-            <a [href]="x.a.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned artifact repository &nearr;</a>
+            <a [href]="x.r.modelCardUrl" target="_blank" rel="noopener noreferrer">Original model card <mat-icon fontIcon="open_in_new"></mat-icon></a>
+            <a [href]="x.a.sourceUrl" target="_blank" rel="noopener noreferrer">Pinned artifact repository <mat-icon fontIcon="open_in_new"></mat-icon></a>
           </div>
           <details>
             <summary>Complete file set & provenance</summary>
@@ -106,7 +106,7 @@
             </dl>
             <ul class="artifact-files">
               @for (file of x.a.files; track file.path) {
-                <li><a [href]="file.url" target="_blank" rel="noopener noreferrer">{{ file.path }} &nearr;</a>
+                <li><a [href]="file.url" target="_blank" rel="noopener noreferrer">{{ file.path }} <mat-icon fontIcon="open_in_new"></mat-icon></a>
                   <small>{{ file.sizeBytes.toLocaleString() }} bytes</small>
                   <span class="small">SHA256: <code>{{ file.sha256 }}</code></span>
                 </li>
@@ -260,7 +260,7 @@
             (click)="nextRecommendation(-1)"
             aria-label="Previous recommendation"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" /></svg>
+            <mat-icon fontIcon="chevron_left"></mat-icon>
           </button>
           <div class="carousel-cards" aria-live="polite">
             @for (x of s.top(); track x.r.id; let i = $index) {
@@ -284,7 +284,7 @@
             (click)="nextRecommendation(1)"
             aria-label="Next recommendation"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg>
+            <mat-icon fontIcon="chevron_right"></mat-icon>
           </button>
         </div>
         @if (s.api.evaluating()) {
@@ -329,8 +329,7 @@
                 [attr.aria-label]="v"
                 [attr.title]="v"
               >
-                <span aria-hidden="true">{{ viewIcons[v] }}</span
-                ><span class="view-name">{{ v }}</span>
+                <mat-icon [fontIcon]="viewIcons[v]"></mat-icon><span class="view-name">{{ v }}</span>
               </button>
             }
           </div>
@@ -368,13 +367,7 @@
                           >
                             <button (click)="s.order(c[0])">
                               {{ c[1] }}
-                              {{
-                                s.sort() === c[0]
-                                  ? s.descending()
-                                    ? "↓"
-                                    : "↑"
-                                  : ""
-                              }}
+                              @if (s.sort() === c[0]) { <mat-icon [fontIcon]="s.descending() ? 'arrow_downward' : 'arrow_upward'"></mat-icon> }
                             </button>
                           </th>
                         }
@@ -531,7 +524,7 @@
                       <div class="plot-empty"><strong>No speed estimates to plot</strong><span>Check your GPU, VRAM, RAM and bandwidth settings, or broaden your search.</span></div>
                     }
                     </div>
-                    <span class="axis-x">Estimated speed <span>· tokens/s →</span></span>
+                    <span class="axis-x">Estimated speed <span>· tokens/s <mat-icon fontIcon="arrow_forward"></mat-icon></span></span>
                   </div>
                 </div>
                 <div class="plot-footer"><span>{{ plotted().length }} plotted · {{ s.visible().length - plotted().length }} omitted (unknown speed)</span><span>Speed midpoint · Linear scale · Values above 200 at boundary</span></div>
@@ -545,7 +538,7 @@
                 tabindex="-1"
                 aria-label="Selected variant preview"
               >
-                <button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+                <button class="preview-close" aria-label="Close preview" title="Close preview" (click)="s.preview.set(null)"><mat-icon fontIcon="close"></mat-icon></button>
                 @if (s.view() === "Bars") {
                   <div class="preview-heading">
                     <h3>
@@ -578,7 +571,7 @@
       <div class="favourites-sidebar" [class.is-open]="s.favouritesOpen()">
         <button class="catalog-favourites-trigger" aria-controls="catalog-favourites"
           [attr.aria-expanded]="s.favouritesOpen()" (click)="s.favouritesOpen.set(!s.favouritesOpen())">
-          <svg viewBox="0 0 24 24" aria-hidden="true" [class.points-right]="s.favouritesOpen()"><path d="m15 6-6 6 6 6" /></svg>
+          <mat-icon [fontIcon]="s.favouritesOpen() ? 'chevron_right' : 'chevron_left'"></mat-icon>
           <span>Favourites</span><span class="rail-count">{{ s.favourites().length }}</span>
         </button>
         <div class="favourites-slide" [attr.inert]="s.favouritesOpen() ? null : ''" [attr.aria-hidden]="!s.favouritesOpen()">

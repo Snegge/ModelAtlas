@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, inject } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { DatePipe } from "@angular/common";
@@ -7,7 +8,7 @@ import { MemoryComponent } from "./memory.component";
 @Component({
   selector: "atlas-detail",
   standalone: true,
-  imports: [FormsModule, DatePipe, MemoryComponent],
+  imports: [MatIconModule, FormsModule, DatePipe, MemoryComponent],
   template: `
     <aside class="detail-panel" aria-labelledby="detail-heading">
       <div class="section-kicker">DETAILS / EXACT ARTIFACT</div>
@@ -49,7 +50,7 @@ import { MemoryComponent } from "./memory.component";
               ? "Remove from comparison"
               : "Compare this exact artifact"
           }}
-          <span>{{ s.comparisons().includes(a.id) ? "−" : "+" }}</span>
+          <mat-icon [fontIcon]="s.comparisons().includes(a.id) ? 'remove' : 'add'"></mat-icon>
         </button>
         @if (e) {
           <div [class]="'detail-status ' + e.scenario.status">
@@ -109,7 +110,7 @@ import { MemoryComponent } from "./memory.component";
             <dt>License</dt>
             <dd>
               <a [href]="r.licenseUrl" target="_blank" rel="noopener noreferrer"
-                >{{ r.license ?? "Unspecified" }} ↗</a
+                >{{ r.license ?? "Unspecified" }} <mat-icon fontIcon="open_in_new"></mat-icon></a
               >
             </dd>
           </div>
@@ -128,9 +129,9 @@ import { MemoryComponent } from "./memory.component";
         </dl>
         <div class="source-actions">
           <a [href]="r.modelCardUrl" target="_blank" rel="noopener noreferrer"
-            >Original model card ↗</a
+            >Original model card <mat-icon fontIcon="open_in_new"></mat-icon></a
           ><a [href]="a.sourceUrl" target="_blank" rel="noopener noreferrer"
-            >Verified artifact repository ↗</a
+            >Verified artifact repository <mat-icon fontIcon="open_in_new"></mat-icon></a
           >
         </div>
         <details>
@@ -152,7 +153,7 @@ import { MemoryComponent } from "./memory.component";
             </p>
             @for (f of a.files; track f.path) {
               <a [href]="f.url" target="_blank" rel="noopener noreferrer"
-                >{{ f.path }} ↗</a
+                >{{ f.path }} <mat-icon fontIcon="open_in_new"></mat-icon></a
               >
               <p class="small">
                 {{ f.sizeBytes.toLocaleString() }} bytes<br />SHA256:
@@ -188,7 +189,7 @@ import { MemoryComponent } from "./memory.component";
                 [href]="r.architecture.sourceUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                >Architecture metadata source ↗</a
+                >Architecture metadata source <mat-icon fontIcon="open_in_new"></mat-icon></a
               >
               <p>
                 No tokens-per-second prediction. No runtime command is generated

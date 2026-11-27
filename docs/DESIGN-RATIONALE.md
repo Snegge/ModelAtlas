@@ -4,7 +4,7 @@
 
 **What changes when I adjust my hardware or inference settings?** The primary task is an exploration, rather than selecting a purported “best” model. The interface exposes real constraints and distinguishes stored model releases from their downloadable artifact file sets.
 
-The working surface uses a restrained green/stone palette, a technical typographic hierarchy, modest section labels and a persistent hardware column. The constraint plot and exact-artifact comparison share the primary working surface. Color is supplemented by shapes and status text. All fonts are local system fonts; the interface does not depend on external assets.
+The working surface uses the blue/slate palette and shared typography defined in the authoritative [UI style guide](STYLE-GUIDE.md). The interaction descriptions below document the original constraint explorer. The constraint plot and exact-artifact comparison share the primary working surface. Color is supplemented by shapes and status text. All fonts are local system fonts; the interface does not depend on external assets.
 
 No supplied Stuart Card chapter was available in the workspace. This rationale applies established interaction and information-visualization principles without invented quotations or page references. A useful public reference is Ben Shneiderman's _The Eyes Have It_ (1996), [DOI 10.1109/VL.1996.545307](https://doi.org/10.1109/VL.1996.545307).
 

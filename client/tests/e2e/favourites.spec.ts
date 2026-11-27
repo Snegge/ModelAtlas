@@ -18,12 +18,12 @@ for (const width of [390, 768, 1440]) {
     await expect(page.locator(".new-catalog tbody tr").first().locator("td").first().locator("atlas-favourite-button")).toHaveCount(0);
     const arrow = page.getByRole("button", {name:"Next recommendation"});
     await expect.poll(() => arrow.evaluate(button => {
-      const b = button.getBoundingClientRect(), icon = button.querySelector("svg")!.getBoundingClientRect();
+      const b = button.getBoundingClientRect(), icon = button.querySelector("mat-icon")!.getBoundingClientRect();
       return Math.max(Math.abs(b.y + b.height / 2 - icon.y - icon.height / 2), Math.abs(b.x + b.width / 2 - icon.x - icon.width / 2));
     })).toBeLessThan(1);
     await expect(buttons.first()).toHaveAttribute("aria-pressed", "false");
     for (let i = 0; i < 6; i++) await buttons.nth(i).click();
-    await expect(buttons.first().locator("svg")).toHaveAttribute("fill", "currentColor");
+    await expect(buttons.first().locator("mat-icon")).toHaveAttribute("fonticon", "star");
     await page.reload();
     const trigger = page.locator(".catalog-favourites-trigger");
     const panel = page.locator(".favourites-panel");

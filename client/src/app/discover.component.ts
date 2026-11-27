@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { FavouriteButtonComponent } from "./workspace/favourite-button.component";
 import { Component, computed, inject, signal } from "@angular/core";
 import { RouterLink } from "@angular/router";
@@ -7,7 +8,7 @@ import { WorkspaceStore } from "./workspace/workspace.store";
 
 @Component({
   standalone: true,
-  imports: [FavouriteButtonComponent, RouterLink],
+  imports: [MatIconModule, FavouriteButtonComponent, RouterLink],
   template: `
     <section class="discover-page" aria-labelledby="discover-title">
       <div class="discover-entry">
@@ -16,7 +17,7 @@ import { WorkspaceStore } from "./workspace/workspace.store";
       <section class="highlight-carousel" aria-label="Model highlights" aria-roledescription="carousel"
         tabindex="0" (keydown.arrowleft)="step(-1); $event.preventDefault()" (keydown.arrowright)="step(1); $event.preventDefault()"
         (pointercancel)="touch = null" (pointerdown)="touchStart($event)" (pointerup)="touchEnd($event)">
-        <button class="carousel-arrow" aria-label="Previous highlight" (click)="step(-1)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 6-6 6 6 6" /></svg></button>
+        <button class="carousel-arrow" aria-label="Previous highlight" (click)="step(-1)"><mat-icon fontIcon="chevron_left"></mat-icon></button>
         <article class="highlight-card active">
           <div class="discover-kicker"><span>{{ highlight().category }}</span><span role="status">{{ index() + 1 }} of 10</span></div>
           <h2>{{ highlight().name }}</h2>
@@ -37,15 +38,15 @@ import { WorkspaceStore } from "./workspace/workspace.store";
             </div>
             <p class="discover-caveat">Memory is estimated, not a hardware guarantee. Speed and answer quality require your own tests; runtime compatibility is unverified.</p>
             <div class="discover-actions">
-              <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model &rarr;</a>
+              <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon fontIcon="arrow_forward"></mat-icon></a>
               <atlas-favourite-button [row]="x" />
-              <button (click)="learn()">Learn more &darr;</button>
+              <button (click)="learn()">Learn more <mat-icon fontIcon="arrow_downward"></mat-icon></button>
             </div>
           } @else { <p role="status">{{ s.api.loading() ? 'Loading model information...' : 'Model information unavailable. Open Explorer to retry.' }}</p><a routerLink="/">Open Explorer</a> }
         </article>
-        <button class="carousel-arrow" aria-label="Next highlight" (click)="step(1)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 6 6 6-6 6" /></svg></button>
+        <button class="carousel-arrow" aria-label="Next highlight" (click)="step(1)"><mat-icon fontIcon="chevron_right"></mat-icon></button>
       </section>
-      <a class="discover-transition" href="#discover-details" (click)="$event.preventDefault(); learn()">Explore the selection below &darr;</a>
+      <a class="discover-transition" href="#discover-details" (click)="$event.preventDefault(); learn()">Explore the selection below <mat-icon fontIcon="arrow_downward"></mat-icon></a>
       </div>
         <div class="discover-filters" role="group" aria-label="Discover collections">
           @for (tab of tabs; track tab) {
@@ -70,7 +71,7 @@ import { WorkspaceStore } from "./workspace/workspace.store";
             <p class="discover-description">{{ pick().description }}</p>
             <h3>Why this model?</h3>
             <p class="discover-reason">{{ pick().reason }}</p>
-            @if (collection() !== 'Highlights') { <p class="publisher">{{ evidence() }} <a [href]="metadata()?.source" target="_blank" rel="noopener">Source &nearr;</a></p> }
+            @if (collection() !== 'Highlights') { <p class="publisher">{{ evidence() }} <a [href]="metadata()?.source" target="_blank" rel="noopener">Source <mat-icon fontIcon="open_in_new"></mat-icon></a></p> }
             @if (row(); as x) {
               <dl class="discover-metrics">
                 <div><dt>Parameters</dt><dd>{{ x.r.totalParameters === null ? 'Unknown' : (x.r.totalParameters / 1e9).toLocaleString("en", { maximumFractionDigits: 2 }) + 'B' }}</dd></div>
@@ -84,12 +85,12 @@ import { WorkspaceStore } from "./workspace/workspace.store";
             <p class="discover-caveat">Typical tasks: {{ pick().tasks }}.<br>Estimates are not measured performance. Runtime compatibility is unverified.<br>Hardware fit depends on context and runtime.<br>Popularity is not proof of quality for your task.</p>
             <div class="discover-actions">
               @if (row(); as x) {
-                <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model →</a>
+                <a class="discover-primary" [routerLink]="['/models', x.r.id]">View model <mat-icon fontIcon="arrow_forward"></mat-icon></a>
                 <atlas-favourite-button [row]="x" />
                 @if (s.favourites().length) {
-                  <a routerLink="/" fragment="model-catalog" (click)="s.favouritesOpen.set(true)">View favourites →</a>
+                  <a routerLink="/" fragment="model-catalog" (click)="s.favouritesOpen.set(true)">View favourites <mat-icon fontIcon="arrow_forward"></mat-icon></a>
                 }
-              } @else { <a routerLink="/">Explore the catalog →</a> }
+              } @else { <a routerLink="/">Explore the catalog <mat-icon fontIcon="arrow_forward"></mat-icon></a> }
             </div>
           </article>
         </div>

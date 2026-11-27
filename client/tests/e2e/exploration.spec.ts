@@ -144,7 +144,7 @@ test("profiles, overrides and All tasks recommendations stay independent of cata
   ).toEqual(recommendations);
   await page
     .locator(".recommendation:visible")
-    .getByRole("link", { name: "Details →" })
+    .getByRole("link", { name: "Details" })
     .click();
   await expect(page.locator(".recommendation-reason")).toContainText(
     "All tasks",
@@ -291,7 +291,7 @@ test("same-task scores agree across recommendation, table and detail; plot keybo
   await page.locator(".plot-dot").first().focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".preview")).toBeVisible();
-  await first.getByRole("link", { name: "Details →" }).click();
+  await first.getByRole("link", { name: "Details" }).click();
   await expect(page.locator(".detail-page .summary-heading strong")).toHaveText(
     score!,
   );
@@ -452,7 +452,7 @@ test("model detail summary offers favourites without a self-link", async ({
   await boot(page);
   await page
     .locator(".recommendation:visible")
-    .getByRole("link", { name: "Details →" })
+    .getByRole("link", { name: "Details" })
     .click();
   await expect(page.locator(".detail-page atlas-summary .actions")).toHaveCount(1);
   await expect(

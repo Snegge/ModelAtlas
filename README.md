@@ -301,3 +301,8 @@ The frontend uses Angular 22, Angular CDK and ECharts. The backend uses ASP.NET 
 A memory fit is an estimate, not a guarantee that an inference runtime supports a model or that it will run successfully. CPU-only, unified-memory and multi-GPU configurations are outside this prototype. The workspace additionally shows explicitly synthetic task-quality rankings and rough GPU-bandwidth-based speed ranges; neither is measured performance. Offloading speed remains unknown.
 
 More project documentation: [design rationale](docs/DESIGN-RATIONALE.md), [usability-study plan](docs/USABILITY-STUDY.md), [data sources](docs/DATA-SOURCES.md) and [validation](docs/VALIDATION.md).
+
+## UI contribution rules
+
+Read [the UI style guide](docs/STYLE-GUIDE.md) before changing the interface.
+[AGENTS.md](AGENTS.md) applies it to coding agents; `client/src/theme.css` owns design tokens.

@@ -1,3 +1,4 @@
+import { MatIconModule } from "@angular/material/icon";
 import { Component, computed, effect, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { A11yModule } from "@angular/cdk/a11y";
@@ -6,7 +7,7 @@ import { STATUS_SYMBOL } from "../core/models";
 @Component({
   selector: "atlas-catalog",
   standalone: true,
-  imports: [FormsModule, A11yModule],
+  imports: [MatIconModule, FormsModule, A11yModule],
   template: `
     <section class="catalog-panel" aria-labelledby="catalog-heading">
       <div class="panel-heading">
@@ -22,7 +23,7 @@ import { STATUS_SYMBOL } from "../core/models";
           (click)="s.exportCsv()"
           [disabled]="!s.current() || !s.visible().length"
         >
-          Export CSV ↗
+          Export CSV <mat-icon fontIcon="open_in_new"></mat-icon>
         </button>
       </div>
       <div class="catalog-filters">
@@ -69,10 +70,10 @@ import { STATUS_SYMBOL } from "../core/models";
             [ngModel]="s.filters().sort"
             (ngModelChange)="s.setFilter({ sort: $event })"
           >
-            <option value="memory">Estimated memory ↑</option>
+            <option value="memory">Estimated memory (ascending)</option>
             <option value="name">Model name A–Z</option>
-            <option value="context">Documented context ↓</option>
-            <option value="parameters">Total parameters ↑</option>
+            <option value="context">Documented context (descending)</option>
+            <option value="parameters">Total parameters (ascending)</option>
           </select>
         </div>
       </div>
@@ -217,7 +218,7 @@ import { STATUS_SYMBOL } from "../core/models";
                         a.quantization
                       "
                     >
-                      {{ s.comparisons().includes(a.id) ? "✓" : "+" }}
+                      <mat-icon [fontIcon]="s.comparisons().includes(a.id) ? 'check' : 'add'"></mat-icon>
                     </button>
                   </td>
                 </tr>
@@ -252,7 +253,7 @@ import { STATUS_SYMBOL } from "../core/models";
         </div>
       } @else {
         <div class="empty-state">
-          <span class="empty-mark">⌕</span>
+          <mat-icon fontIcon="search" class="empty-mark"></mat-icon>
           <h3>No matching releases</h3>
           <p>
             Your selections are still available. Try a broader search or clear

@@ -78,3 +78,53 @@ The populated importer was run against public Hugging Face sources during implem
 No model weights were fully downloaded and no inference runtime was run. Model execution, throughput, quantization accuracy, effective long-context behavior, CPU-only/unified-memory configurations and Windows execution were **not** validated. PowerShell startup commands and VS Code tasks are provided; the executed platform was Linux. Memory estimates are planning heuristics, separately labelled from unverified runtime compatibility.
 
 There are no benchmark quality rankings. The usability study is a plan, not a conducted study. Cloud configuration saving is separate from publishing/restoring a new cloud task; no fresh-task restoration is claimed.
+
+## UI style unification — 2026-11-26
+
+The current visual contract is [STYLE-GUIDE.md](STYLE-GUIDE.md).
+`npm test --prefix client` passes all 43 checks, including the new token contract;
+`npm run build --prefix client` passes. The route-level style suite passes at
+390, 768 and 1440 px, checking surfaces, primary/hover/focus states, document
+width and axe accessibility on Explorer, Discover, model details and Method.
+Desktop/mobile Explorer and tablet Discover screenshots were visually inspected.
+The local browser was system Chromium (`CHROMIUM_PATH=/usr/bin/chromium`).
+
+The full existing browser suite is **not green**. Sixteen existing flows passed;
+four existing exploration tests remain unresolved:
+
+- Two tests request the `← Explorer` link; the current template and pre-change
+  HEAD instead provide `Adjust hardware in Explorer →` and the main navigation.
+- One requests `Advanced: context & memory` and its context input, which are absent
+  from both the current workspace template and pre-change HEAD.
+- One assumes Tab after closing the favourites rail leaves focus in the document;
+  focus reaches `body` in this browser run. This was not baseline-retested.
+
+The initial new style tests also caught insufficient contrast in Discover's
+selected labels; those labels now use `--link` and the style tests pass.
+No backend, ranking, storage or catalog behavior was changed. The legacy canvas
+chart consumes the shared tokens but is not mounted on the current routes, so
+its rendering was not browser-tested. Firefox, Safari and manual screen-reader
+behavior were not checked in this change.
+
+## Material icons — 2026-11-26
+
+Bundled official Material SVG assets now render through Angular Material MatIcon.
+44 unit/contract tests and the production build pass. Eleven relevant existing
+browser tests pass (Discover, favourites, detail/Method, plot and style contract).
+Three additional icon tests pass at 390, 768 and 1440px, checking SVG loading,
+20px geometry, inherited fill, decorative accessibility, no page overflow and no
+browser console errors across catalog views, details and Discover. Existing
+carousel tests also verify icon centering. The mobile Discover screenshot was
+visually inspected. The four previously recorded exploration test failures were
+not rerun; legacy unmounted components and Firefox/Safari were not browser-tested.
+
+## Standard fontIcon API — 2026-11-26
+
+All UI icons now use fontIcon/[fontIcon] with the official locally served Material
+Icons font. The SVG registry and individual SVG assets were removed. 44 unit tests
+and the production build pass. Eleven existing browser flows pass; the three
+updated icon flows pass at 390/768/1440px after waiting for dynamic view changes.
+Checks cover successful font loading, ligature glyph widths, fixed icon geometry,
+accessible decoration and page overflow. Mobile Discover was visually inspected.
+Firefox/Safari and the previously recorded unrelated exploration failures were
+not retested.
